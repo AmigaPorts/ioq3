@@ -32,8 +32,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   #define BASEGAME			"baseoa"
   #define CLIENT_WINDOW_TITLE     	"OpenArena"
   #define CLIENT_WINDOW_MIN_TITLE 	"OpenArena"
-  #define GAMENAME_FOR_MASTER		"OpenArena"	   // must NOT contain whitespaces
-
+  #define GAMENAME_FOR_MASTER		"Quake3Arena"	// must NOT contain whitespaces. No servers show up if you use "openarena"	
+  #define LEGACY_PROTOCOL		1
 #else
 
   #define PRODUCT_NAME			"ioq3"
@@ -41,20 +41,29 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   #define CLIENT_WINDOW_TITLE     	"ioquake3"
   #define CLIENT_WINDOW_MIN_TITLE 	"ioq3"
   #define GAMENAME_FOR_MASTER		"Quake3Arena"
+  #define LEGACY_PROTOCOL
 
 #endif
 
-#ifdef OPEN_ARENA
-  #define PRODUCT_VERSION "1.35+oa"
-#else
-//#ifdef _MSC_VER
-  #define PRODUCT_VERSION "1.35"
-//#endif
+// Heartbeat for dpmaster protocol. You shouldn't change this unless you know what you're doing
+#define HEARTBEAT_FOR_MASTER		"DarkPlaces"
+
+// When com_gamename is LEGACY_MASTER_GAMENAME, use quake3 master protocol.
+// You shouldn't change this unless you know what you're doing
+#define LEGACY_MASTER_GAMENAME		"Quake3Arena"
+#define LEGACY_HEARTBEAT_FOR_MASTER	"QuakeArena-1"
+
+#define BASETA				"missionpack"
+
+#ifndef PRODUCT_VERSION
+  #define PRODUCT_VERSION "1.36"
 #endif
 
 #define Q3_VERSION PRODUCT_NAME " " PRODUCT_VERSION
 
 #define MAX_TEAMNAME 32
+
+#define DEMOEXT "dm_"
 
 #ifdef _MSC_VER
 
@@ -88,6 +97,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define __attribute__(x)
 #endif
 #endif
+
+#define Q_EXPORT
 
 /**********************************************************************
   VM Considerations
@@ -287,7 +298,7 @@ typedef enum {
 #define UI_PULSE		0x00004000
 
 #if defined(_DEBUG) && !defined(BSPC)
-	#define HUNK_DEBUG
+#define HUNK_DEBUG
 #endif
 
 typedef enum {
@@ -494,6 +505,8 @@ typedef struct {
 #define VectorSet(v, x, y, z)	((v)[0]=(x), (v)[1]=(y), (v)[2]=(z))
 #define Vector4Copy(a,b)	((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2],(b)[3]=(a)[3])
 
+#define Byte4Copy(a,b)		((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2],(b)[3]=(a)[3])
+
 #define	SnapVector(v) 		{v[0]=((int)(v[0]));v[1]=((int)(v[1]));v[2]=((int)(v[2]));}
 
 // just in case you do't want to use the macros
@@ -513,8 +526,9 @@ float RadiusFromBounds( const vec3_t mins, const vec3_t maxs );
 void ClearBounds( vec3_t mins, vec3_t maxs );
 void AddPointToBounds( const vec3_t v, vec3_t mins, vec3_t maxs );
 
-#if !defined(AMIGA) && !defined(__VBCC__)
+
 #if !defined( Q3_VM ) || ( defined( Q3_VM ) && defined( __Q3_VM_MATH ) )
+#if !defined(AMIGA) && !defined(__VBCC__)
 
 static ID_INLINE int VectorCompare( const vec3_t v1, const vec3_t v2 )
 {
@@ -590,10 +604,11 @@ void VectorNormalizeFast( vec3_t v );
 void VectorInverse( vec3_t v );
 void CrossProduct( const vec3_t v1, const vec3_t v2, vec3_t cross );
 
-#endif
 #endif // no Amiga
+#endif 
 
-#if defined(AMIGA) && defined(__VBCC__)
+#if 0
+#if !defined(AMIGA) && !defined(__VBCC__)
 
 int VectorCompare( const vec3_t v1, const vec3_t v2 );
 vec_t VectorLength( const vec3_t v );
@@ -604,6 +619,7 @@ void VectorNormalizeFast( vec3_t v );
 void VectorInverse( vec3_t v );
 void CrossProduct( const vec3_t v1, const vec3_t v2, vec3_t cross );
 
+#endif
 #endif
 
 
@@ -658,6 +674,13 @@ void AngleVectors( const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 void PerpendicularVector( vec3_t dst, const vec3_t src );
 int Q_isnan( float x );
 
+#ifndef MAX
+#define MAX(x,y) ((x)>(y)?(x):(y))
+#endif
+
+#ifndef MIN
+#define MIN(x,y) ((x)<(y)?(x):(y))
+#endif
 
 //=============================================
 
@@ -666,6 +689,7 @@ float Com_Clamp( float min, float max, float value );
 char	*COM_SkipPath( char *pathname );
 const char *COM_GetExtension( const char *name );
 void	COM_StripExtension(const char *in, char *out, int destsize);
+qboolean COM_CompareExtension(const char *in, const char *ext); // new Cowcat
 void	COM_DefaultExtension( char *path, int maxSize, const char *extension );
 
 void	COM_BeginParseSession( const char *name );
@@ -712,7 +736,7 @@ void Parse2DMatrix (char **buf_p, int y, int x, float *m);
 void Parse3DMatrix (char **buf_p, int z, int y, int x, float *m);
 int Com_HexStrToInt( const char *str );
 
-void QDECL Com_sprintf (char *dest, int size, const char *fmt, ...) __attribute__ ((format (printf, 3, 4)));
+int QDECL Com_sprintf (char *dest, int size, const char *fmt, ...) __attribute__ ((format (printf, 3, 4)));
 
 char *Com_SkipTokens( char *s, int numTokens, char *sep );
 char *Com_SkipCharset( char *s, char *sep );
@@ -750,7 +774,7 @@ int	Q_strncmp (const char *s1, const char *s2, int n);
 int	Q_stricmpn (const char *s1, const char *s2, int n);
 char	*Q_strlwr( char *s1 );
 char	*Q_strupr( char *s1 );
-char	*Q_strrchr( const char* string, int c );
+//char	*Q_strrchr( const char* string, int c );
 const char *Q_stristr( const char *s, const char *find);
 
 // buffer size safe library replacements
@@ -830,27 +854,31 @@ default values.
 ==========================================================
 */
 
-#define	CVAR_ARCHIVE		1		// set to cause it to be saved to vars.rc
-								// used for system variables, not for player
-								// specific configurations
-#define	CVAR_USERINFO		2		// sent to server on connect or change
-#define	CVAR_SERVERINFO		4		// sent in response to front end requests
-#define	CVAR_SYSTEMINFO		8		// these cvars will be duplicated on all clients
-#define	CVAR_INIT		16		// don't allow change from console at all,
-								// but can be set from the command line
-#define	CVAR_LATCH		32		// will only change when C code next does
-								// a Cvar_Get(), so it can't be changed
-								// without proper initialization.  modified
-								// will be set, even though the value hasn't
-								// changed yet
-#define	CVAR_ROM		64		// display only, cannot be set by user at all
-#define	CVAR_USER_CREATED	128		// created by a set command
-#define	CVAR_TEMP		256		// can be set even when cheats are disabled, but is not archived
-#define CVAR_CHEAT		512		// can not be changed if cheats are disabled
-#define CVAR_NORESTART		1024		// do not clear when a cvar_restart is issued
+#define	CVAR_ARCHIVE		0x0001	// set to cause it to be saved to vars.rc
+					// used for system variables, not for player
+					// specific configurations
+#define	CVAR_USERINFO		0x0002	// sent to server on connect or change
+#define	CVAR_SERVERINFO		0x0004	// sent in response to front end requests
+#define	CVAR_SYSTEMINFO		0x0008	// these cvars will be duplicated on all clients
+#define	CVAR_INIT		0x0010	// don't allow change from console at all,
+					// but can be set from the command line
+#define	CVAR_LATCH		0x0020	// will only change when C code next does
+					// a Cvar_Get(), so it can't be changed
+					// without proper initialization.  modified
+					// will be set, even though the value hasn't
+					// changed yet
+#define	CVAR_ROM		0x0040	// display only, cannot be set by user at all
+#define	CVAR_USER_CREATED	0x0080	// created by a set command
+#define	CVAR_TEMP		0x0100	// can be set even when cheats are disabled, but is not archived
+#define CVAR_CHEAT		0x0200	// can not be changed if cheats are disabled
+#define CVAR_NORESTART		0x0400	// do not clear when a cvar_restart is issued
 
-#define CVAR_SERVER_CREATED	2048		// cvar was created by a server the client connected to.
-#define CVAR_NONEXISTENT	0xFFFFFFFF	// Cvar doesn't exist.
+#define CVAR_SERVER_CREATED	0x0800	// cvar was created by a server the client connected to.
+#define CVAR_VM_CREATED		0x1000	// cvar was created exclusively in one of the VMs.
+#define CVAR_PROTECTED		0x2000	// prevent modifying this var from VMs or the server
+// These flags are only returned by the Cvar_Flags() function
+#define CVAR_MODIFIED		0x40000000	// Cvar was modified
+#define CVAR_NONEXISTENT	0x80000000	// Cvar doesn't exist.
 
 // nothing outside the Cvar_*() functions should modify these fields!
 typedef struct cvar_s {

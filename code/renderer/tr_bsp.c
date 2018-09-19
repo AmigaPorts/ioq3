@@ -373,8 +373,7 @@ static void ParseFace( dsurface_t *ds, drawVert_t *verts, msurface_t *surf, int 
 	numIndexes = LittleLong( ds->numIndexes );
 
 	// create the srfSurfaceFace_t
-	//sfaceSize = ( size_t ) &((srfSurfaceFace_t *)0)->points[numPoints];
-	sfaceSize = offsetof( srfSurfaceFace_t, points ) + sizeof(*cv->points) * numPoints; // new ioq3 - Cowcat
+	sfaceSize = offsetof( srfSurfaceFace_t, points ) + sizeof(*cv->points) * numPoints;
 	ofsIndexes = sfaceSize;
 	sfaceSize += sizeof( int ) * numIndexes;
 
@@ -535,7 +534,6 @@ static void ParseTriSurf( dsurface_t *ds, drawVert_t *verts, msurface_t *surf, i
 	tri->numIndexes = numIndexes;
 	tri->verts = (drawVert_t *)(tri + 1);
 	tri->indexes = (int *)(tri->verts + tri->numVerts );
-
 	surf->data = (surfaceType_t *)tri;
 
 	// copy vertexes

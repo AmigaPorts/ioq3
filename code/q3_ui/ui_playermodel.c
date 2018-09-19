@@ -339,14 +339,14 @@ static void PlayerModel_PicEvent( void* ptr, int event )
 		Q_strncpyz(s_playermodel.modelskin,buffptr,pdest-buffptr+1);
 		strcat(s_playermodel.modelskin,pdest + 5);
 
-		// seperate the model name
+		// separate the model name
 		maxlen = pdest-buffptr;
 		if (maxlen > 16)
 			maxlen = 16;
 		Q_strncpyz( s_playermodel.modelname.string, buffptr, maxlen );
 		Q_strupr( s_playermodel.modelname.string );
 
-		// seperate the skin name
+		// separate the skin name
 		maxlen = strlen(pdest+5)+1;
 		if (maxlen > 16)
 			maxlen = 16;
@@ -469,6 +469,11 @@ static void PlayerModel_SetMenuItems( void )
 	// model
 	trap_Cvar_VariableStringBuffer( "model", s_playermodel.modelskin, 64 );
 	
+	// use default skin if none is set
+	if (!strchr(s_playermodel.modelskin, '/')) {
+		Q_strcat(s_playermodel.modelskin, 64, "/default");
+	}
+	
 	// find model in our list
 	for (i=0; i<s_playermodel.nummodels; i++)
 	{
@@ -489,14 +494,14 @@ static void PlayerModel_SetMenuItems( void )
 			s_playermodel.selectedmodel = i;
 			s_playermodel.modelpage     = i/MAX_MODELSPERPAGE;
 
-			// seperate the model name
+			// separate the model name
 			maxlen = pdest-buffptr;
 			if (maxlen > 16)
 				maxlen = 16;
 			Q_strncpyz( s_playermodel.modelname.string, buffptr, maxlen );
 			Q_strupr( s_playermodel.modelname.string );
 
-			// seperate the skin name
+			// separate the skin name
 			maxlen = strlen(pdest+5)+1;
 			if (maxlen > 16)
 				maxlen = 16;

@@ -222,12 +222,13 @@ Completely restarts a level, but doesn't send a new gamestate to the clients.
 This allows fair starts with variable load times.
 ================
 */
-static void SV_MapRestart_f( void ) {
-	int			i;
+static void SV_MapRestart_f( void )
+{
+	int		i;
 	client_t	*client;
 	char		*denied;
 	qboolean	isBot;
-	int			delay;
+	int		delay;
 
 	// make sure we aren't restarting twice in the same frame
 	if ( com_frameTime == sv.serverId ) {
@@ -235,7 +236,8 @@ static void SV_MapRestart_f( void ) {
 	}
 
 	// make sure server is running
-	if ( !com_sv_running->integer ) {
+	if ( !com_sv_running->integer )
+	{
 		Com_Printf( "Server is not running.\n" );
 		return;
 	}
@@ -247,10 +249,13 @@ static void SV_MapRestart_f( void ) {
 	if (Cmd_Argc() > 1 ) {
 		delay = atoi( Cmd_Argv(1) );
 	}
+
 	else {
 		delay = 5;
 	}
-	if( delay && !Cvar_VariableValue("g_doWarmup") ) {
+
+	if( delay && !Cvar_VariableValue("g_doWarmup") )
+	{
 		sv.restartTime = sv.time + delay * 1000;
 		SV_SetConfigstring( CS_WARMUP, va("%i", sv.restartTime) );
 		return;
@@ -258,7 +263,8 @@ static void SV_MapRestart_f( void ) {
 
 	// check for changes in variables that can't just be restarted
 	// check for maxclients change
-	if ( sv_maxclients->modified || sv_gametype->modified ) {
+	if ( sv_maxclients->modified || sv_gametype->modified )
+	{
 		char	mapname[MAX_QPATH];
 
 		Com_Printf( "variable change -- restarting.\n" );
@@ -298,7 +304,8 @@ static void SV_MapRestart_f( void ) {
 	sv.restarting = qfalse;
 
 	// connect and begin all the clients
-	for (i=0 ; i<sv_maxclients->integer ; i++) {
+	for (i=0 ; i<sv_maxclients->integer ; i++)
+	{
 		client = &svs.clients[i];
 
 		// send the new gamestate to all connected clients
@@ -308,7 +315,9 @@ static void SV_MapRestart_f( void ) {
 
 		if ( client->netchan.remoteAddress.type == NA_BOT ) {
 			isBot = qtrue;
-		} else {
+		}
+
+		else {
 			isBot = qfalse;
 		}
 
@@ -317,7 +326,9 @@ static void SV_MapRestart_f( void ) {
 
 		// connect the client again, without the firstTime flag
 		denied = VM_ExplicitArgPtr( gvm, VM_Call( gvm, GAME_CLIENT_CONNECT, i, qfalse, isBot ) );
-		if ( denied ) {
+
+		if ( denied )
+		{
 			// this generally shouldn't happen, because the client
 			// was connected before the level change
 			SV_DropClient( client, denied );
@@ -325,9 +336,16 @@ static void SV_MapRestart_f( void ) {
 			continue;
 		}
 
-		client->state = CS_ACTIVE;
+		if(client->state == CS_ACTIVE)
+			SV_ClientEnterWorld(client, &client->lastUsercmd);
 
-		SV_ClientEnterWorld( client, &client->lastUsercmd );
+		else
+		{
+			// If we don't reset client->lastUsercmd and are restarting during map load,
+			// the client will hang because we'll use the last Usercmd from the previous map,
+			// which is wrong obviously.
+			SV_ClientEnterWorld(client, NULL);
+		}
 	}	
 
 	// run another frame to allow things to look at all the players
@@ -1083,18 +1101,21 @@ static void SV_CompleteMapName( char *args, int argNum ) {
 SV_AddOperatorCommands
 ==================
 */
-void SV_AddOperatorCommands( void ) {
+void SV_AddOperatorCommands( void )
+{
 	static qboolean	initialized;
 
 	if ( initialized ) {
 		return;
 	}
+
 	initialized = qtrue;
 
 	Cmd_AddCommand ("heartbeat", SV_Heartbeat_f);
 	Cmd_AddCommand ("kick", SV_Kick_f);
+
 #ifndef STANDALONE
-	if(!Cvar_VariableIntegerValue("com_standalone"))
+	if(!com_standalone->integer)
 	{
 		Cmd_AddCommand ("banUser", SV_Ban_f);
 		Cmd_AddCommand ("banClient", SV_BanNum_f);
@@ -1118,6 +1139,7 @@ void SV_AddOperatorCommands( void ) {
 	Cmd_SetCommandCompletionFunc( "spdevmap", SV_CompleteMapName );
 #endif
 	Cmd_AddCommand ("killserver", SV_KillServer_f);
+
 	if( com_dedicated->integer ) {
 		Cmd_AddCommand ("say", SV_ConSay_f);
 	}
@@ -1136,7 +1158,8 @@ void SV_AddOperatorCommands( void ) {
 SV_RemoveOperatorCommands
 ==================
 */
-void SV_RemoveOperatorCommands( void ) {
+void SV_RemoveOperatorCommands( void )
+{
 #if 0
 	// removing these won't let the server start again
 	Cmd_RemoveCommand ("heartbeat");

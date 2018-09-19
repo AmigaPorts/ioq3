@@ -71,8 +71,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #endif
 
-//static struct Device *TimerBase = NULL;
-
 // Used to determine CD Path
 static char cdPath[MAX_OSPATH];
 
@@ -80,15 +78,14 @@ static char cdPath[MAX_OSPATH];
 static char installPath[MAX_OSPATH];
 
 // Used to determine where to store user-specific files
-static char homePath[MAX_OSPATH];
-
-static struct timeval sys_timeBase;
+static char homePath[MAX_OSPATH] = { 0 }; // cowcat
 
 qboolean Sys_RandomBytes( byte *string, int len )
 {
 	return qfalse;
 }
 
+#if 0
 #ifndef TIMERNAME
 
 struct timeval {
@@ -102,8 +99,12 @@ struct timeval {
 #define tv_usec tv_micro
 
 #endif
+#endif
 
 #if 0
+
+static struct Device *TimerBase = NULL;
+static struct timeval sys_timeBase;
 
 int Sys_Milliseconds(void)
 {
@@ -140,7 +141,7 @@ int Sys_Milliseconds(void)
 
 	#endif
 	
-	return curtime.tv_sec * 1000 + curtime.tv_usec/1000;
+	return curtime.tv_secs * 1000 + curtime.tv_micro/1000;
 }
 
 #else // Cowcat
@@ -155,30 +156,30 @@ int Sys_Milliseconds(void)
 {
 	struct timeval 	tv;
   	unsigned int 	currenttime;
-	static qboolean initialized = qfalse;
 	
   	#ifdef __PPC__
 
   	GetSysTimePPC(&tv);
 
 	#else
+	
+	static struct Device *TimerBase;
+
+	if (!TimerBase)
+		TimerBase = (struct Device *)FindName(&SysBase->DeviceList,"timer.device");
 
  	GetSysTime(&tv);
 
 	#endif
 
-  	currenttime = tv.tv_sec;
+  	currenttime = tv.tv_secs;
 
-	if (!initialized)
-	{
+	if (!inittime)
 		inittime = currenttime;
-
-		initialized = qtrue;
-	}
 
   	currenttime = currenttime-inittime;
 
-  	return currenttime * 1000 + tv.tv_usec / 1000;
+  	return currenttime * 1000 + tv.tv_micro / 1000;
 }
 
 #endif
@@ -188,7 +189,7 @@ extern float rint(float x);
 #endif
 
 #if 0
-float rintf(float x)
+float rint-test(float x)
 {
 	static const float TWO23 = 8388608.0;
 
@@ -228,7 +229,6 @@ void Sys_SnapVector(float *v)
 
 	//ri.Printf(PRINT_ALL, "rint 0 %f, 1 %f, 2 %f\n", v[0],v[1],v[2]);
 }
-
 
 void Sys_Mkdir(const char *path)
 {
@@ -314,19 +314,15 @@ void Sys_ListFilteredFiles( const char *basedir, char *subdirs, char *filter, ch
 	closedir(fdir);
 }
 
-// bk001129 - in 1.17 this used to be
-// char **Sys_ListFiles( const char *directory, const char *extension, int *numfiles, qboolean wantsubs )
 char **Sys_ListFiles( const char *directory, const char *extension, char *filter, int *numfiles, qboolean wantsubs )
 {
-	struct dirent *d;
-	// char *p; // bk001204 - unused
+	struct dirent	*d;
 	DIR		*fdir;
 	qboolean 	dironly = wantsubs;
 	char		search[MAX_OSPATH];
 	int		nfiles;
 	char		**listCopy;
 	char		*list[MAX_FOUND_FILES];
-	//int		flag; // bk001204 - unused
 	int		i;
 	struct stat 	st;
 
@@ -337,7 +333,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 		nfiles = 0;
 		Sys_ListFilteredFiles( directory, "", filter, list, &nfiles );
 
-		list[ nfiles ] = 0;
+		list[ nfiles ] = NULL; // was 0 - Cowcat
 		*numfiles = nfiles;
 
 		if (!nfiles)
@@ -405,7 +401,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 		nfiles++;
 	}
 
-	list[ nfiles ] = 0;
+	list[ nfiles ] = NULL; // was 0 - Cowcat
 
 	closedir(fdir);
 
@@ -445,7 +441,6 @@ void Sys_FreeFileList( char **list )
 
 	Z_Free( list );
 }
-
 
 char *Sys_Cwd( void ) 
 {
@@ -489,13 +484,14 @@ void Sys_SetDefaultHomePath(const char *path)
 
 char *Sys_DefaultHomePath(void)
 {
+#if 0
 	char *p;
 
 	if (*homePath)
 		return homePath;
 
 // don't  use $HOME because cygwin users complain
-#if 0
+//#if 0
 	if ((p = getenv("HOME")) != NULL)
 	{
 		Q_strncpyz(homePath, p, sizeof(homePath));

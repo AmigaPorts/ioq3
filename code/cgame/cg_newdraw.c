@@ -160,89 +160,68 @@ void CG_SelectPrevPlayer( void ) {
 
 
 static void CG_DrawPlayerArmorIcon( rectDef_t *rect, qboolean draw2D ) {
-	centity_t	*cent;
-	playerState_t	*ps;
 	vec3_t		angles;
 	vec3_t		origin;
 
-  if ( cg_drawStatus.integer == 0 ) {
+	if ( cg_drawStatus.integer == 0 ) {
 		return;
 	}
 
-	cent = &cg_entities[cg.snap->ps.clientNum];
-	ps = &cg.snap->ps;
-
 	if ( draw2D || ( !cg_draw3dIcons.integer && cg_drawIcons.integer) ) {
 		CG_DrawPic( rect->x, rect->y + rect->h/2 + 1, rect->w, rect->h, cgs.media.armorIcon );
-  } else if (cg_draw3dIcons.integer) {
-	  VectorClear( angles );
-    origin[0] = 90;
-  	origin[1] = 0;
-  	origin[2] = -10;
-  	angles[YAW] = ( cg.time & 2047 ) * 360 / 2048.0;
-  
-    CG_Draw3DModel( rect->x, rect->y, rect->w, rect->h, cgs.media.armorModel, 0, origin, angles );
-  }
-
+	} else if (cg_draw3dIcons.integer) {
+		VectorClear( angles );
+		origin[0] = 90;
+		origin[1] = 0;
+		origin[2] = -10;
+		angles[YAW] = ( cg.time & 2047 ) * 360 / 2048.0f;
+		CG_Draw3DModel( rect->x, rect->y, rect->w, rect->h, cgs.media.armorModel, 0, origin, angles );
+	}
 }
 
 static void CG_DrawPlayerArmorValue(rectDef_t *rect, float scale, vec4_t color, qhandle_t shader, int textStyle) {
 	char	num[16];
-  int value;
-	centity_t	*cent;
+	int		value;
 	playerState_t	*ps;
 
-  cent = &cg_entities[cg.snap->ps.clientNum];
 	ps = &cg.snap->ps;
 
 	value = ps->stats[STAT_ARMOR];
-  
 
 	if (shader) {
-    trap_R_SetColor( color );
+		trap_R_SetColor( color );
 		CG_DrawPic(rect->x, rect->y, rect->w, rect->h, shader);
-	  trap_R_SetColor( NULL );
+		trap_R_SetColor( NULL );
 	} else {
 		Com_sprintf (num, sizeof(num), "%i", value);
 		value = CG_Text_Width(num, scale, 0);
-	  CG_Text_Paint(rect->x + (rect->w - value) / 2, rect->y + rect->h, scale, color, num, 0, 0, textStyle);
+		CG_Text_Paint(rect->x + (rect->w - value) / 2, rect->y + rect->h, scale, color, num, 0, 0, textStyle);
 	}
 }
 
-#ifndef MISSIONPACK
-static float healthColors[4][4] = { 
-//		{ 0.2, 1.0, 0.2, 1.0 } , { 1.0, 0.2, 0.2, 1.0 }, {0.5, 0.5, 0.5, 1} };
-  { 1.0f, 0.69f, 0.0f, 1.0f } ,		// normal
-  { 1.0f, 0.2f, 0.2f, 1.0f },		// low health
-  { 0.5f, 0.5f, 0.5f, 1.0f},		// weapon firing
-  { 1.0f, 1.0f, 1.0f, 1.0f } };		// health > 100
-#endif
-
 static void CG_DrawPlayerAmmoIcon( rectDef_t *rect, qboolean draw2D ) {
 	centity_t	*cent;
-	playerState_t	*ps;
 	vec3_t		angles;
 	vec3_t		origin;
 
 	cent = &cg_entities[cg.snap->ps.clientNum];
-	ps = &cg.snap->ps;
 
 	if ( draw2D || (!cg_draw3dIcons.integer && cg_drawIcons.integer) ) {
-	  qhandle_t	icon;
-    icon = cg_weapons[ cg.predictedPlayerState.weapon ].ammoIcon;
+		qhandle_t	icon;
+		icon = cg_weapons[ cg.predictedPlayerState.weapon ].ammoIcon;
 		if ( icon ) {
-		  CG_DrawPic( rect->x, rect->y, rect->w, rect->h, icon );
+			CG_DrawPic( rect->x, rect->y, rect->w, rect->h, icon );
 		}
-  } else if (cg_draw3dIcons.integer) {
-  	if ( cent->currentState.weapon && cg_weapons[ cent->currentState.weapon ].ammoModel ) {
-	    VectorClear( angles );
-	  	origin[0] = 70;
-  		origin[1] = 0;
-  		origin[2] = 0;
-  		angles[YAW] = 90 + 20 * sin( cg.time / 1000.0 );
-  		CG_Draw3DModel( rect->x, rect->y, rect->w, rect->h, cg_weapons[ cent->currentState.weapon ].ammoModel, 0, origin, angles );
-  	}
-  }
+	} else if (cg_draw3dIcons.integer) {
+		if ( cent->currentState.weapon && cg_weapons[ cent->currentState.weapon ].ammoModel ) {
+			VectorClear( angles );
+			origin[0] = 70;
+			origin[1] = 0;
+			origin[2] = 0;
+			angles[YAW] = 90 + 20 * sin( cg.time / 1000.0 );
+			CG_Draw3DModel( rect->x, rect->y, rect->w, rect->h, cg_weapons[ cent->currentState.weapon ].ammoModel, 0, origin, angles );
+		}
+	}
 }
 
 static void CG_DrawPlayerAmmoValue(rectDef_t *rect, float scale, vec4_t color, qhandle_t shader, int textStyle) {
@@ -307,8 +286,6 @@ static void CG_DrawPlayerHead(rectDef_t *rect, qboolean draw2D) {
 			cg.headEndYaw = 180 + 20 * cos( crandom()*M_PI );
 			cg.headEndPitch = 5 * cos( crandom()*M_PI );
 		}
-
-		size = rect->w * 1.25;
 	}
 
 	// if the server was frozen for a while we may have a bad head start time
@@ -364,7 +341,7 @@ static void CG_DrawSelectedPlayerArmor( rectDef_t *rect, float scale, vec4_t col
 }
 
 qhandle_t CG_StatusHandle(int task) {
-	qhandle_t h = cgs.media.assaultShader;
+	qhandle_t h;
 	switch (task) {
 		case TEAMTASK_OFFENSE :
 			h = cgs.media.assaultShader;
@@ -522,8 +499,6 @@ static void CG_DrawSelectedPlayerPowerup( rectDef_t *rect, qboolean draw2D ) {
 				item = BG_FindItemForPowerup( j );
 				if (item) {
 				  CG_DrawPic( x, y, rect->w, rect->h, trap_R_RegisterShader( item->icon ) );
-					x += 3;
-					y += 3;
           return;
 				}
 			}
@@ -857,10 +832,15 @@ static void CG_DrawAreaPowerUp(rectDef_t *rect, int align, float special, float 
 		if ( !ps->powerups[ i ] ) {
 			continue;
 		}
-		t = ps->powerups[ i ] - cg.time;
-		// ZOID--don't draw if the power up has unlimited time (999 seconds)
+
+		// ZOID--don't draw if the power up has unlimited time
 		// This is true of the CTF flags
-		if ( t <= 0 || t >= 999000) {
+		if ( ps->powerups[ i ] == INT_MAX ) {
+			continue;
+		}
+
+		t = ps->powerups[ i ] - cg.time;
+		if ( t <= 0 ) {
 			continue;
 		}
 
@@ -1230,7 +1210,7 @@ static void CG_Text_Paint_Limit(float *maxX, float x, float y, float scale, vec4
 		}
 		count = 0;
 		while (s && *s && count < len) {
-			glyph = &font->glyphs[(int)*s]; // TTimo: FIXME: getting nasty warnings without the cast, hopefully this doesn't break the VM build
+			glyph = &font->glyphs[*s & 255];
 			if ( Q_IsColorString( s ) ) {
 				memcpy( newColor, g_color_table[ColorIndex(*(s+1))], sizeof( newColor ) );
 				newColor[3] = color[3];
@@ -1239,7 +1219,7 @@ static void CG_Text_Paint_Limit(float *maxX, float x, float y, float scale, vec4
 				continue;
 			} else {
 	      float yadj = useScale * glyph->top;
-				if (CG_Text_Width(s, useScale, 1) + x > max) {
+				if (CG_Text_Width(s, scale, 1) + x > max) {
 					*maxX = 0;
 					break;
 				}

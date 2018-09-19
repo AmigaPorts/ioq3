@@ -31,7 +31,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 static intptr_t (QDECL *syscall)( intptr_t arg, ... ) = (intptr_t (QDECL *)( intptr_t, ...))-1;
 
 
-void dllEntry( intptr_t (QDECL *syscallptr)( intptr_t arg,... ) ) {
+Q_EXPORT 
+__saveds void dllEntry( intptr_t (QDECL *syscallptr)( intptr_t arg,... ) )
+{
 	syscall = syscallptr;
 }
 
@@ -41,12 +43,15 @@ int PASSFLOAT( float x ) {
 	return fi.i;
 }
 
-void	trap_Printf( const char *fmt ) {
-	syscall( G_PRINT, fmt );
+void	trap_Print( const char *text ) {
+	syscall( G_PRINT, text );
 }
 
-void	trap_Error( const char *fmt ) {
-	syscall( G_ERROR, fmt );
+void trap_Error( const char *text )
+{
+	syscall( G_ERROR, text );
+	// shut up GCC warning about returning functions, because we know better
+	exit(1);
 }
 
 int		trap_Milliseconds( void ) {
@@ -225,7 +230,6 @@ int trap_RealTime( qtime_t *qtime ) {
 
 void trap_SnapVector( float *v ) {
 	syscall( G_SNAPVECTOR, v );
-	return;
 }
 
 // BotLib traps start here
@@ -686,7 +690,7 @@ void trap_BotSaveGoalFuzzyLogic(int goalstate, char *filename) {
 }
 
 void trap_BotMutateGoalFuzzyLogic(int goalstate, float range) {
-	syscall( BOTLIB_AI_MUTATE_GOAL_FUZZY_LOGIC, goalstate, range );
+	syscall( BOTLIB_AI_MUTATE_GOAL_FUZZY_LOGIC, goalstate, PASSFLOAT(range) );
 }
 
 int trap_BotAllocGoalState(int state) {

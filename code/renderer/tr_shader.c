@@ -2399,7 +2399,7 @@ static shader_t *GeneratePermanentShader( void )
 	int		i, b;
 	int		size, hash;
 
-	if ( tr.numShaders == MAX_SHADERS )
+	if ( tr.numShaders >= MAX_SHADERS ) // was == Quake3e - Cowcat
 	{
 		ri.Printf( PRINT_WARNING, "WARNING: GeneratePermanentShader - MAX_SHADERS hit\n");
 		return tr.defaultShader;
@@ -2986,7 +2986,7 @@ static void SetImplicitShaderStages( image_t *image) // spearmint idea - Cowcat
 			stages[0].bundle[0].image[0] = image;
 			stages[0].active = qtrue;
 			stages[0].rgbGen = CGEN_LIGHTING_DIFFUSE;
-			stages[0].alphaGen = AGEN_SKIP; 
+			//stages[0].alphaGen = AGEN_SKIP;	// needed ? - Cowcat
 			stages[0].stateBits = GLS_DEFAULT;
 			break;
 
@@ -3006,6 +3006,7 @@ static void SetImplicitShaderStages( image_t *image) // spearmint idea - Cowcat
 			stages[0].rgbGen = CGEN_VERTEX;
 			stages[0].alphaGen = AGEN_VERTEX;
 			stages[0].stateBits = GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
+			//stages[0].stateBits = GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA; // see shade/IterateStagesGeneric - Cowcat
 			break;
 		
 		case LIGHTMAP_WHITEIMAGE:
@@ -3156,7 +3157,7 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 
 qhandle_t RE_RegisterShaderFromImage(const char *name, int lightmapIndex, image_t *image, qboolean mipRawImage)
 {
-	int		i, hash;
+	int		hash;
 	shader_t	*sh;
 
 	hash = generateHashValue(name, FILE_HASH_SIZE);
@@ -3608,7 +3609,7 @@ static void ScanAndLoadShaderFiles( void )
 		hashMem = ((char *) hashMem) + ((shaderTextHashTableSizes[i] + 1) * sizeof(char *));
 	}
 
-	Com_Memset(shaderTextHashTableSizes, 0, sizeof(shaderTextHashTableSizes));
+	Com_Memset(shaderTextHashTableSizes, 0, sizeof(shaderTextHashTableSizes)); // why twice? - Cowcat
 
 	p = s_shaderText;
 

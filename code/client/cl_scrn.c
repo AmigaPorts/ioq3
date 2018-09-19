@@ -393,7 +393,7 @@ void SCR_DrawVoipMeter( void )
 		return;  // player doesn't want to show meter at all.
 	else if (!cl_voipSend->integer)
 		return;  // not recording at the moment.
-	else if (cls.state != CA_ACTIVE)
+	else if (clc.state != CA_ACTIVE)
 		return;  // not connected to a server.
 	else if (!cl_connectedToVoipServer)
 		return;  // server doesn't support VoIP.
@@ -522,12 +522,11 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame )
 
 	re.BeginFrame( stereoFrame );
 
-	uiFullScreen = ( uivm && VM_Call( uivm, UI_IS_FULLSCREEN )); // new Cowcat
+	uiFullScreen = ( uivm && VM_Call( uivm, UI_IS_FULLSCREEN ));
 
 	// wide aspect ratio screens need to have the sides cleared
 	// unless they are displaying game renderings
-	//if ( cls.state != CA_ACTIVE && cls.state != CA_CINEMATIC )
-	if ( uiFullScreen || cls.state < CA_LOADING ) // new Cowcat
+	if ( uiFullScreen || clc.state < CA_LOADING )
 	{
 		if ( cls.glconfig.vidWidth * 480 > cls.glconfig.vidHeight * 640 )
 		{
@@ -539,13 +538,12 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame )
 
 	// if the menu is going to cover the entire screen, we
 	// don't need to render anything under it
-	//if ( uivm && !VM_Call( uivm, UI_IS_FULLSCREEN ))
-	if ( uivm && !uiFullScreen) // new Cowcat
+	if ( uivm && !uiFullScreen)
 	{
-		switch( cls.state )
+		switch( clc.state )
 		{
 			default:
-				Com_Error( ERR_FATAL, "SCR_DrawScreenField: bad cls.state" );
+				Com_Error( ERR_FATAL, "SCR_DrawScreenField: bad clc.state" );
 				break;
 
 			case CA_CINEMATIC:
@@ -622,7 +620,7 @@ void SCR_UpdateScreen( void )
 	{
 		return;		// not initialized yet
 	}
-
+	
 	if ( ++recursive > 2 )
 	{
 		Com_Error( ERR_FATAL, "SCR_UpdateScreen: recursively called" );
@@ -634,11 +632,10 @@ void SCR_UpdateScreen( void )
 	// that case.
 	if( uivm || com_dedicated->integer )
 	{
-		int in_anaglyphMode = Cvar_VariableIntegerValue("r_anaglyphMode"); // test Cowcat
+		int in_anaglyphMode = Cvar_VariableIntegerValue("r_anaglyphMode");
 
 		// if running in stereo, we need to draw the frame twice
-		//if ( cls.glconfig.stereoEnabled || Cvar_VariableIntegerValue("r_anaglyphMode"))
-		if ( cls.glconfig.stereoEnabled || in_anaglyphMode ) // test Cowcat
+		if ( cls.glconfig.stereoEnabled || in_anaglyphMode )
 		{
 			SCR_DrawScreenField( STEREO_LEFT );
 			SCR_DrawScreenField( STEREO_RIGHT );

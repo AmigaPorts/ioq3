@@ -66,46 +66,17 @@ char *COM_SkipPath (char *pathname)
 COM_GetExtension
 ============
 */
-#if 1
-
 const char *COM_GetExtension( const char *name )
 {
-	int length, i;
+	const char *dot = strrchr(name, '.'), *slash;
 
-	length = strlen(name)-1;
-	i = length;
-
-	while (name[i] != '.')
-	{
-		i--;
-
-		if (name[i] == '/' || i == 0)
-			return ""; // no extension
-	}
-
-	return &name[i+1];
-}
-
-#else // from Urban Terror
-
-const char *COM_GetExtension( const char *name )
-{
-	if(!name || !*name )
-		return "";
+	if (dot && (!(slash = strrchr(name, '/')) || slash < dot))
+		return dot + 1;
 
 	else
-	{
-		size_t i = strlen(name) - 1;
-
-		while(i > 0 && name[i] != '.' && name[i] != '/')
-			--i;
-
-		return(name[i] == '.' ? &name[i + 1] : "" );
-	}
-
+		return "";
 }
 
-#endif
 
 /*
 ============
@@ -114,55 +85,59 @@ COM_StripExtension
 */
 void COM_StripExtension( const char *in, char *out, int destsize )
 {
-	int	length;
+	const char *dot = strrchr(in, '.'), *slash;
 
-	Q_strncpyz(out, in, destsize);
+	if (dot && (!(slash = strrchr(in, '/')) || slash < dot))
+		destsize = (destsize < dot-in+1 ? destsize : dot-in+1);
 
-	length = strlen(out)-1;
+	if ( in == out && destsize > 1 )
+		out[destsize-1] = '\0';
 
-	while (length > 0 && out[length] != '.')
-	{
-		length--;
-
-		if (out[length] == '/')
-			return;		// no extension
-	}
-
-	if (length)
-		out[length] = 0;
+	else
+		Q_strncpyz(out, in, destsize);
 }
+/*
+============
+COM_CompareExtension
 
+string compare the end of the strings and return qtrue if strings match
+============
+*/
+#if 0
+qboolean COM_CompareExtension(const char *in, const char *ext)
+{
+	int inlen, extlen;
+	
+	inlen = strlen(in);
+	extlen = strlen(ext);
+	
+	if(extlen <= inlen)
+	{
+		in += inlen - extlen;
+		
+		if(!Q_stricmp(in, ext))
+			return qtrue;
+	}
+	
+	return qfalse;
+}
+#endif
 
 /*
 ==================
 COM_DefaultExtension
 ==================
 */
-void COM_DefaultExtension (char *path, int maxSize, const char *extension )
+void COM_DefaultExtension( char *path, int maxSize, const char *extension )
 {
-	char	oldPath[MAX_QPATH];
-	char	*src;
+	const char *dot = strrchr(path, '.'), *slash;
 
-	//
-	// if path doesn't have a .EXT, append extension
-	// (extension should include the .)
-	//
-	src = path + strlen(path) - 1;
+	if (dot && (!(slash = strrchr(path, '/')) || slash < dot))
+		return;
 
-	while (*src != '/' && src != path)
-	{
-		if ( *src == '.' )
-		{
-			return;		// it has an extension
-		}
-
-		src--;
-	}
-
-	Q_strncpyz( oldPath, path, sizeof( oldPath ) );
-	Com_sprintf( path, maxSize, "%s%s", oldPath, extension );
+	else
+		Q_strcat(path, maxSize, extension);
 }
-
 /*
 ============================================================================
 
@@ -338,15 +313,20 @@ PARSING
 static	char	com_token[MAX_TOKEN_CHARS];
 static	char	com_parsename[MAX_TOKEN_CHARS];
 static	int	com_lines;
+static	int	com_tokenline;
 
 void COM_BeginParseSession( const char *name )
 {
-	com_lines = 0;
+	com_lines = 1;
+	com_tokenline = 0;
 	Com_sprintf(com_parsename, sizeof(com_parsename), "%s", name);
 }
 
 int COM_GetCurrentParseLine( void )
 {
+	if ( com_tokenline )
+		return com_tokenline;
+
 	return com_lines;
 }
 
@@ -364,7 +344,7 @@ void COM_ParseError( char *format, ... )
 	Q_vsnprintf (string, sizeof(string), format, argptr);
 	va_end (argptr);
 
-	Com_Printf("ERROR: %s, line %d: %s\n", com_parsename, com_lines, string);
+	Com_Printf("ERROR: %s, line %d: %s\n", com_parsename, COM_GetCurrentParseLine(), string);
 }
 
 void COM_ParseWarning( char *format, ... )
@@ -376,7 +356,7 @@ void COM_ParseWarning( char *format, ... )
 	Q_vsnprintf (string, sizeof(string), format, argptr);
 	va_end (argptr);
 
-	Com_Printf("WARNING: %s, line %d: %s\n", com_parsename, com_lines, string);
+	Com_Printf("WARNING: %s, line %d: %s\n", com_parsename, COM_GetCurrentParseLine(), string);
 }
 
 /*
@@ -514,10 +494,9 @@ int COM_Compress( char *data_p )
 			}
 		}
 
-		*out = 0; // fix Cowcat
+		*out = 0;
 	}
 
-	//*out = 0; // Cowcat
 	return out - data_p;
 }
 
@@ -530,6 +509,7 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 	data = *data_p;
 	len = 0;
 	com_token[0] = 0;
+	com_tokenline = 0;
 
 	// make sure incoming data is valid
 	if ( !data )
@@ -575,6 +555,11 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 
 			while ( *data && ( *data != '*' || data[1] != '/' ) ) 
 			{
+				if ( *data == '\n' )
+				{
+					com_lines++;
+				}
+
 				data++;
 			}
 
@@ -589,6 +574,9 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 			break;
 		}
 	}
+
+	// token starts on this line
+	com_tokenline = com_lines;
 
 	// handle quoted strings
 	if (c == '\"')
@@ -626,9 +614,6 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 		data++;
 		c = *data;
 
-		if ( c == '\n' )
-			com_lines++;
-
 	} while (c>32);
 
 	com_token[len] = 0;
@@ -659,40 +644,11 @@ void COM_MatchToken( char **buf_p, char *match )
 =================
 SkipBracedSection
 
-The next token should be an open brace.
+The next token should be an open brace or set depth to 1 if already parsed it.
 Skips until a matching close brace is found.
 Internal brace depths are properly skipped.
 =================
 */
-#if 0
-void SkipBracedSection (char **program)
-{
-	char	*token;
-	int	depth;
-
-	depth = 0;
-
-	do
-	{
-		token = COM_ParseExt( program, qtrue );
-
-		if( token[1] == 0 )
-		{
-			if( token[0] == '{' )
-			{
-				depth++;
-			}
-
-			else if( token[0] == '}' )
-			{
-				depth--;
-			}
-		}
-
-	} while( depth && *program );
-}
-
-#else
 qboolean SkipBracedSection (char **program, int depth)
 {
 	char	*token;
@@ -718,7 +674,6 @@ qboolean SkipBracedSection (char **program, int depth)
 
 	return (depth == 0);
 }
-#endif
 
 /*
 =================
@@ -870,28 +825,6 @@ int Q_isalpha( int c )
 	return ( 0 );
 }
 
-char* Q_strrchr( const char* string, int c )
-{
-	char cc = c;
-	char *s;
-	char *sp=(char *)0;
-
-	s = (char*)string;
-
-	while (*s)
-	{
-		if (*s == cc)
-			sp = s;
-
-		s++;
-	}
-
-	if (cc == 0)
-		sp = s;
-
-	return sp;
-}
-
 qboolean Q_isanumber( const char *s )
 {
 	#ifdef Q3_VM
@@ -1019,11 +952,60 @@ int Q_strncmp (const char *s1, const char *s2, int n)
 	return 0;	// strings are equal
 }
 
+#if 0
+
 int Q_stricmp (const char *s1, const char *s2)
 {
 	return (s1 && s2) ? Q_stricmpn (s1, s2, 99999) : -1;
 }
 
+#else // Quake3e - Cowcat
+
+int Q_stricmp (const char *s1, const char *s2)
+{
+	unsigned char	c1, c2;
+
+	if ( s1 == NULL )
+	{
+		if ( s2 == NULL )
+			return 0;
+
+		else
+			return -1;
+	}
+
+	else if ( s2 == NULL )
+		return 1;
+
+	do
+	{
+		c1 = *s1++;
+		c2 = *s2++;
+
+		if (c1 != c2)
+		{
+			if (c1 <= 'Z' && c1 >= 'A' )
+			{
+				c1 += ('a' - 'A');
+			}
+
+			if (c2 <= 'Z' && c2 >= 'A')
+			{
+				c2 += ('a' - 'A');
+			}
+
+			if (c1 != c2)
+			{
+				return c1 < c2 ? -1 : 1;
+			}
+		}
+
+	} while ( c1 != '\0' );
+	
+	return 0;
+}
+
+#endif
 
 char *Q_strlwr( char *s1 )
 {
@@ -1110,7 +1092,6 @@ const char *Q_stristr( const char *s, const char *find)
 	return s;
 }
 
-
 int Q_PrintStrlen( const char *string )
 {
 	int		len;
@@ -1138,8 +1119,6 @@ int Q_PrintStrlen( const char *string )
 
 	return len;
 }
-
-#if 1
 
 char *Q_CleanStr( char *string )
 {
@@ -1170,45 +1149,6 @@ char *Q_CleanStr( char *string )
 	return string;
 }
 
-#else // from Urban Terror - Cowcat
-
-char *Q_CleanStr( char *string )
-{
-	char	*d;
-	char	*s;
-	int	c;
-
-	s = string;
-	d = string;
-
-	while ((c = *s) != 0 )
-	{
-
-		if((*s == '^' ) && (*(s+1) == '^' ))
-			s++;
-
-		else if ( Q_IsColorString( s ) )
-		{
-			s++;
-			s++;
-		}
-		
-		else if ( c >= 0x20 && c <= 0x7E )
-		{
-			*d++ = c;
-			s++;
-		}
-
-		else
-			s++;
-	}
-
-	*d = '\0';
-
-	return string;
-}
-#endif
-
 int Q_CountChar(const char *string, char tocount)
 {
 	int count;
@@ -1222,6 +1162,7 @@ int Q_CountChar(const char *string, char tocount)
 	return count;
 }
 
+#if 0
 void QDECL Com_sprintf( char *dest, int size, const char *fmt, ...)
 {
 	int		len;
@@ -1240,16 +1181,29 @@ void QDECL Com_sprintf( char *dest, int size, const char *fmt, ...)
 	if (len >= size)
 	{
 		Com_Printf ("Com_sprintf: overflow of %i in %i\n", len, size);
-#ifdef	_DEBUG
-		__asm {
-			int 3;
-		}
-#endif
 	}
 
 	Q_strncpyz (dest, bigbuffer, size );
 }
 
+#else
+
+int QDECL Com_sprintf(char *dest, int size, const char *fmt, ...)
+{
+	int		len;
+	va_list		argptr;
+
+	va_start (argptr,fmt);
+	len = Q_vsnprintf(dest, size, fmt, argptr);
+	va_end (argptr);
+
+	if(len >= size)
+		Com_Printf("Com_sprintf: Output length %d too short, require %d bytes.\n", size, len + 1);
+	
+	return len;
+}
+
+#endif
 
 /*
 ============
@@ -1259,7 +1213,9 @@ does a varargs printf into a temp buffer, so I don't need to have
 varargs versions of all text functions.
 ============
 */
-char * QDECL va( char *format, ... )
+#if defined( Q3_VM )
+
+char *QDECL va( char *format, ... )
 {
 	va_list		argptr;
 	static char	string[2][32000]; // in case va is called by nested functions
@@ -1275,6 +1231,27 @@ char * QDECL va( char *format, ... )
 
 	return buf;
 }
+
+#else // Quake3e test - Cowcat
+
+char *QDECL va( char *format, ... )
+{
+	va_list		argptr;
+	static char	string[2][32000]; // in case va is called by nested functions
+	static int	index = 0;
+	char		*buf;
+
+	buf = string[ index ];
+	index ^= 1;
+
+	va_start (argptr, format);
+	vsprintf (buf, format, argptr);
+	va_end (argptr);
+
+	return buf;
+}
+
+#endif
 
 /*
 ============
@@ -1550,8 +1527,7 @@ void Info_RemoveKey_Big( char *s, const char *key )
 
 		if (!strcmp (key, pkey) )
 		{
-			//strcpy (start, s);	// remove this part
-			memmove (start, s, strlen(s) + 1); // fix - new ioq3 - Cowcat
+			memmove (start, s, strlen(s) + 1);
 			return;
 		}
 

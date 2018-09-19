@@ -43,6 +43,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #pragma default align
 
+#include "dll.h"
+
 //#include <devices/timer.h>
 //#include <inline/timer_protos.h>
 
@@ -58,6 +60,7 @@ struct MsgPort *Sys_EventPort = 0;
 
 int	totalMsec, countMsec;
 
+/*
 #define MAX_QUED_EVENTS		256
 #define MASK_QUED_EVENTS 	(MAX_QUED_EVENTS - 1)
 
@@ -65,39 +68,52 @@ sysEvent_t eventQue[MAX_QUED_EVENTS];
 int eventHead = 0;
 int eventTail = 0;
 byte sys_packetReceived[MAX_MSGLEN];
+*/
 
 #define MEM_THRESHOLD 96*1024*1024
+
+static qboolean consoleoutput = qfalse;
+
+cvar_t *sys_nostdout;
+static BPTR amiga_stdout;
 
 qboolean Sys_LowPhysicalMemory() // It is always true - Cowcat
 {
 	return qtrue; 
 	
-	ULONG avail = AvailMem(MEMF_FAST);
-
-	return (avail <= MEM_THRESHOLD) ? qtrue : qfalse;
+	//ULONG avail = AvailMem(MEMF_FAST);
+	//return (avail <= MEM_THRESHOLD) ? qtrue : qfalse;
 }
-
 
 extern char *FS_BuildOSPath( const char *base, const char *game, const char *qpath );
 
-void *Sys_LoadDll( const char *name, char *fqpath ,int (**entryPoint)(int, ...),int (*systemcalls)(int, ...) ) 
+//void *Sys_LoadDll( const char *name, char *fqpath, intptr_t(**entryPoint)(int, ...), intptr_t(*systemcalls)(intptr_t, ...) ) 
+void *Sys_LoadDll( const char *name, char *fqpath, intptr_t(**entryPoint)(int, int, int, int ), intptr_t(*systemcalls)(intptr_t, ...) ) // Cowcat
+//void *Sys_LoadDll( const char *name, char *fqpath, 
+	//intptr_t(**entryPoint)(int, int, int, int, int, int, int, int, int, int, int, int, int ), intptr_t(*systemcalls)(intptr_t*) ) // Cowcat
 {
-#if 0
-	char fname[MAX_OSPATH];
-	char curpath[MAX_OSPATH];
-	char  *basepath;
-	char  *pwdpath;
-	char  *gamedir;
-	char  *cdpath;
-	char  *fn;
-	void *libHandle;
-	void  (*dllEntry)( int (*syscallptr)(int, ...) );
+#ifdef DLL
+
+	char	fname[MAX_OSPATH];
+	char	curpath[MAX_OSPATH];
+	char	*basepath;
+	char	*pwdpath;
+	char	*gamedir;
+	char	*cdpath;
+	char	*fn;
+	void	*libHandle;
+	void	(*dllEntry)( intptr_t (*syscallptr)(intptr_t, ...) );
+	//void	(*dllEntry)( intptr_t (*syscallptr)(intptr_t*) ); // new
 
 	fname[0] = 0;
 	
 	getcwd(curpath, sizeof(curpath));
 	
+	#ifdef __PPC__
 	snprintf(fname, sizeof(fname), "%sppc.so", name);
+	#else
+	snprintf(fname, sizeof(fname), "%s68k.so", name);
+	#endif
 
 	pwdpath = Sys_Cwd();
 	basepath = Cvar_VariableString( "fs_basepath" );
@@ -107,21 +123,13 @@ void *Sys_LoadDll( const char *name, char *fqpath ,int (**entryPoint)(int, ...),
 	fn = FS_BuildOSPath( pwdpath, gamedir, fname );
 	Com_Printf( "Sys_LoadDll(%s)... \n", fn );
 	libHandle = dllLoadLibrary(fn, fname);
-	
+
 	if (!libHandle)
-	{
-//		fn = FS_BuildOSPath(cdpath, gamedir, fname);
-//		Com_Printf("Sys_LoadDll(%s)... \n", fn);
-  		
-//		libHandle = dllLoadLibrary(fn, fname);
-  		
-  		if (!libHandle)
-			return NULL;
-	}
-	
+		return NULL;
+
 	dllEntry = dllGetProcAddress(libHandle, "dllEntry");
 	*entryPoint = dllGetProcAddress(libHandle, "vmMain");
-	
+
 	if (!*entryPoint || !dllEntry)
 	{
 		dllFreeLibrary(libHandle);
@@ -132,10 +140,14 @@ void *Sys_LoadDll( const char *name, char *fqpath ,int (**entryPoint)(int, ...),
 
 	if (libHandle)
 		Q_strncpyz(fqpath, fn, MAX_QPATH);
-		
+
 	return libHandle;
+
+#else
+
+	return NULL;
+
 #endif
-return NULL;
 }
 
 
@@ -143,7 +155,7 @@ void Sys_UnloadDll(void *dllHandle)
 {
 	if (dllHandle)
 	{
-		#if 0
+		#ifdef DLL
 		dllFreeLibrary(dllHandle);
 		#endif
 	}
@@ -153,6 +165,8 @@ void Sys_UnloadDll(void *dllHandle)
 void Sys_BeginProfiling( void ) 
 {
 }
+
+#if 0 // not used now - Cowcat
 
 struct timerequest *timerio;
 struct MsgPort *timerport;
@@ -205,12 +219,13 @@ void Timer_Term(void)
 		DeleteExtIO((struct IORequest *)timerio);
 	}
 }
+
+#endif
 		
-	
 void Sys_Exit(int ex)
 {
 	//Sys_DestroyConsole();
-	Timer_Term();
+	//Timer_Term(); // not used now - Cowcat
 	exit(ex);
 }
 
@@ -224,17 +239,22 @@ Show the early console as an error dialog
 void QDECL Sys_Error( const char *error, ... )
 {
 	va_list		argptr;
-	char		text[4096];
+	//char		text[4096];
+	char		string[1024]; // new Cowcat
 
 	va_start (argptr, error);
-	vsprintf (text, error, argptr);
+	//vsprintf (text, error, argptr);
+	Q_vsnprintf (string, sizeof(string), error, argptr); // new Cowcat
 	va_end (argptr);
 
-	Conbuf_AppendText( text );
-	Sys_ShowConsole( 1, qtrue );
+	//CL_Shutdown(string, qtrue); // new Cowcat
+
+	//Conbuf_AppendText( text ); // Cowcat
+	//Sys_ShowConsole( 1, qtrue ); //
 
 	//IExec->DebugPrintF("Sys_Error: %s\n", text);
-	fprintf(stderr, "Sys_Error: %s\n", text);
+	//fprintf(stderr, "Sys_Error: %s\n", text);
+	fprintf(stderr, "Sys_Error: %s\n", string);
 
 	Sys_Exit(1);
 }	
@@ -247,7 +267,7 @@ Sys_Quit
 */
 void Sys_Quit( void ) 
 {
-	CL_Shutdown();
+	//CL_Shutdown(); // new - disabled Cowcat
 //	IN_Shutdown();
 
 	Sys_Exit(0);
@@ -265,6 +285,10 @@ void Sys_Print( const char *msg )
 {
 	//IExec->DebugPrintF("%s", msg);
 	//Conbuf_AppendText( msg );
+	if(!consoleoutput)
+		return;
+
+	fputs(msg, stdout);
 }
 
 
@@ -302,6 +326,8 @@ void Sys_Init( void )
 	Cvar_Set("arch", "amigaos");
 	
 	/* Figure out CPU */
+
+	#if 0 // Cowcat
 	Cvar_Get("sys_cpustring", "detect", 0);
 		
 	Com_Printf("...detecting CPU, found ");
@@ -311,8 +337,19 @@ void Sys_Init( void )
 	
 	Com_Printf("%s\n", cpuidstr);
 	
-	//Cvar_Set("username", Sys_GetCurrentUser());
-	
+	Cvar_Set("username", Sys_GetCurrentUser());
+	#endif
+
+	// Cowcat
+	sys_nostdout = Cvar_Get("sys_nostdout", "1", CVAR_ARCHIVE);
+
+	if(!sys_nostdout->value)  // Cowcat
+	{
+		amiga_stdout = Output();
+		consoleoutput = qtrue;
+	}
+	//
+
 	IN_Init();
 }
 
@@ -468,12 +505,13 @@ int main(int argc, char **argv)
 	int 	i, len;
 	int	startTime, endTime;
 
-	Timer_Init();
+	//Timer_Init(); // not used now - Cowcat
 	
 	if(SocketBase == NULL)
 		SocketBase = OpenLibrary("bsdsocket.library",0L);
 
-	Sys_CreateConsole();
+	//Sys_CreateConsole();
+
 	Sys_Milliseconds();
 	
 	// merge the command line, this is kinda silly
@@ -491,8 +529,8 @@ int main(int argc, char **argv)
 		strcat(cmdline, argv[i]);
 	}
 
-	memset( &eventQue[0], 0, MAX_QUED_EVENTS*sizeof(sysEvent_t) ); 
-	memset( &sys_packetReceived[0], 0, MAX_MSGLEN*sizeof(byte) );
+	//memset( &eventQue[0], 0, MAX_QUED_EVENTS*sizeof(sysEvent_t) ); 
+	//memset( &sys_packetReceived[0], 0, MAX_MSGLEN*sizeof(byte) );
 
 	Com_Init(cmdline);
 
@@ -506,7 +544,7 @@ int main(int argc, char **argv)
 		startTime = Sys_Milliseconds();
 
 		// make sure mouse and joystick are only called once a frame
-		IN_Frame(); // future - in common.c - Com_Frame
+		//IN_Frame(); // now in common.c - Com_Frame
 
 		// run the game
 		Com_Frame();
@@ -515,9 +553,11 @@ int main(int argc, char **argv)
 		totalMsec += endTime - startTime;
 		countMsec++;
 	}
+
+	return 0; 
 }
 
-
+#if 0 // not used now - Cowcat
 void Sys_Sleep(int msec) // used in common.c/Com_Frame - never reached? - Cowcat
 {
 	// Just in case - Cowcat
@@ -530,7 +570,12 @@ void Sys_Sleep(int msec) // used in common.c/Com_Frame - never reached? - Cowcat
 
 	usleep(1000 * msec);
 }
+#endif
 
+char *Sys_ConsoleInput(void) // Cowcat
+{
+	return NULL;
+}
 
 /*
 ** This is a replacement for the amiga.lib kprintf for PowerPC.

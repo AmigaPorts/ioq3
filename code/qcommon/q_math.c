@@ -305,7 +305,8 @@ This is not implemented very well...
 ===============
 */
 
-#if 1
+#if 0
+
 void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, float degrees )
 {
 	float	m[3][3];
@@ -415,16 +416,22 @@ void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, 
 	m[2][1] = t * dir[1] * dir[2] - s * dir[0];
 	m[2][2] = t * dir[2] * dir[2] + c;
 
-	VectorRotate( point, m, dst );
+	//VectorRotate( point, m, dst );
+
+	dst[0] = DotProduct( point, m[0] );
+	dst[1] = DotProduct( point, m[1] );
+	dst[2] = DotProduct( point, m[2] );
 }
 
 #endif
-	
+
+
 /*
 ===============
 RotateAroundDirection
 ===============
 */
+#if 1 // used by dlls....
 void RotateAroundDirection( vec3_t axis[3], float yaw )
 {
 	// create an arbitrary axis[1] 
@@ -442,7 +449,7 @@ void RotateAroundDirection( vec3_t axis[3], float yaw )
 	// cross to get axis[2]
 	CrossProduct( axis[0], axis[1], axis[2] );
 }
-
+#endif
 
 void vectoangles( const vec3_t value1, vec3_t angles )
 {
@@ -545,6 +552,7 @@ void ProjectPointOnPlane( vec3_t dst, const vec3_t p, const vec3_t normal )
 
 #ifndef Q3_VM
 	assert( Q_fabs(inv_denom) != 0.0f ); // zero vectors get here
+	//assert( fabs(inv_denom) != 0.0f ); // Cowcat
 #endif
 	inv_denom = 1.0f / inv_denom;
 
@@ -600,28 +608,8 @@ void VectorRotate( vec3_t in, vec3_t matrix[3], vec3_t out )
 ** float q_rsqrt( float number )
 */
 
-#if defined(AMIGA) && defined(__VBCC__) && defined(__PPC__)
-float __asm_frsqrte(__reg("f1") float) = "\tfrsqrte\t1,1";
-#define __frsqrte(x) __asm_frsqrte(x)
-#endif
-
 float Q_rsqrt( float number )
 {
-	#ifdef AMIGAmaybe // Cowcat
-
-	float x = 0.5f * number;
-	float y;
-
-#ifdef __GNUC__            
-	asm("frsqrte %0,%1" : "=f" (y) : "f" (number));
-#else
-	y = __frsqrte( number );
-#endif
-
-	return y * (1.5f - (x * y * y));
-
-	#else
-
 	floatint_t 	t;
 	float 		x2, y;
 	const float 	threehalfs = 1.5F;
@@ -634,8 +622,6 @@ float Q_rsqrt( float number )
 //	y  = y * ( threehalfs - ( x2 * y * y ) );	// 2nd iteration, this can be removed
 
 	return y;
-
-	#endif
 }
 
 float Q_fabs( float f )
@@ -645,6 +631,7 @@ float Q_fabs( float f )
 	fi.i &= 0x7FFFFFFF;
 	return fi.f;
 }
+
 #endif
 
 
@@ -785,8 +772,6 @@ void SetPlaneSignbits (cplane_t *out)
 }
 
 
-#if !id386
-
 int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 {
 	float	dist[2];
@@ -827,7 +812,6 @@ int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 	return sides;
 }
 
-#endif
 
 /*
 =================
@@ -1163,6 +1147,7 @@ int Q_isnan( float x )
 	return (int)( (unsigned int)fi.ui >> 31 );
 }
 
+#ifndef Q3_VM
 #if defined(AMIGA) && defined (__VBCC__)
 
 int VectorCompare( const vec3_t v1, const vec3_t v2 )
@@ -1204,11 +1189,6 @@ vec_t DistanceSquared( const vec3_t p1, const vec3_t p2 )
 // fast vector normalize routine that does not check to make sure
 // that length != 0, nor does it return length, uses rsqrt approximation
 
-//extern void VectorNormalizeFast (vec3_t v);
-
-#if 1
-#if 1
-
 void VectorNormalizeFast( vec3_t v )
 {
 	float ilength;
@@ -1219,30 +1199,6 @@ void VectorNormalizeFast( vec3_t v )
 	v[1] *= ilength;
 	v[2] *= ilength;
 }
-
-#else
-
-float __rsqrt(__reg("f1") float, __reg("f5") float) =
-	"\tfrsqrte\t0,1\n"
-	"\tfmsubs\t2,5,1,1\n"										
-	"\tfmuls\t4,0,0\n"		
-	"\tfnmsubs\t3,2,4,5\n"	
-	"\tfmuls\t1,3,0";
-
-#define rsqrt(x) __rsqrt(x, 1.5)
-
-void VectorNormalizeFast( vec3_t v )
-{
-	float ilength;
-
-	ilength = rsqrt( DotProduct( v, v ) );
-
-	v[0] *= ilength;
-	v[1] *= ilength;
-	v[2] *= ilength;
-}
-#endif
-#endif
 
 void VectorInverse( vec3_t v )
 {
@@ -1258,5 +1214,5 @@ void CrossProduct( const vec3_t v1, const vec3_t v2, vec3_t cross )
 	cross[2] = v1[0]*v2[1] - v1[1]*v2[0];
 }
 
-#endif
-
+#endif // AMIGA
+#endif // no Q3_VM

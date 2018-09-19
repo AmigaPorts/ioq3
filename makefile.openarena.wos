@@ -1,0 +1,510 @@
+#
+B = oa_objs_wos
+
+CC = vc +warpos
+CC68K = vc +aos68k
+INCLUDES = -ISystem:PosixLib/include
+
+CFLAGS = -c99 -O2 -cpu=603 -speed -merge-constants -maxoptpasses=20 $(INCLUDES) -DAMIGA -DBOTLIB -DSTANDALONE
+CFLAGS68K = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -DAMIGA
+
+DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
+DO_CC68K = $(CC68K) $(CFLAGS68K) -o $@ -c $<
+
+LIBS  = -lppcmath -lm -lmglQ3 -lposix -lamiga
+
+#VM_JIT = vm_ppc.o
+
+OBJS = \
+	$(B)/amiga_snd.o \
+	$(B)/amiga_ahi68k.o \
+	$(B)/snd_adpcm.o \
+	$(B)/snd_dma.o \
+	$(B)/snd_mem.o \
+	$(B)/snd_mix.o \
+	$(B)/snd_wavelet.o \
+	$(B)/snd_main.o \
+	$(B)/snd_codec.o \
+	$(B)/snd_codec_wav.o \
+	\
+	$(B)/cl_cgame.o \
+	$(B)/cl_cin.o \
+	$(B)/cl_console.o \
+	$(B)/cl_input.o \
+	$(B)/cl_keys.o \
+	$(B)/cl_main.o \
+	$(B)/cl_net_chan.o \
+	$(B)/cl_parse.o \
+	$(B)/cl_scrn.o \
+	$(B)/cl_ui.o \
+	$(B)/cl_avi.o \
+	\
+	$(B)/cm_load.o \
+	$(B)/cm_patch.o \
+ 	$(B)/cm_polylib.o \
+ 	$(B)/cm_test.o \
+ 	$(B)/cm_trace.o \
+ 	$(B)/cmd.o \
+	$(B)/common.o \
+	$(B)/cvar.o \
+	$(B)/files.o \
+	$(B)/huffman.o \
+	$(B)/md4.o \
+	$(B)/msg.o \
+	  $(B)/net_chan.o \
+	  $(B)/net_ip.o \
+	  $(B)/q_math.o \
+	  $(B)/q_shared.o \
+	  $(B)/md5.o \
+	  $(B)/puff.o \
+	  $(B)/sv_bot.o \
+	  $(B)/sv_ccmds.o \
+	$(B)/sv_client.o \
+	  $(B)/sv_game.o \
+	  $(B)/sv_init.o \
+	  $(B)/sv_main.o \
+	  $(B)/sv_net_chan.o \
+	  $(B)/sv_snapshot.o \
+	  $(B)/sv_world.o \
+	  $(B)/unzip.o \
+	  $(B)/vm.o \
+	  $(B)/vm_interpreted.o \
+	  $(B)/vm_ppc_new.o \
+          $(B)/vm_ppc_asm.o \
+	\
+	  $(B)/be_aas_bspq3.o \
+	  $(B)/be_aas_cluster.o \
+	  $(B)/be_aas_debug.o \
+	  $(B)/be_aas_entity.o \
+	  $(B)/be_aas_file.o \
+	  $(B)/be_aas_main.o \
+	  $(B)/be_aas_move.o \
+	  $(B)/be_aas_optimize.o \
+	  $(B)/be_aas_reach.o \
+	  $(B)/be_aas_route.o \
+	  $(B)/be_aas_routealt.o \
+	  $(B)/be_aas_sample.o \
+	  $(B)/be_ai_char.o \
+	  $(B)/be_ai_chat.o \
+	  $(B)/be_ai_gen.o \
+	  $(B)/be_ai_goal.o \
+	  $(B)/be_ai_move.o \
+	  $(B)/be_ai_weap.o \
+	  $(B)/be_ai_weight.o \
+	  $(B)/be_ea.o \
+	$(B)/be_interface.o \
+	  $(B)/l_crc.o \
+	  $(B)/l_libvar.o \
+	  $(B)/l_log.o \
+	  $(B)/l_memory.o \
+	  $(B)/l_precomp.o \
+	  $(B)/l_script.o \
+	  $(B)/l_struct.o \
+	\
+	$(B)/tr_animation.o \
+	  $(B)/tr_backend.o \
+	  $(B)/tr_bsp.o \
+	  $(B)/tr_cmds.o \
+	  $(B)/tr_curve.o \
+	  $(B)/tr_flares.o \
+	  $(B)/tr_font.o \
+	  $(B)/tr_image.o \
+	  $(B)/tr_init.o \
+	  $(B)/tr_light.o \
+	  $(B)/tr_main.o \
+	  $(B)/tr_marks.o \
+	  $(B)/tr_mesh.o \
+	  $(B)/tr_model.o \
+	  $(B)/tr_noise.o \
+	  $(B)/tr_scene.o \
+	  $(B)/tr_shade.o \
+	  $(B)/tr_shade_calc.o \
+	  $(B)/tr_shader.o \
+	  $(B)/tr_shadows.o \
+	  $(B)/tr_sky.o \
+	  $(B)/tr_surface.o \
+	  $(B)/tr_world.o \
+	  $(B)/tr_image_bmp.o \
+	  $(B)/tr_image_tga.o \
+	  $(B)/tr_image_jpg.o \
+	  $(B)/tr_image_png.o \
+	  $(B)/tr_image_pcx.o \
+	\
+	 $(B)/jcapimin.o \
+	  $(B)/jccoefct.o \
+	  $(B)/jccolor.o \
+	  $(B)/jcdctmgr.o \
+	  $(B)/jchuff.o \
+	  $(B)/jcinit.o \
+	  $(B)/jcmainct.o \
+	  $(B)/jcmarker.o \
+	  $(B)/jcmaster.o \
+	  $(B)/jcomapi.o \
+	  $(B)/jcparam.o \
+	  $(B)/jcphuff.o \
+	  $(B)/jcprepct.o \
+	  $(B)/jcsample.o \
+	  $(B)/jctrans.o \
+	  $(B)/jdapimin.o \
+	  $(B)/jdapistd.o \
+	  $(B)/jdatadst.o \
+	  $(B)/jdatasrc.o \
+	  $(B)/jdcoefct.o \
+	  $(B)/jdcolor.o \
+	  $(B)/jddctmgr.o \
+	  $(B)/jdhuff.o \
+	  $(B)/jdinput.o \
+	  $(B)/jdmainct.o \
+	  $(B)/jdmarker.o \
+	  $(B)/jdmaster.o \
+	  $(B)/jdpostct.o \
+	  $(B)/jdsample.o \
+	  $(B)/jdtrans.o \
+	  $(B)/jerror.o \
+	  $(B)/jfdctflt.o \
+	  $(B)/jidctflt.o \
+	  $(B)/jmemmgr.o \
+	  $(B)/jmemnobs.o \
+	  $(B)/jutils.o \
+	  $(B)/jcapistd.o \
+	  \
+	  $(B)/amiga_input.o \
+	  $(B)/amiga_main.o \
+	  $(B)/amiga_glimp.o \
+	  $(B)/amiga_qgl.o \
+	  $(B)/amiga_shared.o \
+	  $(B)/wos_asm.o
+##
+
+QUAKE3 = $(B)/openarena-r3
+
+all: $(QUAKE3)
+
+$(QUAKE3): $(OBJS)
+	$(CC) -o $@ $(B)/#?.o $(LIBS)
+
+#
+
+$(B)/cl_cgame.o:  code/client/cl_cgame.c
+	$(DO_CC)
+$(B)/cl_cin.o:  code/client/cl_cin.c
+	$(DO_CC)
+$(B)/cl_console.o:  code/client/cl_console.c
+	$(DO_CC)
+$(B)/cl_input.o:  code/client/cl_input.c
+	$(DO_CC)
+$(B)/cl_keys.o:  code/client/cl_keys.c
+	$(DO_CC)
+$(B)/cl_main.o:  code/client/cl_main.c
+	$(DO_CC)
+$(B)/cl_net_chan.o:  code/client/cl_net_chan.c
+	$(DO_CC)
+$(B)/cl_parse.o:  code/client/cl_parse.c
+	$(DO_CC)
+$(B)/cl_scrn.o:  code/client/cl_scrn.c
+	$(DO_CC)
+$(B)/cl_ui.o:  code/client/cl_ui.c
+	$(DO_CC)
+$(B)/cl_avi.o:  code/client/cl_avi.c
+	$(DO_CC)
+
+
+$(B)/cm_load.o:  code/qcommon/cm_load.c
+	$(DO_CC)
+$(B)/cm_patch.o:  code/qcommon/cm_patch.c
+	$(DO_CC)
+$(B)/cm_polylib.o:  code/qcommon/cm_polylib.c
+	$(DO_CC)
+$(B)/cm_test.o:  code/qcommon/cm_test.c
+	$(DO_CC)
+$(B)/cm_trace.o:  code/qcommon/cm_trace.c
+	$(DO_CC)
+$(B)/cmd.o:  code/qcommon/cmd.c
+	$(DO_CC)
+$(B)/common.o:  code/qcommon/common.c
+	$(DO_CC)
+$(B)/cvar.o:  code/qcommon/cvar.c
+	$(DO_CC)
+$(B)/files.o:  code/qcommon/files.c
+	$(DO_CC)
+$(B)/huffman.o:  code/qcommon/huffman.c
+	$(DO_CC)
+$(B)/md4.o:  code/qcommon/md4.c
+	$(DO_CC)
+$(B)/msg.o:  code/qcommon/msg.c
+	$(DO_CC)
+$(B)/net_chan.o:  code/qcommon/net_chan.c
+	$(DO_CC)
+$(B)/net_ip.o:  code/qcommon/net_ip.c
+	$(DO_CC)
+$(B)/q_math.o:  code/qcommon/q_math.c
+	$(DO_CC)
+$(B)/q_shared.o:  code/qcommon/q_shared.c
+	$(DO_CC)
+$(B)/md5.o:  code/qcommon/md5.c
+	$(DO_CC)
+$(B)/puff.o:  code/qcommon/puff.c
+	$(DO_CC)
+
+$(B)/sv_bot.o:  code/server/sv_bot.c
+	$(DO_CC)
+$(B)/sv_ccmds.o:  code/server/sv_ccmds.c
+	$(DO_CC)
+$(B)/sv_client.o:  code/server/sv_client.c
+	$(DO_CC)
+$(B)/sv_game.o:  code/server/sv_game.c
+	$(DO_CC)
+$(B)/sv_init.o:  code/server/sv_init.c
+	$(DO_CC)
+$(B)/sv_main.o:  code/server/sv_main.c
+	$(DO_CC)
+$(B)/sv_net_chan.o:  code/server/sv_net_chan.c
+	$(DO_CC)
+$(B)/sv_snapshot.o:  code/server/sv_snapshot.c
+	$(DO_CC)
+$(B)/sv_world.o:  code/server/sv_world.c
+	$(DO_CC)
+
+$(B)/unzip.o:  code/qcommon/unzip.c
+	$(DO_CC)
+
+$(B)/vm.o:  code/qcommon/vm.c
+	$(DO_CC)
+$(B)/vm_interpreted.o:  code/qcommon/vm_interpreted.c
+	$(DO_CC)
+$(B)/vm_ppc_new.o:  code/qcommon/vm_ppc_new.c
+	$(DO_CC)
+
+$(B)/vm_ppc_asm.o:  code/qcommon/vm_ppc_asm.s
+	$(DO_CC)
+
+$(B)/be_aas_bspq3.o:  code/botlib/be_aas_bspq3.c
+	$(DO_CC)
+$(B)/be_aas_cluster.o:  code/botlib/be_aas_cluster.c
+	$(DO_CC)
+$(B)/be_aas_debug.o:  code/botlib/be_aas_debug.c
+	$(DO_CC)
+$(B)/be_aas_entity.o:  code/botlib/be_aas_entity.c
+	$(DO_CC)
+$(B)/be_aas_file.o:  code/botlib/be_aas_file.c
+	$(DO_CC)
+$(B)/be_aas_main.o:  code/botlib/be_aas_main.c
+	$(DO_CC)
+$(B)/be_aas_move.o:  code/botlib/be_aas_move.c
+	$(DO_CC)
+$(B)/be_aas_optimize.o:  code/botlib/be_aas_optimize.c
+	$(DO_CC)
+$(B)/be_aas_reach.o:  code/botlib/be_aas_reach.c
+	$(DO_CC)
+$(B)/be_aas_route.o:  code/botlib/be_aas_route.c
+	$(DO_CC)
+$(B)/be_aas_routealt.o:  code/botlib/be_aas_routealt.c
+	$(DO_CC)
+$(B)/be_aas_sample.o:  code/botlib/be_aas_sample.c
+	$(DO_CC)
+$(B)/be_ai_char.o:  code/botlib/be_ai_char.c
+	$(DO_CC)
+$(B)/be_ai_chat.o:  code/botlib/be_ai_chat.c
+	$(DO_CC)
+$(B)/be_ai_gen.o:  code/botlib/be_ai_gen.c
+	$(DO_CC)
+$(B)/be_ai_goal.o:  code/botlib/be_ai_goal.c
+	$(DO_CC)
+$(B)/be_ai_move.o:  code/botlib/be_ai_move.c
+	$(DO_CC)
+$(B)/be_ai_weap.o:  code/botlib/be_ai_weap.c
+	$(DO_CC)
+$(B)/be_ai_weight.o:  code/botlib/be_ai_weight.c
+	$(DO_CC)
+$(B)/be_ea.o:  code/botlib/be_ea.c
+	$(DO_CC)
+$(B)/be_interface.o:  code/botlib/be_interface.c
+	$(DO_CC)
+$(B)/l_crc.o:  code/botlib/l_crc.c
+	$(DO_CC)
+$(B)/l_libvar.o:  code/botlib/l_libvar.c
+	$(DO_CC)
+$(B)/l_log.o:  code/botlib/l_log.c
+	$(DO_CC)
+$(B)/l_memory.o:  code/botlib/l_memory.c
+	$(DO_CC)
+$(B)/l_precomp.o:  code/botlib/l_precomp.c
+	$(DO_CC)
+$(B)/l_script.o:  code/botlib/l_script.c
+	$(DO_CC)
+$(B)/l_struct.o:  code/botlib/l_struct.c
+	$(DO_CC)
+
+$(B)/tr_animation.o:  code/renderer/tr_animation.c
+	$(DO_CC)
+$(B)/tr_backend.o:  code/renderer/tr_backend.c
+	$(DO_CC)
+$(B)/tr_bsp.o:  code/renderer/tr_bsp.c
+	$(DO_CC)
+$(B)/tr_cmds.o:  code/renderer/tr_cmds.c
+	$(DO_CC)
+$(B)/tr_curve.o:  code/renderer/tr_curve.c
+	$(DO_CC)
+$(B)/tr_flares.o:  code/renderer/tr_flares.c
+	$(DO_CC)
+$(B)/tr_font.o:  code/renderer/tr_font.c
+	$(DO_CC)
+$(B)/tr_image.o:  code/renderer/tr_image.c
+	$(DO_CC)
+$(B)/tr_init.o:  code/renderer/tr_init.c
+	$(DO_CC)
+$(B)/tr_light.o:  code/renderer/tr_light.c
+	$(DO_CC)
+$(B)/tr_main.o:  code/renderer/tr_main.c
+	$(DO_CC)
+$(B)/tr_marks.o:  code/renderer/tr_marks.c
+	$(DO_CC)
+$(B)/tr_mesh.o:  code/renderer/tr_mesh.c
+	$(DO_CC)
+$(B)/tr_model.o:  code/renderer/tr_model.c
+	$(DO_CC)
+$(B)/tr_noise.o:  code/renderer/tr_noise.c
+	$(DO_CC)
+$(B)/tr_scene.o:  code/renderer/tr_scene.c
+	$(DO_CC)
+$(B)/tr_shade.o:  code/renderer/tr_shade.c
+	$(DO_CC)
+$(B)/tr_shade_calc.o:  code/renderer/tr_shade_calc.c
+	$(DO_CC)
+$(B)/tr_shader.o:  code/renderer/tr_shader.c
+	$(DO_CC)
+$(B)/tr_shadows.o:  code/renderer/tr_shadows.c
+	$(DO_CC)
+$(B)/tr_sky.o:  code/renderer/tr_sky.c
+	$(DO_CC)
+$(B)/tr_surface.o:  code/renderer/tr_surface.c
+	$(DO_CC)
+$(B)/tr_world.o:  code/renderer/tr_world.c
+	$(DO_CC)
+$(B)/tr_image_bmp.o:  code/renderer/tr_image_bmp.c
+	$(DO_CC)
+$(B)/tr_image_tga.o:  code/renderer/tr_image_tga.c
+	$(DO_CC)
+$(B)/tr_image_jpg.o:  code/renderer/tr_image_jpg.c
+	$(DO_CC)
+$(B)/tr_image_png.o:  code/renderer/tr_image_png.c
+	$(DO_CC)
+$(B)/tr_image_pcx.o:  code/renderer/tr_image_pcx.c
+	$(DO_CC)
+
+$(B)/jcapimin.o:  code/jpeg-6b/jcapimin.c
+	$(DO_CC)
+$(B)/jccoefct.o:  code/jpeg-6b/jccoefct.c
+	$(DO_CC)
+$(B)/jccolor.o:  code/jpeg-6b/jccolor.c
+	$(DO_CC)
+$(B)/jcdctmgr.o:  code/jpeg-6b/jcdctmgr.c
+	$(DO_CC)
+$(B)/jchuff.o:  code/jpeg-6b/jchuff.c
+	$(DO_CC)
+$(B)/jcinit.o:  code/jpeg-6b/jcinit.c
+	$(DO_CC)
+$(B)/jcmainct.o:  code/jpeg-6b/jcmainct.c
+	$(DO_CC)
+$(B)/jcmaster.o:  code/jpeg-6b/jcmaster.c
+	$(DO_CC)
+$(B)/jcmarker.o:  code/jpeg-6b/jcmarker.c
+	$(DO_CC)
+$(B)/jcomapi.o:  code/jpeg-6b/jcomapi.c
+	$(DO_CC)
+$(B)/jcparam.o:  code/jpeg-6b/jcparam.c
+	$(DO_CC)
+$(B)/jcphuff.o:  code/jpeg-6b/jcphuff.c
+	$(DO_CC)
+$(B)/jcprepct.o:  code/jpeg-6b/jcprepct.c
+	$(DO_CC)
+$(B)/jcsample.o:  code/jpeg-6b/jcsample.c
+	$(DO_CC)
+$(B)/jctrans.o:  code/jpeg-6b/jctrans.c
+	$(DO_CC)
+$(B)/jdapimin.o:  code/jpeg-6b/jdapimin.c
+	$(DO_CC)
+$(B)/jdapistd.o:  code/jpeg-6b/jdapistd.c
+	$(DO_CC)
+$(B)/jdatadst.o:  code/jpeg-6b/jdatadst.c
+	$(DO_CC)
+$(B)/jdatasrc.o:  code/jpeg-6b/jdatasrc.c
+	$(DO_CC)
+$(B)/jdcoefct.o:  code/jpeg-6b/jdcoefct.c
+	$(DO_CC)
+$(B)/jdcolor.o:  code/jpeg-6b/jdcolor.c
+	$(DO_CC)
+$(B)/jddctmgr.o:  code/jpeg-6b/jddctmgr.c
+	$(DO_CC)
+$(B)/jdhuff.o:  code/jpeg-6b/jdhuff.c
+	$(DO_CC)
+$(B)/jdinput.o:  code/jpeg-6b/jdinput.c
+	$(DO_CC)
+$(B)/jdmainct.o:  code/jpeg-6b/jdmainct.c
+	$(DO_CC)
+$(B)/jdmarker.o:  code/jpeg-6b/jdmarker.c
+	$(DO_CC)
+$(B)/jdmaster.o:  code/jpeg-6b/jdmaster.c
+	$(DO_CC)
+$(B)/jdpostct.o:  code/jpeg-6b/jdpostct.c
+	$(DO_CC)
+$(B)/jdsample.o:  code/jpeg-6b/jdsample.c
+	$(DO_CC)
+$(B)/jdtrans.o:  code/jpeg-6b/jdtrans.c
+	$(DO_CC)
+$(B)/jerror.o:  code/jpeg-6b/jerror.c
+	$(DO_CC)
+$(B)/jfdctflt.o:  code/jpeg-6b/jfdctflt.c
+	$(DO_CC)
+$(B)/jidctflt.o:  code/jpeg-6b/jidctflt.c
+	$(DO_CC)
+$(B)/jmemmgr.o:  code/jpeg-6b/jmemmgr.c
+	$(DO_CC)
+$(B)/jmemnobs.o:  code/jpeg-6b/jmemnobs.c
+	$(DO_CC)
+$(B)/jutils.o:  code/jpeg-6b/jutils.c
+	$(DO_CC)
+$(B)/jcapistd.o:  code/jpeg-6b/jcapistd.c
+	$(DO_CC)
+
+$(B)/amiga_input.o:  code/amiga/amiga_input.c
+	$(DO_CC)
+$(B)/amiga_main.o:  code/amiga/amiga_main.c
+	$(DO_CC)
+$(B)/amiga_syscon.o:  code/amiga/amiga_syscon.c
+	$(DO_CC)
+$(B)/amiga_glimp.o:  code/amiga/amiga_glimp.c
+	$(DO_CC)
+$(B)/amiga_qgl.o:  code/amiga/amiga_qgl.c
+	$(DO_CC)
+$(B)/amiga_shared.o:  code/amiga/amiga_shared.c
+	$(DO_CC)
+
+$(B)/amiga_snd.o:  code/amiga/amiga_snd.c
+	$(DO_CC)
+
+$(B)/amiga_ahi68k.o:  code/amiga/amiga_ahi68k.c
+	$(DO_CC68K)
+
+$(B)/wos_asm.o:  code/amiga/wos_asm.asm
+	$(DO_CC)
+
+
+$(B)/snd_adpcm.o:  code/client/snd_adpcm.c
+	$(DO_CC)
+$(B)/snd_dma.o:  code/client/snd_dma.c
+	$(DO_CC)
+$(B)/snd_mem.o:  code/client/snd_mem.c
+	$(DO_CC)
+$(B)/snd_mix.o:  code/client/snd_mix.c
+	$(DO_CC)
+$(B)/snd_wavelet.o:  code/client/snd_wavelet.c
+	$(DO_CC)
+$(B)/snd_main.o:  code/client/snd_main.c
+	$(DO_CC)
+$(B)/snd_codec.o:  code/client/snd_codec.c
+	$(DO_CC)
+$(B)/snd_codec_wav.o:  code/client/snd_codec_wav.c
+	$(DO_CC)
+
+

@@ -556,9 +556,9 @@ static void FillCloudBox( const shader_t *shader, int stage )
 
 	for ( i =0; i < 6; i++ )
 	{
-		int sky_mins_subd[2], sky_maxs_subd[2];
-		int s, t;
-		float MIN_T;
+		int	sky_mins_subd[2], sky_maxs_subd[2];
+		int	s, t;
+		float	MIN_T;
 
 		if ( 1 ) // FIXME? shader->sky.fullClouds )
 		{
@@ -703,12 +703,12 @@ void R_BuildCloudData( shaderCommands_t *input )
 
 void R_InitSkyTexCoords( float heightCloud )
 {
-	int i, s, t;
-	float radiusWorld = 4096;
-	float p;
-	float sRad, tRad;
-	vec3_t skyVec;
-	vec3_t v;
+	int	i, s, t;
+	float	radiusWorld = 4096;
+	float	p;
+	float	sRad, tRad;
+	vec3_t	skyVec;
+	vec3_t	v;
 
 	// init zfar so MakeSkyVec works even though
 	// a world hasn't been bounded
@@ -801,8 +801,6 @@ void RB_DrawSun(float scale, shader_t *shader)
 	// back to normal depth range
 	qglDepthRange( 0.0, 1.0 );
 }
-
-
 
 
 /*

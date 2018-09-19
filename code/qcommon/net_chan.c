@@ -52,8 +52,7 @@ to the new value before sending out any replies.
 #define	FRAGMENT_SIZE	(MAX_PACKETLEN - 100)
 #define	PACKET_HEADER	10		// two ints and a short
 
-//#define FRAGMENT_BIT	(1<<31)
-#define FRAGMENT_BIT	(1U<<31)	// new Cowcat
+#define FRAGMENT_BIT	(1U<<31)
 
 cvar_t	*showpackets;
 cvar_t	*showdrop;
@@ -85,7 +84,8 @@ Netchan_Setup
 called to open a channel to a remote system
 ==============
 */
-void Netchan_Setup( netsrc_t sock, netchan_t *chan, netadr_t adr, int qport )
+
+void Netchan_Setup(netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, int challenge, qboolean compat)
 {
 	Com_Memset (chan, 0, sizeof(*chan));
 	
@@ -94,96 +94,14 @@ void Netchan_Setup( netsrc_t sock, netchan_t *chan, netadr_t adr, int qport )
 	chan->qport = qport;
 	chan->incomingSequence = 0;
 	chan->outgoingSequence = 1;
+	chan->challenge = challenge;
 	chan->isLANAddress = Sys_IsLANAddress( adr ); // Quake3e - Cowcat
-}
 
-// TTimo: unused, commenting out to make gcc happy
-#if 0
-/*
-==============
-Netchan_ScramblePacket
-
-A probably futile attempt to make proxy hacking somewhat
-more difficult.
-==============
-*/
-#define	SCRAMBLE_START	6
-
-static void Netchan_ScramblePacket( msg_t *buf )
-{
-	unsigned	seed;
-	int			i, j, c, mask, temp;
-	int			seq[MAX_PACKETLEN];
-
-	seed = ( LittleLong( *(unsigned *)buf->data ) * 3 ) ^ ( buf->cursize * 123 );
-	c = buf->cursize;
-	if ( c <= SCRAMBLE_START ) {
-		return;
-	}
-	if ( c > MAX_PACKETLEN ) {
-		Com_Error( ERR_DROP, "MAX_PACKETLEN" );
-	}
-
-	// generate a sequence of "random" numbers
-	for (i = 0 ; i < c ; i++) {
-		seed = (119 * seed + 1);
-		seq[i] = seed;
-	}
-
-	// transpose each character
-	for ( mask = 1 ; mask < c-SCRAMBLE_START ; mask = ( mask << 1 ) + 1 ) {
-	}
-	mask >>= 1;
-	for (i = SCRAMBLE_START ; i < c ; i++) {
-		j = SCRAMBLE_START + ( seq[i] & mask );
-		temp = buf->data[j];
-		buf->data[j] = buf->data[i];
-		buf->data[i] = temp;
-	}
-
-	// byte xor the data after the header
-	for (i = SCRAMBLE_START ; i < c ; i++) {
-		buf->data[i] ^= seq[i];
-	}
-}
-
-static void Netchan_UnScramblePacket( msg_t *buf ) {
-	unsigned	seed;
-	int			i, j, c, mask, temp;
-	int			seq[MAX_PACKETLEN];
-
-	seed = ( LittleLong( *(unsigned *)buf->data ) * 3 ) ^ ( buf->cursize * 123 );
-	c = buf->cursize;
-	if ( c <= SCRAMBLE_START ) {
-		return;
-	}
-	if ( c > MAX_PACKETLEN ) {
-		Com_Error( ERR_DROP, "MAX_PACKETLEN" );
-	}
-
-	// generate a sequence of "random" numbers
-	for (i = 0 ; i < c ; i++) {
-		seed = (119 * seed + 1);
-		seq[i] = seed;
-	}
-
-	// byte xor the data after the header
-	for (i = SCRAMBLE_START ; i < c ; i++) {
-		buf->data[i] ^= seq[i];
-	}
-
-	// transpose each character in reverse order
-	for ( mask = 1 ; mask < c-SCRAMBLE_START ; mask = ( mask << 1 ) + 1 ) {
-	}
-	mask >>= 1;
-	for (i = c-1 ; i >= SCRAMBLE_START ; i--) {
-		j = SCRAMBLE_START + ( seq[i] & mask );
-		temp = buf->data[j];
-		buf->data[j] = buf->data[i];
-		buf->data[i] = temp;
-	}
-}
+#ifdef LEGACY_PROTOCOL
+	chan->compat = compat;
 #endif
+}
+
 
 /*
 =================
@@ -197,18 +115,24 @@ void Netchan_TransmitNextFragment( netchan_t *chan )
 	msg_t	send;
 	byte	send_buf[MAX_PACKETLEN];
 	int	fragmentLength;
+	int	outgoingSequence;
 
 	// write the packet header
 	MSG_InitOOB (&send, send_buf, sizeof(send_buf));	// <-- only do the oob here
 
-	MSG_WriteLong( &send, chan->outgoingSequence | FRAGMENT_BIT );
-	
+	outgoingSequence = chan->outgoingSequence | FRAGMENT_BIT;
+	MSG_WriteLong(&send, outgoingSequence);
 
 	// send the qport if we are a client
 	if ( chan->sock == NS_CLIENT )
 	{
 		MSG_WriteShort( &send, qport->integer );
 	}
+
+#ifdef LEGACY_PROTOCOL
+	if(!chan->compat)
+#endif
+		MSG_WriteLong(&send, NETCHAN_GENCHECKSUM(chan->challenge, chan->outgoingSequence));
 
 	// copy the reliable message to the packet first
 	fragmentLength = FRAGMENT_SIZE;
@@ -224,6 +148,10 @@ void Netchan_TransmitNextFragment( netchan_t *chan )
 
 	// send the datagram
 	NET_SendPacket( chan->sock, send.cursize, send.data, chan->remoteAddress );
+
+	// Store send time and size of this packet for rate control
+	chan->lastSentTime = Sys_Milliseconds();
+	chan->lastSentSize = send.cursize;
 
 	if ( showpackets->integer )
 	{
@@ -285,7 +213,6 @@ void Netchan_Transmit( netchan_t *chan, int length, const byte *data )
 	MSG_InitOOB (&send, send_buf, sizeof(send_buf));
 
 	MSG_WriteLong( &send, chan->outgoingSequence );
-	//chan->outgoingSequence++; // down Cowcat
 
 	// send the qport if we are a client
 	if ( chan->sock == NS_CLIENT )
@@ -293,12 +220,21 @@ void Netchan_Transmit( netchan_t *chan, int length, const byte *data )
 		MSG_WriteShort( &send, qport->integer );
 	}
 
-	chan->outgoingSequence++; // Cowcat
+#ifdef LEGACY_PROTOCOL
+	if(!chan->compat)
+#endif
+		MSG_WriteLong(&send, NETCHAN_GENCHECKSUM(chan->challenge, chan->outgoingSequence));
+
+	chan->outgoingSequence++;
 
 	MSG_WriteData( &send, data, length );
 
 	// send the datagram
 	NET_SendPacket( chan->sock, send.cursize, send.data, chan->remoteAddress );
+
+	// Store send time and size of this packet for rate control
+	chan->lastSentTime = Sys_Milliseconds();
+	chan->lastSentSize = send.cursize;
 
 	if ( showpackets->integer )
 	{
@@ -328,9 +264,6 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg )
 	int		fragmentStart, fragmentLength;
 	qboolean	fragmented;
 
-	// XOR unscramble all data in the packet after the header
-//	Netchan_UnScramblePacket( msg );
-
 	// get sequence numbers		
 	MSG_BeginReadingOOB( msg );
 	sequence = MSG_ReadLong( msg );
@@ -351,6 +284,17 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg )
 	if ( chan->sock == NS_SERVER )
 	{
 		MSG_ReadShort( msg );
+	}
+
+#ifdef LEGACY_PROTOCOL
+	if(!chan->compat)
+#endif
+	{
+		int checksum = MSG_ReadLong(msg);
+
+		// UDP spoofing protection
+		if(NETCHAN_GENCHECKSUM(chan->challenge, sequence) != checksum)
+			return qfalse;
 	}
 
 	// read the fragment information
@@ -596,7 +540,7 @@ static void NET_QueuePacket( int length, const void *data, netadr_t to, int offs
 	Com_Memcpy(new->data, data, length);
 	new->length = length;
 	new->to = to;
-	new->release = Sys_Milliseconds() + offset;	
+	new->release = Sys_Milliseconds() + (int)((float)offset / com_timescale->value);
 	new->next = NULL;
 
 	if(!packetQueue)
@@ -688,6 +632,7 @@ void QDECL NET_OutOfBandPrint( netsrc_t sock, netadr_t adr, const char *format, 
 {
 	va_list		argptr;
 	char		string[MAX_MSGLEN];
+	int		len;
 
 	// set the header
 	string[0] = -1;
@@ -696,11 +641,13 @@ void QDECL NET_OutOfBandPrint( netsrc_t sock, netadr_t adr, const char *format, 
 	string[3] = -1;
 
 	va_start( argptr, format );
-	Q_vsnprintf( string+4, sizeof(string)-4, format, argptr );
+	//Q_vsnprintf( string+4, sizeof(string)-4, format, argptr );
+	len = Q_vsnprintf( string+4, sizeof(string)-4, format, argptr ) + 4; // Quake3e - Cowcat
 	va_end( argptr );
 
 	// send the datagram
-	NET_SendPacket( sock, strlen( string ), string, adr );
+	//NET_SendPacket( sock, strlen( string ), string, adr );
+	NET_SendPacket( sock, len, string, adr ); // Quake3e - Cowcat
 }
 
 /*

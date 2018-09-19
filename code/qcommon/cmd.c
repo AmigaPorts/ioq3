@@ -291,6 +291,15 @@ void Cmd_Exec_f( void )
 	
 	Cbuf_InsertText (f);
 
+	#ifdef DELAY_WRITECONFIG // Quake3e - test Cowcat
+
+	if ( !Q_stricmp( filename, Q3CONFIG_CFG ) )
+	{	
+		Com_WriteConfiguration(); // to avoid loading outdated values
+	}
+
+	#endif
+
 	FS_FreeFile (f);
 }
 
@@ -709,12 +718,16 @@ void Cmd_RemoveCommand( const char *cmd_name )
 		{
 			*back = cmd->next;
 
+			/*
 			if (cmd->name)
 			{
 				Z_Free(cmd->name);
 			}
+			*/
 
+			Z_Free (cmd->name);  // ioq3 fix
 			Z_Free (cmd);
+
 			return;
 		}
 

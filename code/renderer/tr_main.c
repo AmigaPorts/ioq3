@@ -50,6 +50,7 @@ R_CullLocalBox
 Returns CULL_IN, CULL_CLIP, or CULL_OUT
 =================
 */
+
 int R_CullLocalBox (vec3_t bounds[2])
 {
 	int		i, j;
@@ -76,6 +77,24 @@ int R_CullLocalBox (vec3_t bounds[2])
 		VectorMA( transformed[i], v[0], tr.or.axis[0], transformed[i] );
 		VectorMA( transformed[i], v[1], tr.or.axis[1], transformed[i] );
 		VectorMA( transformed[i], v[2], tr.or.axis[2], transformed[i] );
+
+		#if 0
+		float trans0 = transformed[i][0];
+		float trans1 = transformed[i][1];
+		float trans2 = transformed[i][2];
+		
+		trans0 =  v[0] * tr.or.axis[0][0] + trans0 ;
+		trans1 =  v[0] * tr.or.axis[0][1] + trans1 ;
+		trans2 =  v[0] * tr.or.axis[0][2] + trans2 ;
+
+		trans0 =  v[1] * tr.or.axis[1][0] + trans0 ;
+		trans1 =  v[1] * tr.or.axis[1][1] + trans1 ;
+		trans2 =  v[1] * tr.or.axis[1][2] + trans2 ;
+
+		transformed[i][0] =  v[2] * tr.or.axis[2][0] + trans0 ;
+		transformed[i][1] =  v[2] * tr.or.axis[2][1] + trans1 ;
+		transformed[i][2] =  v[2] * tr.or.axis[2][2] + trans2 ;
+		#endif
 	}
 
 	// check against frustum planes
@@ -273,34 +292,12 @@ myGlMultMatrix
 ==========================
 */
 
-#if 1
 void myGlMultMatrix( const float *a, const float *b, float *out )
 {
 	int	i, j;
 
-	#if 0
-	float b00 = b[0*4+0];
-	float b01 = b[0*4+1];
-	float b02 = b[0*4+2];
-	float b03 = b[0*4+3];
-	float b10 = b[1*4+0];
-	float b11 = b[1*4+1];
-	float b12 = b[1*4+2];
-	float b13 = b[1*4+3];
-	float b20 = b[2*4+0];
-	float b21 = b[2*4+1];
-	float b22 = b[2*4+2];
-	float b23 = b[2*4+3];
-	float b30 = b[3*4+0];
-	float b31 = b[3*4+1];
-	float b32 = b[3*4+2];
-	float b33 = b[3*4+3];
-	#endif
-
 	for ( i = 0 ; i < 4 ; i++ )
 	{
-		#if 1
-
 		for ( j = 0 ; j < 4 ; j++ )
 		{
 			out[ i * 4 + j ] =
@@ -309,62 +306,8 @@ void myGlMultMatrix( const float *a, const float *b, float *out )
 				+ a [ i * 4 + 2 ] * b [ 2 * 4 + j ]
 				+ a [ i * 4 + 3 ] * b [ 3 * 4 + j ];
 		}
-
-		#else
-
-		//out[i*4+0] = a[i*4+0]*b[0*4+0] + a[i*4+1]*b[1*4+0] + a[i*4+2]*b[2*4+0]; //+ a[i*4+3]*b[3*4+0];
-		//out[i*4+1] = a[i*4+0]*b[0*4+1] + a[i*4+1]*b[1*4+1] + a[i*4+2]*b[2*4+1]; //+ a[i*4+3]*b[3*4+1];
-		//out[i*4+2] = a[i*4+0]*b[0*4+2] + a[i*4+1]*b[1*4+2] + a[i*4+2]*b[2*4+2]; //+ a[i*4+3]*b[3*4+2];
-		//out[i*4+3] = a[i*4+0]*b[0*4+3] + a[i*4+1]*b[1*4+3] + a[i*4+2]*b[2*4+3]; //+ a[i*4+3]*b[3*4+3];
-
-		out[i*4+0] = a[i*4+0]*b00 + a[i*4+1]*b10 + a[i*4+2]*b20; //+ a[i*4+3]*b[3*4+0];
-		out[i*4+1] = a[i*4+0]*b01 + a[i*4+1]*b11 + a[i*4+2]*b21; //+ a[i*4+3]*b[3*4+1];
-		out[i*4+2] = a[i*4+0]*b02 + a[i*4+1]*b12 + a[i*4+2]*b22; //+ a[i*4+3]*b[3*4+2];
-		out[i*4+3] = a[i*4+0]*b03 + a[i*4+1]*b13 + a[i*4+2]*b23; //+ a[i*4+3]*b[3*4+3];
-
-		#endif
-		
 	}
-
-	#if 0
-	//out[3*4+0] += b[3*4+0];
-	//out[3*4+1] += b[3*4+1];
-	//out[3*4+2] += b[3*4+2];
-	//out[3*4+3] += b[3*4+3];
-	out[3*4+0] += b30;
-	out[3*4+1] += b31;
-	out[3*4+2] += b32;
-	out[3*4+3] += b33;
-	#endif
 }
-
-#else // test - Cowcat
-
-//extern void myGlMultMatrix( const float *a, const float *b, float *out );
-void myGlMultMatrix( const float a[16], const float b[16], float out[16] )
-{
-	out[0*4+0] = a[0*4+0] * b[0*4+0] + a[0*4+1] * b[1*4+0] + a[0*4+2] * b[2*4+0] /*+  a[0*4+3] * b[3*4+0] */;
-	out[0*4+1] = a[0*4+0] * b[0*4+1] + a[0*4+1] * b[1*4+1] + a[0*4+2] * b[2*4+1] /*+  a[0*4+3] * b[3*4+1] */;
-	out[0*4+2] = a[0*4+0] * b[0*4+2] + a[0*4+1] * b[1*4+2] + a[0*4+2] * b[2*4+2] /*+  a[0*4+3] * b[3*4+2] */;
-	out[0*4+3] = a[0*4+0] * b[0*4+3] + a[0*4+1] * b[1*4+3] + a[0*4+2] * b[2*4+3] /*+  a[0*4+3] * b[3*4+3] */;
-
-	out[1*4+0] = a[1*4+0] * b[0*4+0] + a[1*4+1] * b[1*4+0] + a[1*4+2] * b[2*4+0] /*+  a[1*4+3] * b[3*4+0] */;
-	out[1*4+1] = a[1*4+0] * b[0*4+1] + a[1*4+1] * b[1*4+1] + a[1*4+2] * b[2*4+1] /*+  a[1*4+3] * b[3*4+1] */;
-	out[1*4+2] = a[1*4+0] * b[0*4+2] + a[1*4+1] * b[1*4+2] + a[1*4+2] * b[2*4+2] /*+  a[1*4+3] * b[3*4+2] */;
-	out[1*4+3] = a[1*4+0] * b[0*4+3] + a[1*4+1] * b[1*4+3] + a[1*4+2] * b[2*4+3] /*+  a[1*4+3] * b[3*4+3] */;
-
-	out[2*4+0] = a[2*4+0] * b[0*4+0] + a[2*4+1] * b[1*4+0] + a[2*4+2] * b[2*4+0] /*+  a[2*4+3] * b[3*4+0] */;
-	out[2*4+1] = a[2*4+0] * b[0*4+1] + a[2*4+1] * b[1*4+1] + a[2*4+2] * b[2*4+1] /*+  a[2*4+3] * b[3*4+1] */;
-	out[2*4+2] = a[2*4+0] * b[0*4+2] + a[2*4+1] * b[1*4+2] + a[2*4+2] * b[2*4+2] /*+  a[2*4+3] * b[3*4+2] */;
-	out[2*4+3] = a[2*4+0] * b[0*4+3] + a[2*4+1] * b[1*4+3] + a[2*4+2] * b[2*4+3] /*+  a[2*4+3] * b[3*4+3] */;
-
-	out[3*4+0] = a[3*4+0] * b[0*4+0] + a[3*4+1] * b[1*4+0] + a[3*4+2] * b[2*4+0] +  /*a[3*4+3] */ b[3*4+0];
-	out[3*4+1] = a[3*4+0] * b[0*4+1] + a[3*4+1] * b[1*4+1] + a[3*4+2] * b[2*4+1] +  /*a[3*4+3] */ b[3*4+1];
-	out[3*4+2] = a[3*4+0] * b[0*4+2] + a[3*4+1] * b[1*4+2] + a[3*4+2] * b[2*4+2] +  /*a[3*4+3] */ b[3*4+2];
-	out[3*4+3] = a[3*4+0] * b[0*4+3] + a[3*4+1] * b[1*4+3] + a[3*4+2] * b[2*4+3] +  /*a[3*4+3] */ b[3*4+3];
-}
-
-#endif
 
 /*
 =================
@@ -498,7 +441,7 @@ void R_RotateForViewer (void)
 */
 static void R_SetFarClip( void )
 {
-	float	farthestCornerDistance = 0;
+	float	farthestCornerDistance;
 	int	i;
 
 	// if not rendering the world (icons, menus, etc)
@@ -516,9 +459,9 @@ static void R_SetFarClip( void )
 
 	for ( i = 0; i < 8; i++ )
 	{
-		vec3_t v;
-		vec3_t vecTo;
-		float distance;
+		vec3_t	v;
+		vec3_t	vecTo;
+		float	distance;
 
 		if ( i & 1 )
 		{
@@ -634,10 +577,6 @@ R_SetupProjection
 ===============
 */
 
-// Cowcat
-#undef DEG2RAD
-#define DEG2RAD(a) ( (a) * (float) ( M_PI / 180.0 ) )
-
 void R_SetupProjection(viewParms_t *dest, float zProj, qboolean computeFrustum)
 {
 	float	xmin, xmax, ymin, ymax;
@@ -662,15 +601,15 @@ void R_SetupProjection(viewParms_t *dest, float zProj, qboolean computeFrustum)
 
 	#if 1 // Cowcat
 
-	ymax = zProj * tan( DEG2RAD (dest->fovY * 0.5f) );
+	ymax = zProj * tan( dest->fovY * (M_PI / 360.0f) );
 	ymin = -ymax;
 
-	xmax = zProj * tan( DEG2RAD (dest->fovX * 0.5f) );
+	xmax = zProj * tan( dest->fovX * (M_PI / 360.0f) );
 	xmin = -xmax;
 
 	width = 1.0f / (xmax - xmin);
 	height = 1.0f / (ymax - ymin);
-	
+
 	dest->projectionMatrix[0] = 2 * zProj * width;
 	dest->projectionMatrix[4] = 0;
 	dest->projectionMatrix[8] = (xmax + xmin + 2 * stereoSep) * width;
@@ -680,7 +619,7 @@ void R_SetupProjection(viewParms_t *dest, float zProj, qboolean computeFrustum)
 	dest->projectionMatrix[5] = 2 * zProj * height;
 	dest->projectionMatrix[9] = ( ymax + ymin ) * height;	// normally 0
 	dest->projectionMatrix[13] = 0;
-
+	
 	#else
 
 	ymax = zProj * tan(dest->fovY * M_PI / 360.0f);
@@ -711,7 +650,9 @@ void R_SetupProjection(viewParms_t *dest, float zProj, qboolean computeFrustum)
 
 	// Now that we have all the data for the projection matrix we can also setup the view frustum.
 	if(computeFrustum)
+	{
 		R_SetupFrustum(dest, xmin, xmax, ymax, zProj, stereoSep);
+	}
 }
 
 
@@ -722,6 +663,25 @@ R_SetupProjectionZ
 Sets the z-component transformation part in the projection matrix
 ===============
 */
+
+#if defined(AMIGA) && defined(__PPC__) // Cowcat
+
+extern float SGN(float a);
+
+#else
+
+static inline float SGN(float a)
+{
+	if( a > 0.0F ) return (1.0F);
+	if( a < 0.0F ) return (-1.0F);
+	return (0.0F);
+}
+
+#endif
+
+#define DotProduct4(a,b)	((a)[0]*(b)[0] + (a)[1]*(b)[1] + (a)[2]*(b)[2] + (a)[3]*(b)[3])
+#define VectorScale4(a,b,c)	((c)[0]=(a)[0]*(b), (c)[1]=(a)[1]*(b), (c)[2]=(a)[2]*(b), (c)[3]=(a)[3]*(b))
+
 void R_SetupProjectionZ(viewParms_t *dest)
 {
 	float zNear, zFar, depth;
@@ -737,6 +697,36 @@ void R_SetupProjectionZ(viewParms_t *dest)
 	dest->projectionMatrix[14] = -2 * zFar * zNear * depth; //
 	//dest->projectionMatrix[10] = -( zFar + zNear ) / depth;
 	//dest->projectionMatrix[14] = -2 * zFar * zNear / depth;
+
+	if( dest->isPortal ) // from ioq3 xbox360 - fixes for mirrors
+	{
+		float	plane[4];
+		float	plane2[4];
+
+		vec4_t	q, c;
+
+		plane[0] = dest->portalPlane.normal[0];
+		plane[1] = dest->portalPlane.normal[1];
+		plane[2] = dest->portalPlane.normal[2];
+		plane[3] = dest->portalPlane.dist;
+
+		plane2[0] = -DotProduct (dest->or.axis[1], plane);
+		plane2[1] = DotProduct (dest->or.axis[2], plane);
+		plane2[2] = -DotProduct (dest->or.axis[0], plane);
+		plane2[3] = DotProduct (plane, dest->or.origin) - plane[3];
+
+		q[0] = (SGN(plane2[0]) + dest->projectionMatrix[8]) / dest->projectionMatrix[0];
+		q[1] = (SGN(plane2[1]) + dest->projectionMatrix[9]) / dest->projectionMatrix[5];
+		q[2] = -1.0f;
+		q[3] = (1.0f + dest->projectionMatrix[10]) / dest->projectionMatrix[14];
+
+		VectorScale4(plane2, 2.0f / DotProduct4(plane2, q), c);
+
+		dest->projectionMatrix[2] = c[0];
+		dest->projectionMatrix[6] = c[1];
+		dest->projectionMatrix[10] = c[2] + 1.0f;
+		dest->projectionMatrix[14] = c[3];
+	}
 }
 
 /*
@@ -1037,7 +1027,7 @@ static qboolean IsMirror( const drawSurf_t *drawSurf, int entityNum )
 **
 ** Determines if a surface is completely offscreen.
 */
-static qboolean SurfIsOffscreen( const drawSurf_t *drawSurf, vec4_t clipDest[128] )
+static qboolean SurfIsOffscreen( const drawSurf_t *drawSurf ) // not used vec4_t clipDest[128] ) - Quake3e
 {
 	float		shortest = 100000000;
 	int		entityNum;
@@ -1056,7 +1046,7 @@ static qboolean SurfIsOffscreen( const drawSurf_t *drawSurf, vec4_t clipDest[128
 	RB_BeginSurface( shader, fogNum );
 	rb_surfaceTable[ *drawSurf->surface ]( drawSurf->surface );
 
-	assert( tess.numVertexes < 128 );
+	//assert( tess.numVertexes < 128 ); // Quake3e 
 
 	for ( i = 0; i < tess.numVertexes; i++ )
 	{
@@ -1144,7 +1134,7 @@ Returns qtrue if another view has been rendered
 */
 qboolean R_MirrorViewBySurface (drawSurf_t *drawSurf, int entityNum)
 {
-	vec4_t		clipDest[128];
+	//vec4_t	clipDest[128]; // Quake3e - Cowcat
 	viewParms_t	newParms;
 	viewParms_t	oldParms;
 	orientation_t	surface, camera;
@@ -1162,7 +1152,7 @@ qboolean R_MirrorViewBySurface (drawSurf_t *drawSurf, int entityNum)
 	}
 
 	// trivially reject portal/mirror
-	if ( SurfIsOffscreen( drawSurf, clipDest ) )
+	if ( SurfIsOffscreen( drawSurf ) ) // clipDest not used  - Quake3e - Cowcat
 	{
 		return qfalse;
 	}
@@ -1189,30 +1179,8 @@ qboolean R_MirrorViewBySurface (drawSurf_t *drawSurf, int entityNum)
 
 	// OPTIMIZE: restrict the viewport on the mirrored view
 
-	#if 1 // fix for mirror view - ripped from Android port - Cowcat
-
-	float plane[4];
-	float oldval = r_znear->value;
-
-	plane[0] = newParms.portalPlane.normal[0];
-	plane[1] = newParms.portalPlane.normal[1];
-	plane[2] = newParms.portalPlane.normal[2];
-	plane[3] = newParms.portalPlane.dist;
-
-	float plane2[4];
-	plane2[0] = DotProduct (newParms.or.axis[0], plane);
-	plane2[1] = DotProduct (newParms.or.axis[1], plane);
-	plane2[2] = DotProduct (newParms.or.axis[2], plane);
-	plane2[3] = DotProduct (plane, newParms.or.origin) - plane[3];
-
-	r_znear->value = -plane2[3]/sqrt(plane2[0]*plane2[0]+plane2[1]*plane2[1]+plane2[2]*plane2[0]);
-
-	#endif
-
 	// render the mirror view
 	R_RenderView (&newParms);
-
-	r_znear->value = oldval; // end fix - Cowcat
 
 	tr.viewParms = oldParms;
 
@@ -1281,6 +1249,7 @@ DRAWSURF SORTING
 R_Radix
 ===============
 */
+
 static ID_INLINE void R_Radix( int byte, int size, drawSurf_t *source, drawSurf_t *dest )
 {
 	int	      count[ 256 ] = { 0 };
@@ -1330,6 +1299,7 @@ static void R_RadixSort( drawSurf_t *source, int size )
 	#endif //Q3_LITTLE_ENDIAN
 }
 
+
 //==========================================================================================
 
 
@@ -1362,7 +1332,9 @@ void R_DecomposeSort( unsigned sort, int *entityNum, shader_t **shader, int *fog
 {
 	*fogNum = ( sort >> QSORT_FOGNUM_SHIFT ) & 31;
 	*shader = tr.sortedShaders[ ( sort >> QSORT_SHADERNUM_SHIFT ) & (MAX_SHADERS-1) ];
-	*entityNum = ( sort >> QSORT_ENTITYNUM_SHIFT ) & MAX_ENTITIES; //- TEST Cowcat
+	//*entityNum = ( sort >> QSORT_ENTITYNUM_SHIFT ) & REFENTITYNUM_MASK; //- future Cowcat
+	*entityNum = ( sort >> QSORT_ENTITYNUM_SHIFT ) & MAX_ENTITIES; 
+
 	*dlightMap = sort & 3;
 }
 
@@ -1499,14 +1471,10 @@ void R_AddEntitySurfaces (void)
 							R_AddMD3Surfaces( ent );
 							break;
 
-						case MOD_MD4:
-							R_AddAnimSurfaces( ent );
-							break;
-				#ifdef RAVENMD4
 						case MOD_MDR:
 							R_MDRAddAnimSurfaces( ent );
 							break;
-				#endif
+
 						case MOD_BRUSH:
 							R_AddBrushModelSurfaces( ent );
 							break;
@@ -1542,6 +1510,7 @@ void R_AddEntitySurfaces (void)
 R_GenerateDrawSurfs
 ====================
 */
+
 void R_GenerateDrawSurfs( void )
 {
 	R_AddWorldSurfaces ();

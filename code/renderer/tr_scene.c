@@ -107,6 +107,7 @@ RE_AddPolyToScene
 
 =====================
 */
+
 void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts, int numPolys )
 {
 	srfPoly_t	*poly;
@@ -118,11 +119,13 @@ void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts
 	if ( !tr.registered )
 		return;
 
+	#if 0 // Quake3e - render default shader instead of spam - Cowcat
 	if ( !hShader )
 	{
 		ri.Printf( PRINT_WARNING, "WARNING: RE_AddPolyToScene: NULL poly shader\n");
 		return;
 	}
+	#endif
 
 	for ( j = 0; j < numPolys; j++ )
 	{
@@ -330,7 +333,7 @@ void RE_RenderScene( const refdef_t *fd )
 	if (!tr.world && !( fd->rdflags & RDF_NOWORLDMODEL ) )
 		ri.Error (ERR_DROP, "R_RenderScene: NULL worldmodel");
 
-	Com_Memcpy( tr.refdef.text, fd->text, sizeof( tr.refdef.text ) );
+	Com_Memcpy( tr.refdef.text, fd->text, sizeof( tr.refdef.text ) ); // needed ? - Cowcat
 
 	tr.refdef.x = fd->x;
 	tr.refdef.y = fd->y;
@@ -408,8 +411,10 @@ void RE_RenderScene( const refdef_t *fd )
 	// convert to GL's 0-at-the-bottom space
 	//
 	Com_Memset( &parms, 0, sizeof( parms ) );
+
 	parms.viewportX = tr.refdef.x;
 	parms.viewportY = glConfig.vidHeight - ( tr.refdef.y + tr.refdef.height );
+	//parms.viewportY = glConfig.vidHeight - ( tr.refdef.y + tr.refdef.height );
 	parms.viewportWidth = tr.refdef.width;
 	parms.viewportHeight = tr.refdef.height;
 	parms.isPortal = qfalse;

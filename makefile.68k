@@ -2,14 +2,11 @@
 B = ioquake3_objs
 
 CC = vc +aos68k
-INCLUDES = -ISystem:PosixLib/include # -ISystem:amitcp/netinclude
-INCLUDES_ATCP = -ISystem:amitcp/netinclude
+INCLUDES = -ISystem:PosixLib/include
 
-CFLAGS = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -DAMIGA -DBOTLIB -DNO_VM_COMPILED
-CFLAGS_ATCP = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES_ATCP) -DAMIGA -DBOTLIB -DNO_VM_COMPILED
+CFLAGS = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -DAMIGA -DBOTLIB -DUSE_LOCAL_HEADERS -DNO_VM_COMPILED
 
 DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
-DO_CC_ATCP = $(CC) $(CFLAGS_ATCP) -o $@ -c $<
 
 LIBS  = -lm060 -lmglQ3 -lposix -lamiga
 
@@ -67,6 +64,13 @@ OBJS = \
 	  $(B)/sv_snapshot.o \
 	  $(B)/sv_world.o \
 	  $(B)/unzip.o \
+	  $(B)/ioapi.o \
+	  $(B)/adler32.o \
+	  $(B)/crc32.o \
+	  $(B)/inffast.o \
+	  $(B)/inflate.o \
+	  $(B)/inftrees.o \
+	  $(B)/zutil.o \
 	  $(B)/vm.o \
 	  $(B)/vm_interpreted.o \
 	\
@@ -168,13 +172,12 @@ OBJS = \
 	  \
 	  $(B)/amiga_input.o \
 	  $(B)/amiga_main.o \
-	  $(B)/amiga_syscon.o \
 	  $(B)/amiga_glimp.o \
 	  $(B)/amiga_qgl.o \
 	  $(B)/amiga_shared.o
 ##
 
-QUAKE3 = $(B)/quake3
+QUAKE3 = $(B)/quake3-68k-6
 
 all: $(QUAKE3)
 
@@ -264,6 +267,22 @@ $(B)/sv_world.o:  code/server/sv_world.c
 	$(DO_CC)
 
 $(B)/unzip.o:  code/qcommon/unzip.c
+	$(DO_CC)
+$(B)/ioapi.o:  code/qcommon/ioapi.c
+	$(DO_CC)
+
+$(B)/adler32.o:  code/zlib/adler32.c
+	$(DO_CC)
+
+$(B)/crc32.o:  code/zlib/crc32.c
+	$(DO_CC)
+$(B)/inffast.o:  code/zlib/inffast.c
+	$(DO_CC)
+$(B)/inflate.o:  code/zlib/inflate.c
+	$(DO_CC)
+$(B)/inftrees.o:  code/zlib/inftrees.c
+	$(DO_CC)
+$(B)/zutil.o:  code/zlib/zutil.c
 	$(DO_CC)
 
 $(B)/vm.o:  code/qcommon/vm.c

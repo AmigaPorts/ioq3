@@ -436,12 +436,11 @@ SV_TouchCGame
   touch the cgame.vm so that a pure client can load it if it's in a seperate pk3
 ================
 */
-void SV_TouchCGame(void)
+
+static void SV_TouchFile(const char *filename)
 {
 	fileHandle_t	f;
-	char filename[MAX_QPATH];
-
-	Com_sprintf( filename, sizeof(filename), "vm/%s.qvm", "cgame" );
+	
 	FS_FOpenFileRead( filename, &f, qfalse );
 
 	if ( f ) {
@@ -477,7 +476,7 @@ void SV_SpawnServer( char *server, qboolean killBots )
 	CL_MapLoading();
 
 	// make sure all the client stuff is unloaded
-	CL_ShutdownAll();
+	CL_ShutdownAll(qfalse); // Cowcat
 
 	// clear the whole hunk because we're (re)loading the server
 	Hunk_Clear();
@@ -637,9 +636,7 @@ void SV_SpawnServer( char *server, qboolean killBots )
 					client->gentity = ent;
 
 					client->deltaMessage = -1;
-	
-					client->nextSnapshotTime = svs.time; // generate a snapshot immediately
-					//client->nextSnapshotTime = 0; // was svs.time; - Cowcat	
+					client->lastSnapshotTime = 0; // generate a snapshot immediately
  
 					VM_Call( gvm, GAME_CLIENT_BEGIN, i );
 				}
@@ -668,12 +665,8 @@ void SV_SpawnServer( char *server, qboolean killBots )
 		p = FS_LoadedPakNames();
 		Cvar_Set( "sv_pakNames", p );
 
-		// if a dedicated pure server we need to touch the cgame because it could be in a
-		// seperate pk3 file and the client will need to load the latest cgame.qvm
-		if ( com_dedicated->integer )
-		{
-			SV_TouchCGame();
-		}
+		SV_TouchFile("vm/cgame.qvm");
+		SV_TouchFile("vm/ui.qvm");
 	}
 
 	else
@@ -734,7 +727,6 @@ void SV_Init (void)
 	Cvar_Get ("timelimit", "0", CVAR_SERVERINFO);
 	sv_gametype = Cvar_Get ("g_gametype", "0", CVAR_SERVERINFO | CVAR_LATCH );
 	Cvar_Get ("sv_keywords", "", CVAR_SERVERINFO);
-	Cvar_Get ("protocol", va("%i", PROTOCOL_VERSION), CVAR_SERVERINFO | CVAR_ROM);
 	sv_mapname = Cvar_Get ("mapname", "nomap", CVAR_SERVERINFO | CVAR_ROM);
 	sv_privateClients = Cvar_Get ("sv_privateClients", "0", CVAR_SERVERINFO);
 	sv_hostname = Cvar_Get ("sv_hostname", "noname", CVAR_SERVERINFO | CVAR_ARCHIVE );
@@ -742,6 +734,7 @@ void SV_Init (void)
 
 	sv_minRate = Cvar_Get ("sv_minRate", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
 	sv_maxRate = Cvar_Get ("sv_maxRate", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
+	sv_dlRate = Cvar_Get("sv_dlRate", "100", CVAR_ARCHIVE | CVAR_SERVERINFO);
 	sv_minPing = Cvar_Get ("sv_minPing", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
 	sv_maxPing = Cvar_Get ("sv_maxPing", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
 	sv_floodProtect = Cvar_Get ("sv_floodProtect", "1", CVAR_ARCHIVE | CVAR_SERVERINFO );
@@ -826,7 +819,7 @@ void SV_FinalMessage( char *message )
 				}
 
 				// force a snapshot to be sent
-				cl->nextSnapshotTime = -1;
+				cl->lastSnapshotTime = 0;
 				SV_SendClientSnapshot( cl );
 			}
 		}
@@ -870,6 +863,11 @@ void SV_Shutdown( char *finalmsg )
 	// free server static data
 	if ( svs.clients )
 	{
+		int index;
+		
+		for(index = 0; index < sv_maxclients->integer; index++)
+			SV_FreeClient(&svs.clients[index]);
+
 		Z_Free( svs.clients );
 	}
 

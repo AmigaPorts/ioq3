@@ -46,6 +46,7 @@ void G_BounceMissile( gentity_t *ent, trace_t *trace ) {
 		// check for stop
 		if ( trace->plane.normal[2] > 0.2 && VectorLength( ent->s.pos.trDelta ) < 40 ) {
 			G_SetOrigin( ent, trace->endpos );
+			ent->s.time = level.time / 4;
 			return;
 		}
 	}
@@ -144,7 +145,7 @@ void ProximityMine_Trigger( gentity_t *trigger, gentity_t *other, trace_t *trace
 		}
 	}
 
-	// ok, now check for ability to damage so we don't get triggered thru walls, closed doors, etc...
+	// ok, now check for ability to damage so we don't get triggered through walls, closed doors, etc...
 	if( !CanDamage( other, trigger->s.pos.trBase ) ) {
 		return;
 	}

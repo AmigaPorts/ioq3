@@ -157,6 +157,8 @@ int	max_polys;
 cvar_t	*r_maxpolyverts;
 int	max_polyverts;
 
+cvar_t	*r_flaresDlight; // openarena - Cowcat
+
 /*
 ** InitOpenGL
 **
@@ -167,8 +169,6 @@ int	max_polyverts;
 */
 static void InitOpenGL( void )
 {
-	char renderer_buffer[1024];
-
 	//
 	// initialize OS specific portions of the renderer
 	//
@@ -186,9 +186,6 @@ static void InitOpenGL( void )
 		
 		GLimp_Init();
 
-		strcpy( renderer_buffer, glConfig.renderer_string );
-		Q_strlwr( renderer_buffer );
-
 		// OpenGL driver constants
 		qglGetIntegerv( GL_MAX_TEXTURE_SIZE, &temp );
 		glConfig.maxTextureSize = temp;
@@ -199,9 +196,6 @@ static void InitOpenGL( void )
 			glConfig.maxTextureSize = 0;
 		}
 	}
-
-	// print info
-	GfxInfo_f();
 
 	// set default state
 	GL_SetDefaultState();
@@ -390,7 +384,9 @@ void RB_TakeScreenshot( int x, int y, int width, int height, char *fileName )
 
 	// swap rgb to bgr
 	c = 18 + width * height * 3;
-	for (i=18 ; i<c ; i+=3) {
+
+	for (i=18 ; i<c ; i+=3)
+	{
 		temp = buffer[i];
 		buffer[i] = buffer[i+2];
 		buffer[i+2] = temp;
@@ -443,6 +439,7 @@ const void *RB_TakeScreenshotCmd( const void *data )
 	
 	if (cmd->jpeg)
 		RB_TakeScreenshotJPEG( cmd->x, cmd->y, cmd->width, cmd->height, cmd->fileName);
+
 	else
 		RB_TakeScreenshot( cmd->x, cmd->y, cmd->width, cmd->height, cmd->fileName);
 	
@@ -456,10 +453,11 @@ R_TakeScreenshot
 */
 void R_TakeScreenshot( int x, int y, int width, int height, char *name, qboolean jpeg )
 {
-	static char	fileName[MAX_OSPATH]; // bad things if two screenshots per frame?
+	static char		fileName[MAX_OSPATH]; // bad things if two screenshots per frame?
 	screenshotCommand_t	*cmd;
 
 	cmd = R_GetCommandBuffer( sizeof( *cmd ) );
+
 	if ( !cmd ) {
 		return;
 	}
@@ -481,9 +479,10 @@ R_ScreenshotFilename
 */  
 void R_ScreenshotFilename( int lastNumber, char *fileName )
 {
-	int		a,b,c,d;
+	int	a,b,c,d;
 
-	if ( lastNumber < 0 || lastNumber > 9999 ) {
+	if ( lastNumber < 0 || lastNumber > 9999 )
+	{
 		Com_sprintf( fileName, MAX_OSPATH, "screenshots/shot9999.tga" );
 		return;
 	}
@@ -496,8 +495,7 @@ void R_ScreenshotFilename( int lastNumber, char *fileName )
 	lastNumber -= c*10;
 	d = lastNumber;
 
-	Com_sprintf( fileName, MAX_OSPATH, "screenshots/shot%i%i%i%i.tga"
-		, a, b, c, d );
+	Com_sprintf( fileName, MAX_OSPATH, "screenshots/shot%i%i%i%i.tga", a, b, c, d );
 }
 
 /* 
@@ -507,9 +505,10 @@ R_ScreenshotFilename
 */  
 void R_ScreenshotFilenameJPEG( int lastNumber, char *fileName )
 {
-	int		a,b,c,d;
+	int	a,b,c,d;
 
-	if ( lastNumber < 0 || lastNumber > 9999 ) {
+	if ( lastNumber < 0 || lastNumber > 9999 )
+	{
 		Com_sprintf( fileName, MAX_OSPATH, "screenshots/shot9999.jpg" );
 		return;
 	}
@@ -522,8 +521,7 @@ void R_ScreenshotFilenameJPEG( int lastNumber, char *fileName )
 	lastNumber -= c*10;
 	d = lastNumber;
 
-	Com_sprintf( fileName, MAX_OSPATH, "screenshots/shot%i%i%i%i.jpg"
-		, a, b, c, d );
+	Com_sprintf( fileName, MAX_OSPATH, "screenshots/shot%i%i%i%i.jpg", a, b, c, d );
 }
 
 /*
@@ -540,10 +538,10 @@ void R_LevelShot( void )
 	byte		*buffer;
 	byte		*source;
 	byte		*src, *dst;
-	int			x, y;
-	int			r, g, b;
+	int		x, y;
+	int		r, g, b;
 	float		xScale, yScale;
-	int			xx, yy;
+	int		xx, yy;
 
 	sprintf( checkname, "levelshots/%s.tga", tr.world->baseName );
 
@@ -561,17 +559,24 @@ void R_LevelShot( void )
 	// resample from source
 	xScale = glConfig.vidWidth / 512.0f;
 	yScale = glConfig.vidHeight / 384.0f;
-	for ( y = 0 ; y < 128 ; y++ ) {
-		for ( x = 0 ; x < 128 ; x++ ) {
+
+	for ( y = 0 ; y < 128 ; y++ )
+	{
+		for ( x = 0 ; x < 128 ; x++ )
+		{
 			r = g = b = 0;
-			for ( yy = 0 ; yy < 3 ; yy++ ) {
-				for ( xx = 0 ; xx < 4 ; xx++ ) {
+
+			for ( yy = 0 ; yy < 3 ; yy++ )
+			{
+				for ( xx = 0 ; xx < 4 ; xx++ )
+				{
 					src = source + 3 * ( glConfig.vidWidth * (int)( (y*3+yy)*yScale ) + (int)( (x*4+xx)*xScale ) );
 					r += src[0];
 					g += src[1];
 					b += src[2];
 				}
 			}
+
 			dst = buffer + 18 + 3 * ( y * 128 + x );
 			dst[0] = b / 12;
 			dst[1] = g / 12;
@@ -610,21 +615,28 @@ void R_ScreenShot_f (void)
 	static	int	lastNumber = -1;
 	qboolean	silent;
 
-	if ( !strcmp( ri.Cmd_Argv(1), "levelshot" ) ) {
+	if ( !strcmp( ri.Cmd_Argv(1), "levelshot" ) )
+	{
 		R_LevelShot();
 		return;
 	}
 
 	if ( !strcmp( ri.Cmd_Argv(1), "silent" ) ) {
 		silent = qtrue;
-	} else {
+	}
+
+	else {
 		silent = qfalse;
 	}
 
-	if ( ri.Cmd_Argc() == 2 && !silent ) {
+	if ( ri.Cmd_Argc() == 2 && !silent )
+	{
 		// explicit filename
 		Com_sprintf( checkname, MAX_OSPATH, "screenshots/%s.tga", ri.Cmd_Argv( 1 ) );
-	} else {
+	}
+
+	else
+	{
 		// scan for a free filename
 
 		// if we have saved a previous screenshot, don't scan
@@ -633,17 +645,20 @@ void R_ScreenShot_f (void)
 		if ( lastNumber == -1 ) {
 			lastNumber = 0;
 		}
+
 		// scan for a free number
-		for ( ; lastNumber <= 9999 ; lastNumber++ ) {
+		for ( ; lastNumber <= 9999 ; lastNumber++ )
+		{
 			R_ScreenshotFilename( lastNumber, checkname );
 
-      if (!ri.FS_FileExists( checkname ))
-      {
-        break; // file doesn't exist
-      }
+      			if (!ri.FS_FileExists( checkname ))
+      			{
+        			break; // file doesn't exist
+      			}
 		}
 
-		if ( lastNumber >= 9999 ) {
+		if ( lastNumber >= 9999 )
+		{
 			ri.Printf (PRINT_ALL, "ScreenShot: Couldn't create a file\n"); 
 			return;
  		}
@@ -664,21 +679,28 @@ void R_ScreenShotJPEG_f (void)
 	static	int	lastNumber = -1;
 	qboolean	silent;
 
-	if ( !strcmp( ri.Cmd_Argv(1), "levelshot" ) ) {
+	if ( !strcmp( ri.Cmd_Argv(1), "levelshot" ) )
+	{
 		R_LevelShot();
 		return;
 	}
 
 	if ( !strcmp( ri.Cmd_Argv(1), "silent" ) ) {
 		silent = qtrue;
-	} else {
+	}
+
+	else {
 		silent = qfalse;
 	}
 
-	if ( ri.Cmd_Argc() == 2 && !silent ) {
+	if ( ri.Cmd_Argc() == 2 && !silent )
+	{
 		// explicit filename
 		Com_sprintf( checkname, MAX_OSPATH, "screenshots/%s.jpg", ri.Cmd_Argv( 1 ) );
-	} else {
+	}
+
+	else
+	{
 		// scan for a free filename
 
 		// if we have saved a previous screenshot, don't scan
@@ -687,17 +709,20 @@ void R_ScreenShotJPEG_f (void)
 		if ( lastNumber == -1 ) {
 			lastNumber = 0;
 		}
+
 		// scan for a free number
-		for ( ; lastNumber <= 9999 ; lastNumber++ ) {
+		for ( ; lastNumber <= 9999 ; lastNumber++ )
+		{
 			R_ScreenshotFilenameJPEG( lastNumber, checkname );
 
-      if (!ri.FS_FileExists( checkname ))
-      {
-        break; // file doesn't exist
-      }
+      			if (!ri.FS_FileExists( checkname ))
+      			{
+        			break; // file doesn't exist
+      			}
 		}
 
-		if ( lastNumber == 10000 ) {
+		if ( lastNumber == 10000 )
+		{
 			ri.Printf (PRINT_ALL, "ScreenShot: Couldn't create a file\n"); 
 			return;
  		}
@@ -735,10 +760,10 @@ const void *RB_TakeVideoFrameCmd( const void *data )
 
 	if( cmd->motionJpeg )
 	{
-		frameSize = SaveJPGToBuffer( cmd->encodeBuffer, 90,
-				cmd->width, cmd->height, cmd->captureBuffer );
+		frameSize = SaveJPGToBuffer( cmd->encodeBuffer, 90, cmd->width, cmd->height, cmd->captureBuffer );
 		ri.CL_WriteAVIVideoFrame( cmd->encodeBuffer, frameSize );
 	}
+
 	else
 	{
 		frameSize = cmd->width * cmd->height;
@@ -762,11 +787,10 @@ const void *RB_TakeVideoFrameCmd( const void *data )
 ** GL_SetDefaultState
 */
 
-//extern qboolean setArraysOnce;
-
 void GL_SetDefaultState( void )
 {
 	qglClearDepth( 1.0f );
+
 	qglCullFace(GL_FRONT);
 
 	qglColor4f (1,1,1,1);
@@ -791,7 +815,7 @@ void GL_SetDefaultState( void )
 
 	// the vertex array is always enabled, but the color and texture
 	// arrays are enabled and disabled around the compiled vertex array call
-	//qglEnableClientState (GL_VERTEX_ARRAY); // Cowcat - doesn´t work directly
+	//qglEnableClientState (GL_VERTEX_ARRAY); // Cowcat
 
 	//
 	// make sure our GL state vector is set correctly
@@ -805,10 +829,8 @@ void GL_SetDefaultState( void )
 	qglDisable( GL_CULL_FACE );
 	qglDisable( GL_BLEND );
 
-	//glHint (MGL_W_ONE_HINT, GL_FASTEST); 
 	//glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST); // test - Cowcat
 
-	//setArraysOnce = qfalse;
 }
 
 
@@ -968,7 +990,6 @@ void R_Register( void )
 	r_vertexLight = ri.Cvar_Get( "r_vertexLight", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	r_uiFullScreen = ri.Cvar_Get( "r_uifullscreen", "0", 0);
 	r_subdivisions = ri.Cvar_Get ("r_subdivisions", "4", CVAR_ARCHIVE | CVAR_LATCH);
-	//r_smp = ri.Cvar_Get( "r_smp", "0", CVAR_ARCHIVE | CVAR_LATCH);
 	r_stereoEnabled = ri.Cvar_Get( "r_stereoEnabled", "0", CVAR_ARCHIVE | CVAR_LATCH);
 	r_ignoreFastPath = ri.Cvar_Get( "r_ignoreFastPath", "1", CVAR_ARCHIVE | CVAR_LATCH );
 	r_greyscale = ri.Cvar_Get("r_greyscale", "0", CVAR_ARCHIVE | CVAR_LATCH);
@@ -1009,7 +1030,7 @@ void R_Register( void )
 	r_railCoreWidth = ri.Cvar_Get( "r_railCoreWidth", "6", CVAR_ARCHIVE );
 	r_railSegmentLength = ri.Cvar_Get( "r_railSegmentLength", "32", CVAR_ARCHIVE );
 
-	r_primitives = ri.Cvar_Get( "r_primitives", "3", CVAR_ARCHIVE ); // was 0 - Cowcat
+	r_primitives = ri.Cvar_Get( "r_primitives", "1", CVAR_ARCHIVE ); // was 0 - Cowcat
 
 	r_ambientScale = ri.Cvar_Get( "r_ambientScale", "0.6", CVAR_CHEAT );
 	r_directedScale = ri.Cvar_Get( "r_directedScale", "1", CVAR_CHEAT );
@@ -1064,6 +1085,7 @@ void R_Register( void )
 	r_maxpolys = ri.Cvar_Get( "r_maxpolys", va("%d", MAX_POLYS), 0);
 	r_maxpolyverts = ri.Cvar_Get( "r_maxpolyverts", va("%d", MAX_POLYVERTS), 0);
 
+	r_flaresDlight = ri.Cvar_Get ("r_flaresDlight", "0", CVAR_ARCHIVE); // OpenArena - Cowcat
 	// make sure all the commands added here are also
 	// removed in R_Shutdown
 	ri.Cmd_AddCommand( "imagelist", R_ImageList_f );
@@ -1177,6 +1199,8 @@ void R_Init( void )
 	if ( err != GL_NO_ERROR )
 		ri.Printf (PRINT_ALL, "glGetError() = 0x%x\n", err);
 
+	//print info
+	GfxInfo_f();
 	ri.Printf( PRINT_ALL, "----- finished R_Init -----\n" );
 }
 
@@ -1197,7 +1221,6 @@ void RE_Shutdown( qboolean destroyWindow )
 	ri.Cmd_RemoveCommand ("skinlist");
 	ri.Cmd_RemoveCommand ("gfxinfo");
 	ri.Cmd_RemoveCommand ("modelist");
-	ri.Cmd_RemoveCommand ("shaderstate");
 
 	if ( tr.registered )
 	{
@@ -1211,6 +1234,9 @@ void RE_Shutdown( qboolean destroyWindow )
 	if ( destroyWindow )
 	{
 		GLimp_Shutdown();
+
+		Com_Memset( &glConfig, 0, sizeof(glConfig) );
+		Com_Memset( &glState, 0, sizeof(glState) );
 	}
 
 	tr.registered = qfalse;

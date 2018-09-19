@@ -307,7 +307,9 @@ static byte	*fdFile;
 
 int readInt( void )
 {
-	int i = fdFile[fdOffset]+(fdFile[fdOffset+1]<<8)+(fdFile[fdOffset+2]<<16)+(fdFile[fdOffset+3]<<24);
+	//int i = fdFile[fdOffset]+(fdFile[fdOffset+1]<<8)+(fdFile[fdOffset+2]<<16)+(fdFile[fdOffset+3]<<24);
+	int i = ( (unsigned int)fdFile[fdOffset] | ((unsigned int)fdFile[fdOffset+1]<<8) |
+		((unsigned int)fdFile[fdOffset+2]<<16) | ((unsigned int)fdFile[fdOffset+3]<<24) );
 	fdOffset += 4;
 	return i;
 }
@@ -348,14 +350,14 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font)
   	image_t 	*image;
   	qhandle_t 	h;
 	float 		max;
+	float		dpi = 72;
+	float		glyphScale;
 	#endif
 
   	void	*faceData;
 	int	i, len;
   	char	name[1024];
-	float	dpi = 72;		//
-	float	glyphScale =  72.0f / dpi; // change the scale to be relative to 1 based on 72 dpi ( so dpi of 144 means a scale of .5 )
-
+	
   	if (!fontName)
 	{
     		ri.Printf(PRINT_ALL, "RE_RegisterFont: called with empty name\n");
@@ -366,9 +368,6 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font)
 	{
 		pointSize = 12;
 	}
-
-	// we also need to adjust the scale based on point size relative to 48 points as the ui scaling is based on a 48 point font
-	glyphScale *= 48.0f / pointSize;
 
 	// make sure the render thread is stopped
 	R_IssuePendingRenderCommands();
@@ -412,8 +411,10 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font)
 			font->glyphs[i].s2		= readFloat();
 			font->glyphs[i].t2		= readFloat();
 			font->glyphs[i].glyph		= readInt();
-			Com_Memcpy(font->glyphs[i].shaderName, &fdFile[fdOffset], 32);
-			fdOffset += 32;
+			//Com_Memcpy(font->glyphs[i].shaderName, &fdFile[fdOffset], 32);
+			//fdOffset += 32;
+			Q_strncpyz(font->glyphs[i].shaderName, (const char *)&fdFile[fdOffset], sizeof(font->glyphs[i].shaderName));
+			fdOffset += sizeof(font->glyphs[i].shaderName);
 		}
 
 		font->glyphScale = readFloat();
@@ -428,7 +429,7 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font)
 		}
 
 	  	Com_Memcpy(&registeredFont[registeredFontCount++], font, sizeof(fontInfo_t));
-		ri.FS_FreeFile(faceData); // fix temp memory present all time - Cowcat
+		ri.FS_FreeFile(faceData);
 		return;
 	}
 
@@ -563,6 +564,12 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font)
       			i++;
     		}
   	}
+
+	//change the scale to be relative to 1 based on 72 dpi ( so dpi of 144 means a scale of .5 )
+	glyphScale = 72.0f / dpi;
+
+	// we also need to adjust the scale based on point size relative to 48 points as the ui scaling is based on a 48 point font
+	glyphScale *= 48.0f / pointSize;
 
 	registeredFont[registeredFontCount].glyphScale = glyphScale;
 	font->glyphScale = glyphScale;

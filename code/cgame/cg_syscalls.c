@@ -30,11 +30,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 static intptr_t (QDECL *syscall)( intptr_t arg, ... ) = (intptr_t (QDECL *)( intptr_t, ...))-1;
 
+//static intptr_t (QDECL *syscall_ptr)( intptr_t* ) = (intptr_t (QDECL *)( intptr_t*))-1;
+//#define syscall(NUM, ...) syscall_ptr((intptr_t[16]){NUM, __VA_ARGS__})
 
-void dllEntry( intptr_t (QDECL  *syscallptr)( intptr_t arg,... ) ) {
+Q_EXPORT 
+__saveds void dllEntry( intptr_t (QDECL *syscallptr)( intptr_t arg, ... ) )
+//__saveds void dllEntry( intptr_t (QDECL *syscallptr)( intptr_t* ) )
+{
 	syscall = syscallptr;
+	//syscall_ptr = syscallptr;
 }
-
 
 int PASSFLOAT( float x ) {
 	floatint_t fi;
@@ -46,8 +51,11 @@ void	trap_Print( const char *fmt ) {
 	syscall( CG_PRINT, fmt );
 }
 
-void	trap_Error( const char *fmt ) {
-	syscall( CG_ERROR, fmt );
+void trap_Error(const char *fmt)
+{
+	syscall(CG_ERROR, fmt);
+	// shut up GCC warning about returning functions, because we know better
+	exit(1);
 }
 
 int		trap_Milliseconds( void ) {
@@ -314,6 +322,7 @@ void		trap_GetCurrentSnapshotNumber( int *snapshotNumber, int *serverTime ) {
 }
 
 qboolean	trap_GetSnapshot( int snapshotNumber, snapshot_t *snapshot ) {
+	//printf("trap_getsnaphot - %d - %d\n", snapshotNumber, snapshot );
 	return syscall( CG_GETSNAPSHOT, snapshotNumber, snapshot );
 }
 

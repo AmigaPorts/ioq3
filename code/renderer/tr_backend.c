@@ -21,6 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "tr_local.h"
 
+#ifdef AMIGA
+//#include <mgl/mglmacros.h>
+#endif
+
 backEndData_t	*backEndData;
 backEndState_t	backEnd;
 
@@ -33,7 +37,6 @@ static float s_flipMatrix[16] =
 	0, 1, 0, 0,
 	0, 0, 0, 1
 };
-
 
 /*
 ** GL_Bind
@@ -175,7 +178,7 @@ void GL_Cull( int cullType )
 /*
 ** GL_TexEnv
 */
-void GL_TexEnv( int env )
+void GL_TexEnv( GLint env ) // Quake3e cleanup
 {
 	if ( env == glState.texEnv[glState.currenttmu] )
 	{
@@ -187,20 +190,11 @@ void GL_TexEnv( int env )
 	switch ( env )
 	{
 		case GL_MODULATE:
-			qglTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-			break;
-
 		case GL_REPLACE:
-			qglTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
-			break;
-
 		case GL_DECAL:
-			qglTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL );
-			break;
-
 		//case GL_ADD: // Cowcat
-			//qglTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD );
-			//break;
+			qglTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, env );
+			break;
 
 		default:
 			ri.Error( ERR_DROP, "GL_TexEnv: invalid env '%d' passed\n", env );
@@ -287,7 +281,6 @@ void GL_State( unsigned long stateBits )
 					break;
 
 				default:
-					//srcFactor = GL_ONE;		// to get warning to shut up
 					ri.Error( ERR_DROP, "GL_State: invalid src blend state bits\n" );
 					break;
 			}
@@ -327,7 +320,6 @@ void GL_State( unsigned long stateBits )
 					break;
 
 				default:
-					//dstFactor = GL_ONE;		// to get warning to shut up
 					ri.Error( ERR_DROP, "GL_State: invalid dst blend state bits\n" );
 					break;
 			}
@@ -361,9 +353,9 @@ void GL_State( unsigned long stateBits )
 	//
 	// fill/line mode
 	//
+	#if 0 // Cowcat
 	if ( diff & GLS_POLYMODE_LINE )
 	{
-		#if 0 // Cowcat
 		if ( stateBits & GLS_POLYMODE_LINE )
 		{
 			qglPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -373,8 +365,8 @@ void GL_State( unsigned long stateBits )
 		{
 			qglPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 		}
-		#endif
 	}
+	#endif
 
 	//
 	// depthtest
@@ -472,6 +464,7 @@ Any mirrored or portaled views have already been drawn, so prepare
 to actually render the visible surfaces for this view
 =================
 */
+
 void RB_BeginDrawingView (void)
 {
 	int clearBits = 0;
@@ -539,7 +532,7 @@ void RB_BeginDrawingView (void)
 	// we will only draw a sun if there was sky rendered in this view
 	backEnd.skyRenderedThisView = qfalse;
 
-	#if 0 // Cowcat - workaround in tr_main/r_mirrorviewbysurface
+	#if 0 // Cowcat - workaround in tr_main/R_SetupProjectionZ
 
 	// clip to the plane of the portal
 	if ( backEnd.viewParms.isPortal )
@@ -567,8 +560,15 @@ void RB_BeginDrawingView (void)
 		qglDisable (GL_CLIP_PLANE0);
 	}
 
-	#endif
+	#else
 
+	if ( backEnd.viewParms.isPortal )
+	{
+		qglLoadMatrixf( s_flipMatrix );
+	}
+
+	#endif
+	
 }
 
 
@@ -682,6 +682,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 				// we have to reset the shaderTime as well otherwise image animations on
 				// the world (like water) continue with the wrong frame
 				tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset;
+
 				R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.or );
 			}
 
@@ -790,14 +791,15 @@ RB_SetGL2D
 
 ================
 */
+
 void RB_SetGL2D (void)
 {
 	backEnd.projection2D = qtrue;
 
 	// set 2D virtual screen size
-	qglViewport( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
-
-	qglScissor( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
+	qglViewport( 0, 0, glConfig.vidWidth, glConfig.vidHeight);
+	qglScissor( 0, 0, glConfig.vidWidth, glConfig.vidHeight);
+	
 	qglMatrixMode(GL_PROJECTION);
 	qglLoadIdentity ();
 	qglOrtho (0, glConfig.vidWidth, glConfig.vidHeight, 0, 0, 1);
@@ -865,33 +867,6 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 		ri.Error (ERR_DROP, "Draw_StretchRaw: size not a power of 2: %i by %i", cols, rows);
 	}
 
-	#if 0
-	GL_Bind( tr.scratchImage[client] );
-
-	// if the scratchImage isn't in the format we want, specify it as a new texture
-	if ( cols != tr.scratchImage[client]->width || rows != tr.scratchImage[client]->height )
-	{
-		tr.scratchImage[client]->width = tr.scratchImage[client]->uploadWidth = cols;
-		tr.scratchImage[client]->height = tr.scratchImage[client]->uploadHeight = rows;
-		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		//qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat
-	}
-
-	else
-	{
-		if (dirty)
-		{
-			// otherwise, just subimage upload it so that drivers can tell we are going to be changing
-			// it and don't try and do a texture compression
-			qglTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, cols, rows, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		}
-	}
-	#endif
-
 	RE_UploadCinematic( w, h, cols, rows, data, client, dirty);
 
 	if ( r_speeds->integer )
@@ -914,39 +889,10 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 	qglTexCoord2f ( 0.5f / cols, ( rows - 0.5f ) / rows );
 	qglVertex2f (x, y+h);
 	qglEnd ();
-
 }
 
 void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int client, qboolean dirty)
 {
-	#if 0
-	GL_Bind( tr.scratchImage[client] );
-
-	// if the scratchImage isn't in the format we want, specify it as a new texture
-	if ( cols != tr.scratchImage[client]->width || rows != tr.scratchImage[client]->height )
-	{
-		tr.scratchImage[client]->width = tr.scratchImage[client]->uploadWidth = cols;
-		tr.scratchImage[client]->height = tr.scratchImage[client]->uploadHeight = rows;
-		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		//qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat	
-	}
-
-	else
-	{
-		if (dirty)
-		{
-			// otherwise, just subimage upload it so that drivers can tell we are going to be changing
-			// it and don't try and do a texture compression
-			qglTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, cols, rows, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		}
-	}
-
-	#else
-
 	image_t *image = tr.scratchImage[client];
 
 	GL_Bind( image );
@@ -956,12 +902,12 @@ void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int
 	{
 		image->width = image->uploadWidth = cols;
 		image->height = image->uploadHeight = rows;
-		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		//qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat	
+		//qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+		qglTexImage2D( GL_TEXTURE_2D, 0, image->internalFormat, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat
+		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat	
 	}
 
 	else
@@ -973,8 +919,6 @@ void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int
 			qglTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, cols, rows, GL_RGBA, GL_UNSIGNED_BYTE, data );
 		}
 	}
-
-	#endif
 }
 
 
@@ -1012,12 +956,10 @@ const void *RB_StretchPic ( const void *data )
 
 	cmd = (const stretchPicCommand_t *)data;
 
-	#if 0
 	if ( !backEnd.projection2D )
 	{
 		RB_SetGL2D();
 	}
-	#endif
 
 	shader = cmd->shader;
 
@@ -1031,9 +973,6 @@ const void *RB_StretchPic ( const void *data )
 		backEnd.currentEntity = &backEnd.entity2D;
 		RB_BeginSurface( shader, 0 );
 	}
-
-	if ( !backEnd.projection2D ) // test - quake3e - Cowcat
-		RB_SetGL2D();
 	
 	RB_CHECKOVERFLOW( 4, 6 );
 
@@ -1125,7 +1064,9 @@ const void *RB_DrawBuffer( const void *data )
 
 	cmd = (const drawBufferCommand_t *)data;
 
+	#if !defined(AMIGA)
 	qglDrawBuffer( cmd->buffer );
+	#endif
 
 	// clear screen for debugging
 	if ( r_clear->integer )
@@ -1195,7 +1136,7 @@ void RB_ShowImages( void )
 		qglVertex2f( x, y + h );
 		qglEnd();
 	}
-	
+
 	qglFinish();
 
 	end = ri.Milliseconds();
@@ -1226,7 +1167,7 @@ RB_ClearDepth
 const void *RB_ClearDepth(const void *data)
 {
 	const clearDepthCommand_t *cmd = data;
-	
+
 	if(tess.numIndexes)
 		RB_EndSurface();
 

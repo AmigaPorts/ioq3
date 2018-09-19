@@ -26,16 +26,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 cvar_t		*cvar_vars;
 cvar_t		*cvar_cheats;
-int			cvar_modifiedFlags;
+int		cvar_modifiedFlags;
 
 #define	MAX_CVARS	1024
 cvar_t		cvar_indexes[MAX_CVARS];
-int			cvar_numIndexes;
+int		cvar_numIndexes;
 
 #define FILE_HASH_SIZE		256
-static	cvar_t*		hashTable[FILE_HASH_SIZE];
+static	cvar_t*	hashTable[FILE_HASH_SIZE];
 
-cvar_t *Cvar_Set2( const char *var_name, const char *value, qboolean force);
 
 /*
 ================
@@ -436,12 +435,14 @@ void Cvar_Print( cvar_t *v ) {
 Cvar_Set2
 ============
 */
-cvar_t *Cvar_Set2( const char *var_name, const char *value, qboolean force ) {
+cvar_t *Cvar_Set2( const char *var_name, const char *value, qboolean force )
+{
 	cvar_t	*var;
 
 //	Com_DPrintf( "Cvar_Set2: %s %s\n", var_name, value );
 
-	if ( !Cvar_ValidateString( var_name ) ) {
+	if ( !Cvar_ValidateString( var_name ) )
+	{
 		Com_Printf("invalid cvar name string: %s\n", var_name );
 		var_name = "BADNAME";
 	}
@@ -882,6 +883,96 @@ void Cvar_List_f( void ) {
 
 /*
 ============
+Cvar_Unset
+
+Unsets a cvar
+============
+*/
+
+#if 0
+cvar_t *Cvar_Unset(cvar_t *cv)
+{
+	cvar_t *next = cv->next;
+
+	// note what types of cvars have been modified (userinfo, archive, serverinfo, systeminfo)
+	cvar_modifiedFlags |= cv->flags;
+
+	if(cv->name)
+		Z_Free(cv->name);
+
+	if(cv->string)
+		Z_Free(cv->string);
+
+	if(cv->latchedString)
+		Z_Free(cv->latchedString);
+
+	if(cv->resetString)
+		Z_Free(cv->resetString);
+
+	if(cv->description)
+		Z_Free(cv->description);
+
+	if(cv->prev)
+		cv->prev->next = cv->next;
+
+	else
+		cvar_vars = cv->next;
+
+	if(cv->next)
+		cv->next->prev = cv->prev;
+
+	if(cv->hashPrev)
+		cv->hashPrev->hashNext = cv->hashNext;
+
+	else
+		hashTable[cv->hashIndex] = cv->hashNext;
+
+	if(cv->hashNext)
+		cv->hashNext->hashPrev = cv->hashPrev;
+
+	Com_Memset(cv, '\0', sizeof(*cv));
+	
+	return next;
+}
+
+/*
+============
+Cvar_Restart
+
+Resets all cvars to their hardcoded values and removes userdefined variables
+and variables added via the VMs if requested.
+============
+*/
+
+void Cvar_Restart(qboolean unsetVM)
+{
+	cvar_t	*curvar;
+
+	curvar = cvar_vars;
+
+	while(curvar)
+	{
+		if((curvar->flags & CVAR_USER_CREATED) || (unsetVM && (curvar->flags & CVAR_VM_CREATED)))
+		{
+			// throw out any variables the user/vm created
+			curvar = Cvar_Unset(curvar);
+			continue;
+		}
+		
+		if(!(curvar->flags & (CVAR_ROM | CVAR_INIT | CVAR_NORESTART)))
+		{
+			// Just reset the rest to their default values.
+			Cvar_Set2(curvar->name, curvar->resetString, qfalse);
+		}
+		
+		curvar = curvar->next;
+	}
+}
+
+#endif
+
+/*
+============
 Cvar_Restart_f
 
 Resets all cvars to their hardcoded values
@@ -1008,13 +1099,17 @@ Cvar_Register
 basically a slightly modified Cvar_Get for the interpreted modules
 =====================
 */
-void	Cvar_Register( vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags ) {
+
+void Cvar_Register( vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags )
+{
 	cvar_t	*cv;
 
 	cv = Cvar_Get( varName, defaultValue, flags );
+
 	if ( !vmCvar ) {
 		return;
 	}
+
 	vmCvar->handle = cv - cvar_indexes;
 	vmCvar->modificationCount = -1;
 	Cvar_Update( vmCvar );

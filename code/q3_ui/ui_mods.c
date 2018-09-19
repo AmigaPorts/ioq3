@@ -125,20 +125,16 @@ static void UI_Mods_LoadMods( void ) {
 
 	// always start off with baseq3
 	s_mods.list.numitems = 1;
-#ifdef OPEN_ARENA
-	s_mods.list.itemnames[0] = s_mods.descriptionList[0] = "OpenArena";
-#else
 	s_mods.list.itemnames[0] = s_mods.descriptionList[0] = "Quake III Arena";
-#endif
 	s_mods.fs_gameList[0] = "";
 
 	numdirs = trap_FS_GetFileList( "$modlist", "", dirlist, sizeof(dirlist) );
 	dirptr  = dirlist;
 	for( i = 0; i < numdirs; i++ ) {
 		dirlen = strlen( dirptr ) + 1;
-	descptr = dirptr + dirlen;
+    descptr = dirptr + dirlen;
   	UI_Mods_ParseInfos( dirptr, descptr);
-	dirptr += dirlen + strlen(descptr) + 1;
+    dirptr += dirlen + strlen(descptr) + 1;
 	}
 
 	trap_Print( va( "%i mods parsed\n", s_mods.list.numitems ) );

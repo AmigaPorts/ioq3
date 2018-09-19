@@ -54,9 +54,11 @@ static void UI_CreditMenu_Draw_ioq3( void ) {
 	// (These are in alphabetical order, for the defense of everyone's egos.)
 	static const char *names[] = {
 		"Tim Angus",
+		"James Canete",
 		"Vincent Cojot",
 		"Ryan C. Gordon",
 		"Aaron Gyes",
+		"Zack Middleton",
 		"Ludwig Nussel",
 		"Julian Priestley",
 		"Scirocco Six",
@@ -67,7 +69,9 @@ static void UI_CreditMenu_Draw_ioq3( void ) {
 		NULL
 	};
 
-	y = 12;
+	// Center text vertically on the screen
+	y = (SCREEN_HEIGHT - ARRAY_LEN(names) * (1.42 * PROP_HEIGHT * PROP_SMALL_SIZE_SCALE)) / 2;
+
 	UI_DrawProportionalString( 320, y, "ioquake3 contributors:", UI_CENTER|UI_SMALLFONT, color_white );
 	y += 1.42 * PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
 

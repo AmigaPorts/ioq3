@@ -30,7 +30,7 @@ serverStatic_t	svs;		// persistant server info
 server_t	sv;		// local server
 vm_t		*gvm = NULL;	// game virtual machine
 
-cvar_t	*sv_fps;		// time rate for running non-clients
+cvar_t	*sv_fps = NULL;		// time rate for running non-clients
 cvar_t	*sv_timeout;		// seconds without any message
 cvar_t	*sv_zombietime;		// seconds to sink messages after disconnect
 cvar_t	*sv_rconPassword;	// password for remote server commands
@@ -50,13 +50,17 @@ cvar_t	*sv_mapChecksum;
 cvar_t	*sv_serverid;
 cvar_t	*sv_minRate;
 cvar_t	*sv_maxRate;
+cvar_t	*sv_dlRate;
 cvar_t	*sv_minPing;
 cvar_t	*sv_maxPing;
 cvar_t	*sv_gametype;
 cvar_t	*sv_pure;
 cvar_t	*sv_floodProtect;
 cvar_t	*sv_lanForceRate;	// dedicated 1 (LAN) server forces local client rates to 99999 (bug #491)
+#ifndef STANDALONE
 cvar_t	*sv_strictAuth;
+#endif
+
 
 serverBan_t serverBans[SERVER_MAXBANS];
 int serverBansCount = 0;
@@ -216,7 +220,7 @@ but not on every player enter or exit.
 #define	HEARTBEAT_MSEC	300*1000
 #define	HEARTBEAT_GAME	"QuakeArena-1"
 
-void SV_MasterHeartbeat( void )
+void SV_MasterHeartbeat( const char *message )
 {
 	static netadr_t	adr[MAX_MASTER_SERVERS];
 	int		i;
@@ -240,9 +244,7 @@ void SV_MasterHeartbeat( void )
 	for ( i = 0 ; i < MAX_MASTER_SERVERS ; i++ )
 	{
 		if ( !sv_master[i]->string[0] )
-		{
 			continue;
-		}
 
 		// see if we haven't already resolved the name
 		// resolving usually causes hitches on win95, so only
@@ -274,9 +276,10 @@ void SV_MasterHeartbeat( void )
 		}
 
 		Com_Printf ("Sending heartbeat to %s\n", sv_master[i]->string );
+
 		// this command should be changed if the server info / status format
 		// ever incompatably changes
-		NET_OutOfBandPrint( NS_SERVER, adr[i], "heartbeat %s\n", HEARTBEAT_GAME );
+		NET_OutOfBandPrint( NS_SERVER, adr[i], "heartbeat %s\n", message );
 	}
 }
 
@@ -291,11 +294,11 @@ void SV_MasterShutdown( void )
 {
 	// send a hearbeat right now
 	svs.nextHeartbeatTime = -9999;
-	SV_MasterHeartbeat();
+	SV_MasterHeartbeat(HEARTBEAT_FOR_MASTER);
 
 	// send it again to minimize chance of drops
 	svs.nextHeartbeatTime = -9999;
-	SV_MasterHeartbeat();
+	SV_MasterHeartbeat(HEARTBEAT_FOR_MASTER);
 
 	// when the master tries to poll the server, it won't respond, so
 	// it will be removed from the list
@@ -418,14 +421,21 @@ void SVC_Info( netadr_t from )
 	// to prevent timed spoofed reply packets that add ghost servers
 	Info_SetValueForKey( infostring, "challenge", Cmd_Argv(1) );
 
-	Info_SetValueForKey( infostring, "protocol", va("%i", PROTOCOL_VERSION) );
+	Info_SetValueForKey( infostring, "gamename", com_gamename->string );
+
+#ifdef LEGACY_PROTOCOL
+	if(com_legacyprotocol->integer > 0)
+		Info_SetValueForKey(infostring, "protocol", va("%i", com_legacyprotocol->integer));
+	else
+#endif	
+		Info_SetValueForKey( infostring, "protocol", va("%i", com_protocol->integer) );
+
 	Info_SetValueForKey( infostring, "hostname", sv_hostname->string );
 	Info_SetValueForKey( infostring, "mapname", sv_mapname->string );
 	Info_SetValueForKey( infostring, "clients", va("%i", count) );
 	Info_SetValueForKey( infostring, "sv_maxclients", va("%i", sv_maxclients->integer - sv_privateClients->integer ) );
 	Info_SetValueForKey( infostring, "gametype", va("%i", sv_gametype->integer ) );
 	Info_SetValueForKey( infostring, "pure", va("%i", sv_pure->integer ) );
-	Info_SetValueForKey( infostring, "gamename", GAMENAME_FOR_MASTER );
 
 #ifdef USE_VOIP
 	if (sv_voip->integer)
@@ -580,7 +590,7 @@ void SV_ConnectionlessPacket( netadr_t from, msg_t *msg )
 
 	c = Cmd_Argv(0);
 
-	if(com_developer->integer) // new Cowcat
+	if(com_developer->integer) // Quake3e - Cowcat
 		Com_Printf ("SV packet %s : %s\n", NET_AdrToString(from), c);
 
 	if (!Q_stricmp(c, "getstatus")) {
@@ -612,7 +622,7 @@ void SV_ConnectionlessPacket( netadr_t from, msg_t *msg )
 
 	else
 	{
-		if(com_developer->integer) // new Cowcat
+		if(com_developer->integer) // Quake3e - Cowcat
 			Com_Printf ("bad connectionless packet from %s:\n%s\n", NET_AdrToString (from), s);
 	}
 }
@@ -644,7 +654,7 @@ void SV_PacketEvent( netadr_t from, msg_t *msg )
 	qport = MSG_ReadShort( msg ) & 0xffff;
 
 	// find which client the message is from
-	for (i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++)
+	for (i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++, cl++)
 	{
 		if (cl->state == CS_FREE)
 		{
@@ -687,12 +697,7 @@ void SV_PacketEvent( netadr_t from, msg_t *msg )
 
 		return;
 	}
-	
-	// if we received a sequenced packet from an address we don't recognize,
-	// send an out of band disconnect packet to it
-	NET_OutOfBandPrint( NS_SERVER, from, "disconnect" );
 }
-
 
 /*
 ===================
@@ -790,7 +795,7 @@ void SV_CheckTimeouts( void )
 	droppoint = svs.time - 1000 * sv_timeout->integer;
 	zombiepoint = svs.time - 1000 * sv_zombietime->integer;
 
-	for (i=0,cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++)
+	for (i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++, cl++)
 	{
 		// message times may be wrong across a changelevel
 		if (cl->lastPacketTime > svs.time)
@@ -809,7 +814,7 @@ void SV_CheckTimeouts( void )
 
 		if ( cl->state >= CS_CONNECTED && cl->lastPacketTime < droppoint)
 		{
-#ifdef DEBUG // Quake3e
+#ifdef DEBUG // Quake3e - Cowcat
 			// wait several frames so a debugger session doesn't
 			// cause a timeout
 			if ( ++cl->timeoutCount > 5 )
@@ -873,6 +878,25 @@ qboolean SV_CheckPaused( void )
 	return qtrue;
 }
 
+int SV_FrameMsec()
+{
+	if(sv_fps)
+	{
+		int frameMsec;
+
+		frameMsec = 1000.0f / sv_fps->value;
+
+		if(frameMsec < sv.timeResidual)
+			return 0;
+
+		else
+			return frameMsec - sv.timeResidual;
+	}
+
+	else
+		return 1;
+}
+	
 /*
 ==================
 SV_Frame
@@ -931,14 +955,6 @@ void SV_Frame( int msec )
 	if (!com_dedicated->integer)
 		SV_BotFrame (sv.time + sv.timeResidual);
 
-	if ( com_dedicated->integer && sv.timeResidual < frameMsec )
-	{
-		// NET_Sleep will give the OS time slices until either get a packet
-		// or time enough for a server frame has gone by
-		NET_Sleep(frameMsec - sv.timeResidual);
-		return;
-	}
-
 	// if time is about to hit the 32nd bit, kick all clients
 	// and clear sv.time, rather
 	// than checking for negative time wraparound everywhere.
@@ -991,7 +1007,8 @@ void SV_Frame( int msec )
 	// update ping based on the all received frames
 	SV_CalcPings();
 
-	if (com_dedicated->integer) SV_BotFrame (sv.time);
+	if (com_dedicated->integer)
+		SV_BotFrame (sv.time);
 
 	// run the game simulation in chunks
 	while ( sv.timeResidual >= frameMsec )
@@ -1016,9 +1033,148 @@ void SV_Frame( int msec )
 	SV_SendClientMessages();
 
 	// send a heartbeat to the master if needed
-	SV_MasterHeartbeat();
+	SV_MasterHeartbeat(HEARTBEAT_FOR_MASTER);
 }
 
 //============================================================================
 
+
+/*
+====================
+SV_RateMsec
+
+Return the number of msec a given size message is supposed
+to take to clear, based on the current rate
+====================
+*/
+
+#define	UDPIP_HEADER_SIZE	28
+#define UDPIP6_HEADER_SIZE	48
+
+int SV_RateMsec( client_t *client )
+{
+	int	rate, rateMsec;
+	int 	messageSize;
+
+	messageSize = client->netchan.lastSentSize;
+	rate = client->rate;
+
+	if ( sv_maxRate->integer )
+	{
+		if ( sv_maxRate->integer < 1000 )
+			Cvar_Set( "sv_MaxRate", "1000" );
+
+		if ( sv_maxRate->integer < rate )
+			rate = sv_maxRate->integer;
+	}
+
+	if ( sv_minRate->integer )
+	{
+		if ( sv_minRate->integer < 1000 )
+			Cvar_Set( "sv_minRate", "1000" );
+
+		if ( sv_minRate->integer > rate )
+			rate = sv_minRate->integer;
+	}
+
+	if ( client->netchan.remoteAddress.type == NA_IP6 )
+		messageSize += UDPIP6_HEADER_SIZE;
+
+	else
+		messageSize += UDPIP_HEADER_SIZE;
+
+	rateMsec = messageSize * 1000 / ( (int) (rate * com_timescale->value) );
+	rate = Sys_Milliseconds() - client->netchan.lastSentTime;
+
+	if ( rate > rateMsec )
+		return 0;
+
+	else 
+		return rateMsec - rate;
+}
+
+
+/*
+====================
+SV_SendQueuedPackets
+
+Send download messages and queued packets in the time that we're idle, i.e.
+not computing a server frame or sending client snapshots.
+Return the time in msec until we expect to be called next
+====================
+*/
+
+int SV_SendQueuedPackets()
+{
+	int	numBlocks;
+	int	dlStart, deltaT, delayT;
+	static int dlNextRound = 0;
+	int	timeVal = INT_MAX;
+
+	// Send out fragmented packets now that we're idle
+	delayT = SV_SendQueuedMessages();
+
+	if(delayT >= 0)
+		timeVal = delayT;
+
+	if(sv_dlRate->integer)
+	{
+		// Rate limiting. This is very imprecise for high
+		// download rates due to millisecond timedelta resolution
+		dlStart = Sys_Milliseconds();
+		deltaT = dlNextRound - dlStart;
+
+		if(deltaT > 0)
+		{
+			if(deltaT < timeVal)
+				timeVal = deltaT + 1;
+		}
+
+		else
+		{
+			numBlocks = SV_SendDownloadMessages();
+
+			if(numBlocks)
+			{
+				// There are active downloads
+				deltaT = Sys_Milliseconds() - dlStart;
+
+				delayT = 1000 * numBlocks * MAX_DOWNLOAD_BLKSIZE;
+				delayT /= sv_dlRate->integer * 1024;
+
+				if(delayT <= deltaT + 1)
+				{
+					// Sending the last round of download messages
+					// took too long for given rate, don't wait for
+					// next round, but always enforce a 1ms delay
+					// between DL message rounds so we don't hog
+					// all of the bandwidth. This will result in an
+					// effective maximum rate of 1MB/s per user, but the
+					// low download window size limits this anyways.
+					if(timeVal > 2)
+						timeVal = 2;
+
+					dlNextRound = dlStart + deltaT + 1;
+				}
+
+				else
+				{
+					dlNextRound = dlStart + delayT;
+					delayT -= deltaT;
+
+					if(delayT < timeVal)
+						timeVal = delayT;
+				}
+			}
+		}
+	}
+
+	else
+	{
+		if(SV_SendDownloadMessages())
+			timeVal = 0;
+	}
+
+	return timeVal;
+}
 

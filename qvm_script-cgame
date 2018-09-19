@@ -1,0 +1,112 @@
+SRC="code/cgame/"
+OUT="qvm/vm/cgame/"
+
+echo "q3cpp/rcc"
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_main.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_main.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ code/game/bg_misc.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}bg_misc.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ code/game/bg_pmove.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}bg_pmove.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ code/game/bg_slidemove.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}bg_slidemove.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ code/game/bg_lib.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}bg_lib.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_consolecmds.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_consolecmds.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_draw.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_draw.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_drawtools.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_drawtools.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_effects.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_effects.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_ents.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_ents.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_event.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_event.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_info.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_info.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_localents.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_localents.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_marks.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_marks.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_particles.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_particles.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_players.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_players.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_playerstate.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_playerstate.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_predict.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_predict.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_scoreboard.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_scoreboard.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_servercmds.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_servercmds.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_snapshot.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_snapshot.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_view.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_view.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}cg_weapons.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}cg_weapons.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ code/qcommon/q_math.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}q_math.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ code/qcommon/q_shared.c /tmp/cgame.i 
+q3rcc -target=bytecode /tmp/cgame.i ${OUT}q_shared.asm
+
+echo "q3asm"
+
+q3asm -o bin/cgame.qvm \
+${OUT}cg_main.asm \
+${OUT}bg_misc.asm \
+${OUT}bg_pmove.asm \
+${OUT}bg_slidemove.asm \
+${OUT}bg_lib.asm \
+${OUT}cg_consolecmds.asm \
+${OUT}cg_draw.asm \
+${OUT}cg_drawtools.asm \
+${OUT}cg_effects.asm \
+${OUT}cg_ents.asm \
+${OUT}cg_event.asm \
+${OUT}cg_info.asm \
+${OUT}cg_localents.asm \
+${OUT}cg_marks.asm \
+${OUT}cg_particles.asm \
+${OUT}cg_players.asm \
+${OUT}cg_playerstate.asm \
+${OUT}cg_predict.asm \
+${OUT}cg_scoreboard.asm \
+${OUT}cg_servercmds.asm \
+${OUT}cg_snapshot.asm \
+${OUT}cg_view.asm \
+${OUT}cg_weapons.asm \
+${OUT}q_math.asm \
+${OUT}q_shared.asm \
+code/cgame/cg_syscalls.asm
+
+
+

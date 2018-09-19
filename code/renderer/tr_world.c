@@ -377,7 +377,7 @@ void R_AddBrushModelSurfaces ( trRefEntity_t *ent )
 	if ( clip == CULL_OUT )
 		return;
 	
-	R_SetupEntityLighting ( &tr.refdef, ent ); // was missing - Cowcat
+	R_SetupEntityLighting ( &tr.refdef, ent );
 	R_DlightBmodel( bmodel );
 
 	for ( i = 0 ; i < bmodel->numSurfaces ; i++ )
@@ -502,7 +502,6 @@ static void R_RecursiveWorldNode( mnode_t *node, unsigned int planeBits, unsigne
 				if ( r == 1 )
 					planeBits &= ~8;	// all descendants will also be in front
 			}
-
 		}
 
 		if ( node->contents != -1 )

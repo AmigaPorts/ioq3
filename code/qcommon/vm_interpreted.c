@@ -134,7 +134,7 @@ static char *opnames[256] =
 };
 #endif
 
-#if idppc
+#if 0 //idppc
 
 //FIXME: these, um... look the same to me
 #if defined(__GNUC__)
@@ -165,6 +165,14 @@ static ID_INLINE int loadWord(void *addr)
 
 	return LittleLong(word);
 }
+
+#if 0
+// ppc correct ?? - Cowcat
+int __lwbrx(__reg("r0") void *) =
+	"\tlwbrx\t3,0,0";
+	
+#define loadWord(addr) __lwbrx(addr)
+#endif
 
 #endif
 
@@ -403,16 +411,8 @@ int VM_CallInterpreted( vm_t *vm, int *args )
 	dataMask = vm->dataMask;
 	
 	programCounter = 0;
-	
-	#if 0
-	// leave a free spot at start of stack so
-	// that as long as opStack is valid, opStack-1 will
-	// not corrupt anything
-	opStack = stack;
-	programCounter = 0;
-	#endif
 
-	#if 1
+	#if 0
 
 	programStack -= 48;
 
@@ -429,9 +429,11 @@ int VM_CallInterpreted( vm_t *vm, int *args )
 
 	#else
 
-	programStack -= ( 8 + 4 * 10 ); //  MAX_VMMAIN_ARGS 
+	programStack -= ( 8 + 4 * 4 ); //  MAX_VMMAIN_ARGS - was 10
+	//programStack -= ( 8 + 4 * MAX_VMMAIN_ARGS );
 
-	for ( arg = 0; arg < 10 ; arg++ ) //  MAX_VMMAIN_ARGS
+	for ( arg = 0; arg < 4 ; arg++ ) //  MAX_VMMAIN_ARGS - was 10
+	//for ( arg = 0; arg < MAX_VMMAIN_ARGS; arg++ )
 		*(int *)&image[ programStack + 8 + arg * 4 ] = args[ arg ];
 
 	#endif
@@ -521,35 +523,35 @@ nextInstruction2:
 				Com_Error( ERR_DROP, "OP_LOAD4 misaligned" );
 			}
 #endif
-			r0 = *opStack = *(int *)&image[ r0&dataMask ]; // Cowcat
+			r0 = *opStack = *(int *)&image[ r0 & dataMask ];
 			goto nextInstruction2;
 
 		case OP_LOAD2:
-			r0 = *opStack = *(unsigned short *)&image[ r0&dataMask ]; // Cowcat
+			r0 = *opStack = *(unsigned short *)&image[ r0 & dataMask ];
 			goto nextInstruction2;
 
 		case OP_LOAD1:
-			r0 = *opStack = image[ r0&dataMask ];
+			r0 = *opStack = image[ r0 & dataMask ];
 			goto nextInstruction2;
 
 		case OP_STORE4:
-			*(int *)&image[ r1&(dataMask & ~3) ] = r0;
+			*(int *)&image[ r1 & dataMask ] = r0;
 			opStack -= 2;
 			goto nextInstruction;
 
 		case OP_STORE2:
-			*(short *)&image[ r1&(dataMask & ~1) ] = r0;
+			*(short *)&image[ r1 & dataMask ] = r0;
 			opStack -= 2;
 			goto nextInstruction;
 
 		case OP_STORE1:
-			image[ r1&dataMask ] = r0;
+			image[ r1 & dataMask ] = r0;
 			opStack -= 2;
 			goto nextInstruction;
 
 		case OP_ARG:
 			// single byte offset from programStack
-			*(int *)&image[ codeImage[programCounter] + programStack ] = r0; // Cowcat
+			*(int *)&image[ (codeImage[programCounter] + programStack) & dataMask ] = r0;
 			opStack--;
 			programCounter += 1;
 			goto nextInstruction;
@@ -772,9 +774,9 @@ nextInstruction2:
 		*/
 
 		case OP_JUMP:
-			programCounter = r0;
-			programCounter = vm->instructionPointers[ programCounter ];
-			//programCounter = vm->instructionPointers[ r0 ]; // Cowcat
+			//programCounter = r0;
+			//programCounter = vm->instructionPointers[ programCounter ];
+			programCounter = vm->instructionPointers[ r0 ]; // Cowcat
 			opStack--;
 			goto nextInstruction;
 
@@ -929,98 +931,108 @@ nextInstruction2:
 			}
 
 		case OP_EQF:
+			opStack -= 2;
 
-			if ( ((float *)opStack)[-1] == *(float *)opStack )
+			//if ( ((float *)opStack)[-1] == *(float *)opStack )
+			if ( ((float *)opStack)[+1] == ((float *)opStack)[+2] )
 			{
 				programCounter = r2;	//vm->instructionPointers[r2];
-				opStack -= 2;
+				//opStack -= 2;
 				goto nextInstruction;
 			}
 
 			else
 			{
 				programCounter += 1;
-				opStack -= 2;
+				//opStack -= 2;
 				goto nextInstruction;
 			}
 
 		case OP_NEF:
-
-			if ( ((float *)opStack)[-1] != *(float *)opStack )
+			opStack -= 2;
+			
+			//if ( ((float *)opStack)[-1] != *(float *)opStack )
+			if ( ((float *)opStack)[+1] != ((float *)opStack)[+2] )
 			{
 				programCounter = r2;	//vm->instructionPointers[r2];
-				opStack -= 2;
+				//opStack -= 2;
 				goto nextInstruction;
 			}
 
 			else
 			{
 				programCounter += 1;
-				opStack -= 2;
+				//opStack -= 2;
 				goto nextInstruction;
 			}
 
 		case OP_LTF:
+			opStack -= 2;
 
-			if ( ((float *)opStack)[-1] < *(float *)opStack )
+			//if ( ((float *)opStack)[-1] < *(float *)opStack )
+			if ( ((float *)opStack)[+1] < ((float *)opStack)[+2] )
 			{
 				programCounter = r2;	//vm->instructionPointers[r2];
-				opStack -= 2;
+				//opStack -= 2;
 				goto nextInstruction;
 			}
 
 			else
 			{
 				programCounter += 1;
-				opStack -= 2;
+				//opStack -= 2;
 				goto nextInstruction;
 			}
 
 		case OP_LEF:
+			opStack -= 2;
 
-			if ( ((float *)opStack)[-1] <= *(float *)opStack )
+			//if ( ((float *)opStack)[-1] <= *(float *)opStack )
+			if ( ((float *)opStack)[+1] <= ((float *)opStack)[+2] )
 			{
 				programCounter = r2;	//vm->instructionPointers[r2];
-				opStack -= 2;
+				//opStack -= 2;
 				goto nextInstruction;
 			}
 
 			else
 			{
 				programCounter += 1;
-				opStack -= 2;
+				//opStack -= 2;
 				goto nextInstruction;
 			}
 
 		case OP_GTF:
+			opStack -= 2;
 
-			if ( ((float *)opStack)[-1] > *(float *)opStack )
+			if ( ((float *)opStack)[+1] > ((float *)opStack)[+2] )
 			{
 				programCounter = r2;	//vm->instructionPointers[r2];
-				opStack -= 2;
+				//opStack -= 2;
 				goto nextInstruction;
 			}
 
 			else
 			{
 				programCounter += 1;
-				opStack -= 2;
+				//opStack -= 2;
 				goto nextInstruction;
 			}
 
 		case OP_GEF:
+			opStack -= 2;
 
-			if ( ((float *)opStack)[-1] >= *(float *)opStack )
+			if ( ((float *)opStack)[+1] >= ((float *)opStack)[+2] )
 			{
 				programCounter = r2;	//vm->instructionPointers[r2];
-				opStack -= 2;
+				//opStack -= 2;
 				goto nextInstruction;
 			}
 
 			else
 			{
 				programCounter += 1;
-				opStack -= 2;
+				//opStack -= 2;
 				goto nextInstruction;
 			}
 
@@ -1032,58 +1044,69 @@ nextInstruction2:
 			goto nextInstruction;
 
 		case OP_ADD:
-			opStack[-1] = r1 + r0;
+			//opStack[-1] = r1 + r0;
 			opStack--;
+			opStack[0] = r1 + r0;
 			goto nextInstruction;
 
 		case OP_SUB:
-			opStack[-1] = r1 - r0;
+			//opStack[-1] = r1 - r0;
 			opStack--;
+			opStack[0] = r1 - r0;
 			goto nextInstruction;
 
 		case OP_DIVI:
-			opStack[-1] = r1 / r0;
+			//opStack[-1] = r1 / r0;
 			opStack--;
+			opStack[0] = r1 / r0; // test
 			goto nextInstruction;
 
 		case OP_DIVU:
-			opStack[-1] = ((unsigned)r1) / ((unsigned)r0);
+			//opStack[-1] = ((unsigned)r1) / ((unsigned)r0);
 			opStack--;
+			opStack[0] = ((unsigned)r1) / ((unsigned)r0);
 			goto nextInstruction;
 
 		case OP_MODI:
-			opStack[-1] = r1 % r0;
+			//opStack[-1] = r1 % r0;
 			opStack--;
+			opStack[0] = r1 % r0;
 			goto nextInstruction;
 
 		case OP_MODU:
-			opStack[-1] = ((unsigned)r1) % ((unsigned)r0);
+			//opStack[-1] = ((unsigned)r1) % ((unsigned)r0);
 			opStack--;
+			opStack[0] = ((unsigned)r1) % ((unsigned)r0);
 			goto nextInstruction;
 
 		case OP_MULI:
-			opStack[-1] = r1 * r0;
+			//opStack[-1] = r1 * r0;
 			opStack--;
+			opStack[0] = r1 * r0;
 			goto nextInstruction;
 
 		case OP_MULU:
-			opStack[-1] = ((unsigned)r1) * ((unsigned)r0);
+			//opStack[-1] = ((unsigned)r1) * ((unsigned)r0);
 			opStack--;
+			opStack[0] = ((unsigned)r1) * ((unsigned)r0);
 			goto nextInstruction;
 
 		case OP_BAND:
-			opStack[-1] = ((unsigned)r1) & ((unsigned)r0);
+			//opStack[-1] = ((unsigned)r1) & ((unsigned)r0);
 			opStack--;
+			opStack[0] = ((unsigned)r1) & ((unsigned)r0);
 			goto nextInstruction;
 
 		case OP_BOR:
-			opStack[-1] = ((unsigned)r1) | ((unsigned)r0);
+			//opStack[-1] = ((unsigned)r1) | ((unsigned)r0);
 			opStack--;
+			opStack[0] = ((unsigned)r1) | ((unsigned)r0);
 			goto nextInstruction;
 
 		case OP_BXOR:
-			opStack[-1] = ((unsigned)r1) ^ ((unsigned)r0);
+			//opStack[-1] = ((unsigned)r1) ^ ((unsigned)r0);
 			opStack--;
+			opStack[0] = ((unsigned)r1) ^ ((unsigned)r0);
 			goto nextInstruction;
 
 		case OP_BCOM:
@@ -1091,18 +1114,21 @@ nextInstruction2:
 			goto nextInstruction;
 
 		case OP_LSH:
-			opStack[-1] = r1 << r0;
+			//opStack[-1] = r1 << r0;
 			opStack--;
+			opStack[0] = r1 << r0;
 			goto nextInstruction;
 
 		case OP_RSHI:
-			opStack[-1] = r1 >> r0;
+			//opStack[-1] = r1 >> r0;
 			opStack--;
+			opStack[0] = r1 >> r0;
 			goto nextInstruction;
 
 		case OP_RSHU:
-			opStack[-1] = ((unsigned)r1) >> r0;
+			//opStack[-1] = ((unsigned)r1) >> r0;
 			opStack--;
+			opStack[0] = ((unsigned)r1) >> r0;
 			goto nextInstruction;
 
 		case OP_NEGF:
@@ -1110,23 +1136,27 @@ nextInstruction2:
 			goto nextInstruction;
 
 		case OP_ADDF:
-			*(float *)(opStack-1) = *(float *)(opStack-1) + *(float *)opStack;
+			//*(float *)(opStack-1) = *(float *)(opStack-1) + *(float *)opStack;
 			opStack--;
+			*(float *)(opStack) = *(float *)(opStack) + *(float *)(opStack+1);
 			goto nextInstruction;
 
 		case OP_SUBF:
-			*(float *)(opStack-1) = *(float *)(opStack-1) - *(float *)opStack;
+			//*(float *)(opStack-1) = *(float *)(opStack-1) - *(float *)opStack;
 			opStack--;
+			*(float *)(opStack) = *(float *)(opStack) - *(float *)(opStack+1);
 			goto nextInstruction;
 
 		case OP_DIVF:
-			*(float *)(opStack-1) = *(float *)(opStack-1) / *(float *)opStack;
+			//*(float *)(opStack-1) = *(float *)(opStack-1) / *(float *)opStack;
 			opStack--;
+			*(float *)(opStack) = *(float *)(opStack) / *(float *)(opStack+1);
 			goto nextInstruction;
 
 		case OP_MULF:
-			*(float *)(opStack-1) = *(float *)(opStack-1) * *(float *)opStack;
+			//*(float *)(opStack-1) = *(float *)(opStack-1) * *(float *)opStack;
 			opStack--;
+			*(float *)(opStack) = *(float *)(opStack) * *(float *)(opStack+1);
 			goto nextInstruction;
 
 		case OP_CVIF:

@@ -46,8 +46,8 @@ GetClientState
 */
 static void GetClientState( uiClientState_t *state ) {
 	state->connectPacketCount = clc.connectPacketCount;
-	state->connState = cls.state;
-	Q_strncpyz( state->servername, cls.servername, sizeof( state->servername ) );
+	state->connState = clc.state;
+	Q_strncpyz( state->servername, clc.servername, sizeof( state->servername ) );
 	Q_strncpyz( state->updateInfoString, cls.updateInfoString, sizeof( state->updateInfoString ) );
 	Q_strncpyz( state->messageString, clc.serverMessage, sizeof( state->messageString ) );
 	state->clientNum = cl.snap.ps.clientNum;
@@ -133,45 +133,57 @@ static void LAN_ResetPings(int source) {
 LAN_AddServer
 ====================
 */
-static int LAN_AddServer(int source, const char *name, const char *address) {
-	int max, *count, i;
-	netadr_t adr;
-	serverInfo_t *servers = NULL;
+static int LAN_AddServer(int source, const char *name, const char *address)
+{
+	int		max, *count, i;
+	netadr_t	adr;
+	serverInfo_t	*servers = NULL;
 	max = MAX_OTHER_SERVERS;
 	count = NULL;
 
-	switch (source) {
+	switch (source)
+	{
 		case AS_LOCAL :
 			count = &cls.numlocalservers;
 			servers = &cls.localServers[0];
 			break;
+
 		case AS_MPLAYER:
 		case AS_GLOBAL :
 			max = MAX_GLOBAL_SERVERS;
 			count = &cls.numglobalservers;
 			servers = &cls.globalServers[0];
 			break;
+
 		case AS_FAVORITES :
 			count = &cls.numfavoriteservers;
 			servers = &cls.favoriteServers[0];
 			break;
 	}
-	if (servers && *count < max) {
-		NET_StringToAdr( address, &adr, NA_IP );
-		for ( i = 0; i < *count; i++ ) {
+
+	if (servers && *count < max)
+	{
+		NET_StringToAdr( address, &adr, NA_UNSPEC ); // was NA_IP - Cowcat
+
+		for ( i = 0; i < *count; i++ )
+		{
 			if (NET_CompareAdr(servers[i].adr, adr)) {
 				break;
 			}
 		}
-		if (i >= *count) {
+
+		if (i >= *count)
+		{
 			servers[*count].adr = adr;
 			Q_strncpyz(servers[*count].hostName, name, sizeof(servers[*count].hostName));
 			servers[*count].visible = qtrue;
 			(*count)++;
 			return 1;
 		}
+
 		return 0;
 	}
+
 	return -1;
 }
 
@@ -180,35 +192,48 @@ static int LAN_AddServer(int source, const char *name, const char *address) {
 LAN_RemoveServer
 ====================
 */
-static void LAN_RemoveServer(int source, const char *addr) {
-	int *count, i;
-	serverInfo_t *servers = NULL;
+static void LAN_RemoveServer(int source, const char *addr)
+{
+	int		*count, i;
+	serverInfo_t	*servers = NULL;
 	count = NULL;
-	switch (source) {
+
+	switch (source)
+	{
 		case AS_LOCAL :
 			count = &cls.numlocalservers;
 			servers = &cls.localServers[0];
 			break;
+
 		case AS_MPLAYER:
 		case AS_GLOBAL :
 			count = &cls.numglobalservers;
 			servers = &cls.globalServers[0];
 			break;
+
 		case AS_FAVORITES :
 			count = &cls.numfavoriteservers;
 			servers = &cls.favoriteServers[0];
 			break;
 	}
-	if (servers) {
+
+	if (servers)
+	{
 		netadr_t comp;
-		NET_StringToAdr( addr, &comp, NA_IP );
-		for (i = 0; i < *count; i++) {
-			if (NET_CompareAdr( comp, servers[i].adr)) {
+		NET_StringToAdr( addr, &comp, NA_UNSPEC ); // was NA_IP - Cowcat
+
+		for (i = 0; i < *count; i++)
+		{
+			if (NET_CompareAdr( comp, servers[i].adr))
+			{
 				int j = i;
-				while (j < *count - 1) {
+
+				while (j < *count - 1)
+				{
 					Com_Memcpy(&servers[j], &servers[j+1], sizeof(servers[j]));
 					j++;
 				}
+
 				(*count)--;
 				break;
 			}
@@ -636,18 +661,32 @@ static void Key_GetBindingBuf( int keynum, char *buf, int buflen ) {
 CLUI_GetCDKey
 ====================
 */
+
+static void CLUI_GetCDKey( char *buf, int buflen )
+{
 #ifndef STANDALONE
-static void CLUI_GetCDKey( char *buf, int buflen ) {
-	cvar_t	*fs;
-	fs = Cvar_Get ("fs_game", "", CVAR_INIT|CVAR_SYSTEMINFO );
-	if (UI_usesUniqueCDKey() && fs && fs->string[0] != 0) {
+	const char *gamedir;
+
+	gamedir = Cvar_VariableString("fs_game");
+
+	if (UI_usesUniqueCDKey() && gamedir[0] != 0)
+	{
 		Com_Memcpy( buf, &cl_cdkey[16], 16);
 		buf[16] = 0;
-	} else {
+	}
+
+	else
+	{
 		Com_Memcpy( buf, cl_cdkey, 16);
 		buf[16] = 0;
 	}
+#else
+
+	*buf = 0;
+#endif
+	
 }
+
 
 
 /*
@@ -655,15 +694,23 @@ static void CLUI_GetCDKey( char *buf, int buflen ) {
 CLUI_SetCDKey
 ====================
 */
-static void CLUI_SetCDKey( char *buf ) {
-	cvar_t	*fs;
-	fs = Cvar_Get ("fs_game", "", CVAR_INIT|CVAR_SYSTEMINFO );
-	if (UI_usesUniqueCDKey() && fs && fs->string[0] != 0) {
+#ifndef STANDALONE
+static void CLUI_SetCDKey( char *buf )
+{
+	const char *gamedir;
+
+	gamedir = Cvar_VariableString("fs_game");
+
+	if (UI_usesUniqueCDKey() && gamedir[0] != 0)
+	{
 		Com_Memcpy( &cl_cdkey[16], buf, 16 );
 		cl_cdkey[32] = 0;
 		// set the flag so the fle will be written at the next opportunity
 		cvar_modifiedFlags |= CVAR_ARCHIVE;
-	} else {
+	}
+
+	else
+	{
 		Com_Memcpy( cl_cdkey, buf, 16 );
 		// set the flag so the fle will be written at the next opportunity
 		cvar_modifiedFlags |= CVAR_ARCHIVE;
@@ -701,7 +748,8 @@ static int GetConfigString(int index, char *buf, int size)
 FloatAsInt
 ====================
 */
-static int FloatAsInt( float f ) {
+static int FloatAsInt( float f )
+{
 	floatint_t fi;
 	fi.f = f;
 	return fi.i;
@@ -714,8 +762,10 @@ CL_UISystemCalls
 The ui module is making a system call
 ====================
 */
-intptr_t CL_UISystemCalls( intptr_t *args ) {
-	switch( args[0] ) {
+intptr_t CL_UISystemCalls( intptr_t *args )
+{
+	switch( args[0] )
+	{
 	case UI_ERROR:
 		Com_Error( ERR_DROP, "%s", (const char*)VMA(1) );
 		return 0;
@@ -778,6 +828,7 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 			Com_Printf (S_COLOR_YELLOW "turning EXEC_NOW '%.11s' into EXEC_INSERT\n", (const char*)VMA(2));
 			args[1] = EXEC_INSERT;
 		}
+
 		Cbuf_ExecuteText( args[1], VMA(2) );
 		return 0;
 
@@ -785,7 +836,7 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return FS_FOpenFileByMode( VMA(1), VMA(2), args[3] );
 
 	case UI_FS_READ:
-		FS_Read2( VMA(1), args[2], args[3] );
+		FS_Read( VMA(1), args[2], args[3] );
 		return 0;
 
 	case UI_FS_WRITE:
@@ -839,7 +890,7 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 		re.DrawStretchPic( VMF(1), VMF(2), VMF(3), VMF(4), VMF(5), VMF(6), VMF(7), VMF(8), args[9] );
 		return 0;
 
-  case UI_R_MODELBOUNDS:
+  	case UI_R_MODELBOUNDS:
 		re.ModelBounds( args[1], VMA(2), VMA(3) );
 		return 0;
 
@@ -975,9 +1026,7 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return Hunk_MemoryRemaining();
 
 	case UI_GET_CDKEY:
-#ifndef STANDALONE
 		CLUI_GetCDKey( VMA(1), args[2] );
-#endif
 		return 0;
 
 	case UI_SET_CDKEY:
@@ -1025,18 +1074,23 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 
 	case UI_PC_ADD_GLOBAL_DEFINE:
 		return botlib_export->PC_AddGlobalDefine( VMA(1) );
+
 	case UI_PC_LOAD_SOURCE:
 		return botlib_export->PC_LoadSourceHandle( VMA(1) );
+
 	case UI_PC_FREE_SOURCE:
 		return botlib_export->PC_FreeSourceHandle( args[1] );
+
 	case UI_PC_READ_TOKEN:
 		return botlib_export->PC_ReadTokenHandle( args[1], VMA(2) );
+
 	case UI_PC_SOURCE_FILE_AND_LINE:
 		return botlib_export->PC_SourceFileAndLine( args[1], VMA(2), VMA(3) );
 
 	case UI_S_STOPBACKGROUNDTRACK:
 		S_StopBackgroundTrack();
 		return 0;
+
 	case UI_S_STARTBACKGROUNDTRACK:
 		S_StartBackgroundTrack( VMA(1), VMA(2));
 		return 0;
@@ -1045,39 +1099,39 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return Com_RealTime( VMA(1) );
 
 	case UI_CIN_PLAYCINEMATIC:
-	  Com_DPrintf("UI_CIN_PlayCinematic\n");
-	  return CIN_PlayCinematic(VMA(1), args[2], args[3], args[4], args[5], args[6]);
+	  	Com_DPrintf("UI_CIN_PlayCinematic\n");
+	  	return CIN_PlayCinematic(VMA(1), args[2], args[3], args[4], args[5], args[6]);
 
 	case UI_CIN_STOPCINEMATIC:
-	  return CIN_StopCinematic(args[1]);
+	  	return CIN_StopCinematic(args[1]);
 
 	case UI_CIN_RUNCINEMATIC:
-	  return CIN_RunCinematic(args[1]);
+	  	return CIN_RunCinematic(args[1]);
 
 	case UI_CIN_DRAWCINEMATIC:
-	  CIN_DrawCinematic(args[1]);
-	  return 0;
+	  	CIN_DrawCinematic(args[1]);
+	  	return 0;
 
 	case UI_CIN_SETEXTENTS:
-	  CIN_SetExtents(args[1], args[2], args[3], args[4], args[5]);
-	  return 0;
+	  	CIN_SetExtents(args[1], args[2], args[3], args[4], args[5]);
+	  	return 0;
 
 	case UI_R_REMAP_SHADER:
 		re.RemapShader( VMA(1), VMA(2), VMA(3) );
 		return 0;
 
 	case UI_VERIFY_CDKEY:
-#ifndef STANDALONE
+//#ifndef STANDALONE
 		return CL_CDKeyValidate(VMA(1), VMA(2));
-#else
+//#else
 
-#ifdef OPEN_ARENA
+//#ifdef OPEN_ARENA
 		// HACK TODO FIXME: ioquake3 baseline is newer than one used with OpenArena!
-		return qtrue;
-#endif
+		//return qtrue;
+//#endif
 		
 		return 0;
-#endif
+//#endif
 		
 	default:
 		Com_Error( ERR_DROP, "Bad UI system trap: %ld", (long int) args[0] );
@@ -1092,12 +1146,15 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 CL_ShutdownUI
 ====================
 */
-void CL_ShutdownUI( void ) {
+void CL_ShutdownUI( void )
+{
 	Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_UI );
 	cls.uiStarted = qfalse;
+
 	if ( !uivm ) {
 		return;
 	}
+
 	VM_Call( uivm, UI_SHUTDOWN );
 	VM_Free( uivm );
 	uivm = NULL;
@@ -1110,37 +1167,64 @@ CL_InitUI
 */
 #define UI_OLD_API_VERSION	4
 
-void CL_InitUI( void ) {
+void CL_InitUI( void )
+{
 	int		v;
-	vmInterpret_t		interpret;
+	vmInterpret_t	interpret;
 
 	// load the dll or bytecode
-	if ( cl_connectedToPureServer != 0 ) {
+
+	#if 0
+	if ( cl_connectedToPureServer != 0 )
+	{
 		// if sv_pure is set we only allow qvms to be loaded
 		interpret = VMI_COMPILED;
 	}
-	else {
+
+	else
+	{
 		interpret = Cvar_VariableValue( "vm_ui" );
 	}
+
+	#else // new ioq3 - Cowcat
+
+	interpret = Cvar_VariableValue( "vm_ui" );
+
+	if ( cl_connectedToPureServer )
+	{
+		// if sv_pure is set we only allow qvms to be loaded
+		if(interpret != VMI_COMPILED && interpret != VMI_BYTECODE)
+			interpret = VMI_COMPILED;
+	}
+	#endif
+
 	uivm = VM_Create( "ui", CL_UISystemCalls, interpret );
-	if ( !uivm ) {
+
+	if ( !uivm )
+	{
 		Com_Error( ERR_FATAL, "VM_Create on UI failed" );
 	}
 
 	// sanity check
 	v = VM_Call( uivm, UI_GETAPIVERSION );
-	if (v == UI_OLD_API_VERSION) {
+
+	if (v == UI_OLD_API_VERSION)
+	{
 //		Com_Printf(S_COLOR_YELLOW "WARNING: loading old Quake III Arena User Interface version %d\n", v );
 		// init for this gamestate
-		VM_Call( uivm, UI_INIT, (cls.state >= CA_AUTHORIZING && cls.state < CA_ACTIVE));
+		VM_Call( uivm, UI_INIT, (clc.state >= CA_AUTHORIZING && clc.state < CA_ACTIVE));
 	}
-	else if (v != UI_API_VERSION) {
+
+	else if (v != UI_API_VERSION)
+	{
 		Com_Error( ERR_DROP, "User Interface is version %d, expected %d", v, UI_API_VERSION );
 		cls.uiStarted = qfalse;
 	}
-	else {
+
+	else
+	{
 		// init for this gamestate
-		VM_Call( uivm, UI_INIT, (cls.state >= CA_AUTHORIZING && cls.state < CA_ACTIVE) );
+		VM_Call( uivm, UI_INIT, (clc.state >= CA_AUTHORIZING && clc.state < CA_ACTIVE) );
 	}
 
 	// reset any CVAR_CHEAT cvars registered by ui
@@ -1149,10 +1233,15 @@ void CL_InitUI( void ) {
 }
 
 #ifndef STANDALONE
-qboolean UI_usesUniqueCDKey( void ) {
-	if (uivm) {
+qboolean UI_usesUniqueCDKey( void )
+{
+	if (uivm)
+	{
 		return (VM_Call( uivm, UI_HASUNIQUECDKEY) == qtrue);
-	} else {
+	}
+
+	else
+	{
 		return qfalse;
 	}
 }
@@ -1165,7 +1254,8 @@ UI_GameCommand
 See if the current console command is claimed by the ui
 ====================
 */
-qboolean UI_GameCommand( void ) {
+qboolean UI_GameCommand( void )
+{
 	if ( !uivm ) {
 		return qfalse;
 	}

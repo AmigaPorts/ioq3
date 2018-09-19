@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef __TR_TYPES_H
 #define __TR_TYPES_H
 
-#define MAX_VIDEO_HANDLES	16		// added - Cowcat
+#define MAX_VIDEO_HANDLES	16		// Quake3e added - Cowcat
 
 #define	MAX_DLIGHTS		32		// can't be increased, because bit flags are used on surfaces
 //#define MAX_ENTITIES		1023		// can't be increased without changing drawsurf bit packing

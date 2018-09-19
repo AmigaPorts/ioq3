@@ -33,7 +33,6 @@ char *svc_strings[256] = {
 	"svc_download",
 	"svc_snapshot",
 	"svc_EOF",
-	"svc_extension",
 	"svc_voip",
 };
 
@@ -466,6 +465,7 @@ void CL_SystemInfoChanged( void )
 	FS_PureServerSetReferencedPaks( s, t );
 
 	gameSet = qfalse;
+
 	// scan through all the variables in the systeminfo and locally set cvars to match
 	s = systemInfo;
 
@@ -544,6 +544,7 @@ void CL_ParseGamestate( msg_t *msg )
 	entityState_t	nullstate;
 	int		cmd;
 	char		*s;
+	char		oldGame[MAX_QPATH];
 
 	Con_Close();
 
@@ -612,6 +613,9 @@ void CL_ParseGamestate( msg_t *msg )
 	// read the checksum feed
 	clc.checksumFeed = MSG_ReadLong( msg );
 
+	// save old gamedir
+	Cvar_VariableStringBuffer("fs_game", oldGame, sizeof(oldGame));
+
 	// parse useful values out of CS_SERVERINFO
 	CL_ParseServerInfo();
 
@@ -621,9 +625,15 @@ void CL_ParseGamestate( msg_t *msg )
 	// stop recording now so the demo won't have an unnecessary level load at the end.
 	if(cl_autoRecordDemo->integer && clc.demorecording)
 		CL_StopRecord_f();
-	
+
 	// reinitialize the filesystem if the game directory has changed
-	FS_ConditionalRestart( clc.checksumFeed );
+	if(!cl_oldGameSet && (Cvar_Flags("fs_game") & CVAR_MODIFIED))
+	{
+		cl_oldGameSet = qtrue;
+		Q_strncpyz(cl_oldGame, oldGame, sizeof(cl_oldGame));
+	}
+
+	FS_ConditionalRestart( clc.checksumFeed, qfalse );
 
 	// This used to call CL_StartHunkUsers, but now we enter the download state before loading the
 	// cgame
@@ -647,7 +657,7 @@ void CL_ParseDownload ( msg_t *msg )
 {
 	int		size;
 	unsigned char	data[MAX_MSGLEN];
-	int 		block;
+	uint16_t 	block;
 
 	if (!*clc.downloadTempName)
 	{
@@ -659,7 +669,7 @@ void CL_ParseDownload ( msg_t *msg )
 	// read the data
 	block = MSG_ReadShort ( msg );
 
-	if ( !block )
+	if ( !block && !clc.downloadBlock )
 	{
 		// block zero is special, contains file size
 		clc.downloadSize = MSG_ReadLong ( msg );
@@ -683,7 +693,7 @@ void CL_ParseDownload ( msg_t *msg )
 	
 	MSG_ReadData(msg, data, size);
 
-	if (clc.downloadBlock != block)
+	if ((clc.downloadBlock & 0xFFFF) != block)
 	{
 		Com_DPrintf( "CL_ParseDownload: Expected block %d, got %d\n", clc.downloadBlock, block);
 		return;
@@ -969,21 +979,6 @@ void CL_ParseServerMessage( msg_t *msg )
 		}
 
 		cmd = MSG_ReadByte( msg );
-
-		// See if this is an extension command after the EOF, which means we
-		//  got data that a legacy client should ignore.
-		if ((cmd == svc_EOF) && (MSG_LookaheadByte( msg ) == svc_extension))
-		{
-			SHOWNET( msg, "EXTENSION" );
-			MSG_ReadByte( msg );  // throw the svc_extension byte away.
-			cmd = MSG_ReadByte( msg );  // something legacy clients can't do!
-
-			// sometimes you get a svc_extension at end of stream...dangling
-			//  bits in the huffman decoder giving a bogus value?
-			if (cmd == -1) {
-				cmd = svc_EOF;
-			}
-		}
 
 		if (cmd == svc_EOF)
 		{

@@ -220,6 +220,7 @@ winding_t *BaseWindingForPlane (vec3_t normal, vec_t dist)
 
 	max = -MAX_MAP_BOUNDS;
 	x = -1;
+
 	for (i=0 ; i<3; i++)
 	{
 		v = fabs(normal[i]);
@@ -238,13 +239,14 @@ winding_t *BaseWindingForPlane (vec3_t normal, vec_t dist)
 
 	switch (x)
 	{
-	case 0:
-	case 1:
-		vup[2] = 1;
-		break;		
-	case 2:
-		vup[0] = 1;
-		break;		
+		case 0:
+		case 1:
+			vup[2] = 1;
+			break;
+	
+		case 2:
+			vup[0] = 1;
+			break;		
 	}
 
 	v = DotProduct (vup, normal);
@@ -283,13 +285,15 @@ winding_t *BaseWindingForPlane (vec3_t normal, vec_t dist)
 CopyWinding
 ==================
 */
-winding_t	*CopyWinding (winding_t *w)
+winding_t *CopyWinding (winding_t *w)
 {
-	unsigned long	size;
+	//unsigned long	size;
+	intptr_t	size; // - ioQ3 - Cowcat
 	winding_t	*c;
 
 	c = AllocWinding (w->numpoints);
-	size = (long)((winding_t *)0)->p[w->numpoints];
+	//size = (long)((winding_t *)0)->p[w->numpoints];
+	size = (intptr_t)&(w->p[w->numpoints]) - (intptr_t)w; // - ioQ3 - Cowcat
 	Com_Memcpy (c, w, size);
 	return c;
 }
@@ -299,16 +303,18 @@ winding_t	*CopyWinding (winding_t *w)
 ReverseWinding
 ==================
 */
-winding_t	*ReverseWinding (winding_t *w)
+winding_t *ReverseWinding (winding_t *w)
 {
-	int			i;
+	int		i;
 	winding_t	*c;
 
 	c = AllocWinding (w->numpoints);
+
 	for (i=0 ; i<w->numpoints ; i++)
 	{
 		VectorCopy (w->p[w->numpoints-1-i], c->p[i]);
 	}
+
 	c->numpoints = w->numpoints;
 	return c;
 }
@@ -411,7 +417,8 @@ void ClipWindingEpsilon (winding_t *in, vec3_t normal, vec_t dist, vec_t epsilon
 		dot = dists[i] / (dists[i]-dists[i+1]);
 
 		for (j=0 ; j<3 ; j++)
-		{	// avoid round off error when possible
+		{
+			// avoid round off error when possible
 			if (normal[j] == 1)
 				mid[j] = dist;
 
@@ -447,7 +454,8 @@ void ChopWindingInPlace (winding_t **inout, vec3_t normal, vec_t dist, vec_t eps
 	vec_t		dists[MAX_POINTS_ON_WINDING+4] = {0};
 	int		sides[MAX_POINTS_ON_WINDING+4] = {0};
 	int		counts[3];
-	static	vec_t	dot;		// VC 4.2 optimizer bug if not static
+	//static	
+	vec_t	dot;		// VC 4.2 optimizer bug if not static
 	int		i, j;
 	vec_t		*p1, *p2;
 	vec3_t		mid;
@@ -471,9 +479,7 @@ void ChopWindingInPlace (winding_t **inout, vec3_t normal, vec_t dist, vec_t eps
 			sides[i] = SIDE_BACK;
 
 		else
-		{
 			sides[i] = SIDE_ON;
-		}
 
 		counts[sides[i]]++;
 	}
@@ -522,7 +528,8 @@ void ChopWindingInPlace (winding_t **inout, vec3_t normal, vec_t dist, vec_t eps
 		dot = dists[i] / (dists[i]-dists[i+1]);
 
 		for (j=0 ; j<3 ; j++)
-		{	// avoid round off error when possible
+		{
+			// avoid round off error when possible
 			if (normal[j] == 1)
 				mid[j] = dist;
 
@@ -565,6 +572,7 @@ winding_t *ChopWinding (winding_t *in, vec3_t normal, vec_t dist)
 
 	if (b)
 		FreeWinding (b);
+
 	return f;
 }
 

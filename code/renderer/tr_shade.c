@@ -50,7 +50,6 @@ static void APIENTRY R_ArrayElement( GLint index ) // Cowcat
 	qglArrayElement(index);
 }
 
-
 #if 0
 static void APIENTRY R_ArrayElementDiscrete( GLint index )
 {
@@ -80,119 +79,86 @@ R_DrawStripElements
 ===================
 */
 
-static int	c_vertexes;	// for seeing how long our average strips are
-static int	c_begins;
-
-#define MAX_UINT ((unsigned)(~0))
-
 static void R_DrawStripElements( int numIndexes, const glIndex_t *indexes, void ( APIENTRY *element )(GLint) )
 {
 	int		i;
-	//int		last[3] = { -1, -1, -1 };
-	glIndex_t	last[3] = { (glIndex_t)-1, (glIndex_t)-1, (glIndex_t)-1 }; // test - if glIndex_t is ushort Cowcat
-	//glIndex_t	last[3] = { MAX_UINT, MAX_UINT, MAX_UINT };
+	int 		last0, last1, last2;
 	qboolean	even;
 
-	c_begins++;
-
 	if ( numIndexes <= 0 )
-	{
 		return;
-	}
 
 	qglBegin( GL_TRIANGLE_STRIP );
 
+	int indexes0 = indexes[0];
+	int indexes1 = indexes[1];
+	int indexes2 = indexes[2];
+
 	// prime the strip
-	element( indexes[0] );
-	element( indexes[1] );
-	element( indexes[2] );
+	element( indexes0 );
+	element( indexes1 );
+	element( indexes2 );
 
-	c_vertexes += 3;
-
-	last[0] = indexes[0];
-	last[1] = indexes[1];
-	last[2] = indexes[2];
-
+	last0 = indexes0;
+	last1 = indexes1;
+	last2 = indexes2;
+	
 	even = qfalse;
 
 	for ( i = 3; i < numIndexes; i += 3 )
 	{
+		indexes0 = indexes[i+0];
+		indexes1 = indexes[i+1];
+		indexes2 = indexes[i+2];
+
 		// odd numbered triangle in potential strip
 		if ( !even )
 		{
 			// check previous triangle to see if we're continuing a strip
-			if ( ( indexes[i+0] == last[2] ) && ( indexes[i+1] == last[1] ) )
+			if ( ( indexes0 == last2 ) && ( indexes1 == last1 ) )
 			{
-				element( indexes[i+2] );
-				//qglArrayElement( indexes[i+2] );
-				c_vertexes++;
-
-				//assert( indexes[i+2] < tess.numVertexes ); // Cowcat
-
+				element( indexes2 );
 				even = qtrue;
 			}
 
-			// otherwise we're done with this strip so finish it and start
-			// a new one
 			else
-			{
-				qglEnd();
-
-				qglBegin( GL_TRIANGLE_STRIP );
-
-				c_begins++;
-
-				element( indexes[i+0] );
-				element( indexes[i+1] );
-				element( indexes[i+2] );
-
-				c_vertexes += 3;
-
-				even = qfalse;
-			}
+				goto startnewstrip;
 		}
 
 		else
 		{
 			// check previous triangle to see if we're continuing a strip
-			if ( ( last[2] == indexes[i+1] ) && ( last[0] == indexes[i+0] ) )
+			if ( ( last2 == indexes1 ) && ( last0 == indexes0 ) )
 			{
-				element( indexes[i+2] );
-				//qglArrayElement( indexes[i+2] );
-				
-				c_vertexes++;
-
-				even = qfalse;
+				element( indexes2 );
 			}
 
 			// otherwise we're done with this strip so finish it and start
 			// a new one
 			else
 			{
+		startnewstrip:
 				qglEnd();
 
 				qglBegin( GL_TRIANGLE_STRIP );
 
-				c_begins++;
-
-				element( indexes[i+0] );
-				element( indexes[i+1] );
-				element( indexes[i+2] );
-
-				c_vertexes += 3;
-
-				even = qfalse;
+				element( indexes0 );
+				element( indexes1 );
+				element( indexes2 );
 			}
+
+			even = qfalse;
 		}
 
 		// cache the last three vertices
-		last[0] = indexes[i+0];
-		last[1] = indexes[i+1];
-		last[2] = indexes[i+2];
+		last0 = indexes0;
+		last1 = indexes1;
+		last2 = indexes2;
 	}
 
 	qglEnd();
 }
+
 
 /*
 ==================
@@ -203,6 +169,7 @@ instead of using the single glDrawElements call that may be inefficient
 without compiled vertex arrays.
 ==================
 */
+
 static void R_DrawElements( int numIndexes, const glIndex_t *indexes )
 {
 	#if 0 // Cowcat
@@ -246,8 +213,12 @@ static void R_DrawElements( int numIndexes, const glIndex_t *indexes )
 	// anything else will cause no drawing
 
 	#else
-	
-	//R_DrawStripElements( numIndexes, indexes, R_ArrayElementDiscrete );
+
+	//if( backEnd.currentEntity == &backEnd.entity2D )
+	//if( backEnd.projection2D == qtrue)
+		//qglDrawElements( MGL_FLATFAN, numIndexes, GL_INDEX_TYPE, indexes );
+	//else
+
 	R_DrawStripElements( numIndexes, indexes, R_ArrayElement );
 
 	#endif
@@ -299,12 +270,10 @@ static void R_BindAnimatedImage( textureBundle_t *bundle )
 	}
 
 	index %= bundle->numImageAnimations;
-	//while ( index >= bundle->numImageAnimations ) // test Cowcat
-		//index -= bundle->numImageAnimations;
-
+	
 	GL_Bind( bundle->image[ index ] );
 }
-
+	
 /*
 ================
 DrawTris
@@ -344,6 +313,7 @@ static void DrawTris (shaderCommands_t *input)
 	for ( i = 0 ; i < input->numVertexes ; i++)
 	{
 		qglVertex3fv( input->xyz[i] );
+		//qglVertex3fv( input->xyz[i+3] );
 		//qglVertex3fv( input->xyz[i+SHADER_MAX_VERTEXES]);
 		//qglVertex3f( input->xyz[i], input->xyz[i], input->xyz[i] );
 		//qglVertex3fv( input->xyz[i+1] );
@@ -352,7 +322,7 @@ static void DrawTris (shaderCommands_t *input)
 	}
 
 	//qglVertex3fv( input->xyz[i] );
-	//qglVertex3fv( input->xyz[0] );
+	qglVertex3fv( input->xyz[0] );
 
 	qglEnd();
 	glEnable(GL_TEXTURE_2D); // Cowcat
@@ -397,7 +367,6 @@ static void DrawNormals (shaderCommands_t *input)
 		qglVertex3fv (temp);
 	}
 
-
 	qglEnd ();
 	glEnable(GL_TEXTURE_2D); // Cowcat
 
@@ -424,7 +393,7 @@ void RB_BeginSurface( shader_t *shader, int fogNum )
 	tess.dlightBits = 0;		// will be OR'd in by surface functions
 	tess.xstages = state->stages;
 	tess.numPasses = state->numUnfoggedPasses;
-	tess.currentStageIteratorFunc = state->optimalStageIteratorFunc;
+	tess.currentStageIteratorFunc = state->optimalStageIteratorFunc; // disable test -quake3e - Cowcat
 
 	tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset;
 
@@ -719,7 +688,6 @@ static void ProjectDlightTexture_altivec( void )
 }
 #endif
 
-
 static void ProjectDlightTexture_scalar( void )
 {
 	int		i, l;
@@ -819,9 +787,6 @@ static void ProjectDlightTexture_scalar( void )
 					clip |= 8;
 				}
 
-				texCoords[0] = texCoords[0];
-				texCoords[1] = texCoords[1];
-
 				// modulate the strength based on the height and color
 				if ( dist[2] > radius )
 				{
@@ -839,6 +804,7 @@ static void ProjectDlightTexture_scalar( void )
 				{
 					dist[2] = Q_fabs(dist[2]);
 					//*((int*)&dist[2]) &= 0x7FFFFFFF; // test - Cowcat
+					//dist[2] = fabs(dist[2]); // Cowcat
 
 					if ( dist[2] < radius * 0.5f )
 					{
@@ -864,8 +830,7 @@ static void ProjectDlightTexture_scalar( void )
 
 		for ( i = 0 ; i < tess.numIndexes ; i += 3 )
 		{
-			int		a, b, c; 
-			//glIndex_t	a, b, c; // test - if glIndex_t is ushort Cowcat
+			int	a, b, c; 
 
 			a = tess.indexes[i];
 			b = tess.indexes[i+1];
@@ -906,13 +871,12 @@ static void ProjectDlightTexture_scalar( void )
 		{
 			GL_State( GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL );
 		}
-
+		
 		R_DrawElements( numIndexes, hitIndexes );
-
+		
 		backEnd.pc.c_totalIndexes += numIndexes;
 		backEnd.pc.c_dlightIndexes += numIndexes;
 	}
-	
 }	
 
 static void ProjectDlightTexture( void )
@@ -977,6 +941,7 @@ static void RB_FogPass( void )
 ComputeColors
 ===============
 */
+
 static void ComputeColors( shaderStage_t *pStage )
 {
 	int	i;
@@ -1288,6 +1253,7 @@ static void ComputeTexCoords( shaderStage_t *pStage )
 
 			case TCGEN_ENVIRONMENT_MAPPED:
 				RB_CalcEnvironmentTexCoords( ( float * ) tess.svars.texcoords[b] );
+				//Com_Memset( tess.svars.texcoords[b], 0, sizeof(float) * 2 * tess.numVertexes );
 				break;
 
 			case TCGEN_BAD:
@@ -1351,11 +1317,12 @@ static void ComputeTexCoords( shaderStage_t *pStage )
 /*
 ** RB_IterateStagesGeneric
 */
+
 static void RB_IterateStagesGeneric( shaderCommands_t *input )
 {
 	int stage;
-	
-	glLockArrays(0, input->numVertexes); // Cowcat
+
+	glLockArrays(0, input->numVertexes);
 
 	for ( stage = 0; stage < MAX_SHADER_STAGES; stage++ )
 	{
@@ -1365,10 +1332,11 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 		{
 			break;
 		}
-		
+
 		ComputeColors( pStage );
 		ComputeTexCoords( pStage );
 
+		#if 1
 		if ( !setArraysOnce )
 		{
 			qglEnableClientState( GL_COLOR_ARRAY );
@@ -1384,23 +1352,34 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 		}
 
 		else
+		#endif
 		{
+			#if 1
 			if ( !setArraysOnce )
 			{
+				//qglEnableClientState( GL_TEXTURE_COORD_ARRAY ); // test - Cowcat
 				qglTexCoordPointer( 2, GL_FLOAT, 0, input->svars.texcoords[0] ); 
 			}
+			#endif
 
 			//
 			// set state
 			//
 			R_BindAnimatedImage( &pStage->bundle[0] );
 
-			GL_State( pStage->stateBits );
+			/*
+			if( backEnd.currentEntity == &backEnd.entity2D ) // spearmint test - Cowcat - see shader/SetImplicitShaderStages
+				GL_State( pStage->stateBits | GLS_DEPTHTEST_DISABLE ); //
+
+			else
+			*/
+				GL_State( pStage->stateBits );
 
 			//
 			// draw
 			//
 			R_DrawElements( input->numIndexes, input->indexes );
+			
 		}
 
 		// allow skipping out to show just lightmaps during development
@@ -1410,8 +1389,7 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 		}
 	}
 
-	glUnlockArrays(); // Cowcat
-
+	//glUnlockArrays(); // Cowcat
 }
 
 
@@ -1425,6 +1403,14 @@ void RB_StageIteratorGeneric( void )
 
 	input = &tess;
 	shader = input->shader;
+
+	/*
+	if(input->numVertexes == 0)
+	{
+		ri.Printf( PRINT_ALL, "numvertexes 0\n");
+		return;
+	}
+	*/
 
 	RB_DeformTessGeometry();
 
@@ -1459,7 +1445,7 @@ void RB_StageIteratorGeneric( void )
 	// during multipass rendering
 	//
 
-	if ( tess.numPasses > 1 || input->shader->multitextureEnv )
+	if ( tess.numPasses > 1 || shader->multitextureEnv )
 	{
 		setArraysOnce = qfalse;
 
@@ -1483,16 +1469,15 @@ void RB_StageIteratorGeneric( void )
 	//
 	qglVertexPointer (3, GL_FLOAT, 16, input->xyz); // padded for SIMD 
 
-	#if 0 // Cowcat
+	qglEnableClientState (GL_VERTEX_ARRAY); // Cowcat
+
+	#if 0 // Cowcat - lock at IterateStagesGeneric...
 	if (qglLockArraysEXT)
 	{
-		//qglLockArraysEXT(0, input->numVertexes);
-		glLockArrays(0, input->numVertexes);
+		qglLockArraysEXT(0, input->numVertexes);
 		//GLimp_LogComment( "glLockArraysEXT\n" );
 	}
 	#endif
-
-	qglEnableClientState (GL_VERTEX_ARRAY); // Cowcat
 
 	//
 	// enable color and texcoord arrays after the lock if necessary
@@ -1523,20 +1508,18 @@ void RB_StageIteratorGeneric( void )
 		RB_FogPass();
 	}
 
-
 	// 
 	// unlock arrays
 	//
-
 	#if 0 // Cowcat
 	if (qglUnlockArraysEXT) 
 	{
-		//qglUnlockArraysEXT();
-		glUnlockArrays();
+		qglUnlockArraysEXT();
 		//GLimp_LogComment( "glUnlockArraysEXT\n" );
 	}
 	#endif
 
+	glUnlockArrays(); // Cowcat
 	qglDisableClientState (GL_VERTEX_ARRAY); // Cowcat
 
 	//
@@ -1546,13 +1529,13 @@ void RB_StageIteratorGeneric( void )
 	{
 		qglDisable( GL_POLYGON_OFFSET_FILL );
 	}
-
 }
 
 
 /*
 ** RB_StageIteratorVertexLitTexture
 */
+
 void RB_StageIteratorVertexLitTexture( void )
 {
 	shaderCommands_t	*input;
@@ -1595,12 +1578,14 @@ void RB_StageIteratorVertexLitTexture( void )
 	qglVertexPointer (3, GL_FLOAT, 16, input->xyz);
 
 	#if 0 // Cowcat
-	if ( qglLockArraysEXT )
+	if ( qglLockArraysEXT ) // Cowcat
 	{
-		glLockArrays(0, input->numVertexes);
+		qglLockArrays(0, input->numVertexes);
 		//GLimp_LogComment( "glLockArraysEXT\n" );
 	}
 	#endif
+
+	glLockArrays(0, input->numVertexes); // Cowcat
 
 	//
 	// call special shade routine
@@ -1608,9 +1593,7 @@ void RB_StageIteratorVertexLitTexture( void )
 	R_BindAnimatedImage( &tess.xstages[0]->bundle[0] );
 	GL_State( tess.xstages[0]->stateBits );
 
-	glLockArrays(0, input->numVertexes); // Cowcat
 	R_DrawElements( input->numIndexes, input->indexes );
-	glUnlockArrays(); // Cowcat
 
 	// 
 	// now do any dynamic lighting needed
@@ -1631,17 +1614,17 @@ void RB_StageIteratorVertexLitTexture( void )
 	// 
 	// unlock arrays
 	//
+
 	#if 0 // Cowcat
-	if (qglUnlockArraysEXT) 
+	if (qglUnlockArraysEXT) // Cowcat
 	{
-		glUnlockArrays();
+		qglUnlockArrays();
 		//GLimp_LogComment( "glUnlockArraysEXT\n" );
 	}
 	#endif
 
-	qglDisableClientState (GL_VERTEX_ARRAY);
-	//qglDisableClientState( GL_COLOR_ARRAY);
-	//qglDisableClientState( GL_TEXTURE_COORD_ARRAY);
+	glUnlockArrays(); // Cowcat
+	qglDisableClientState (GL_VERTEX_ARRAY); // Cowcat
 }
 
 //define REPLACE_MODE
@@ -1843,6 +1826,7 @@ void RB_EndSurface( void )
 
 	// clear shader so we can tell we don't have any unclosed surfaces
 	tess.numIndexes = 0;
+	//tess.numVertexes = 0; // needed ? - Cowcat
 
 	//GLimp_LogComment( "----------\n" ); // Cowcat
 }

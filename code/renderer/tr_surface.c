@@ -318,7 +318,8 @@ static void RB_SurfaceBeam( void )
 	int		i;
 	vec3_t 		perpvec;
 	vec3_t 		direction, normalized_direction;
-	vec3_t		start_points[NUM_BEAM_SEGS], end_points[NUM_BEAM_SEGS];
+	//vec3_t	start_points[NUM_BEAM_SEGS], end_points[NUM_BEAM_SEGS];
+	vec3_t		points[NUM_BEAM_SEGS * 2]; // Cowcat
 	vec3_t 		oldorigin, origin;
 
 	e = &backEnd.currentEntity->e;
@@ -344,9 +345,13 @@ static void RB_SurfaceBeam( void )
 
 	for ( i = 0; i < NUM_BEAM_SEGS ; i++ )
 	{
+		/*
 		RotatePointAroundVector( start_points[i], normalized_direction, perpvec, (360.0/NUM_BEAM_SEGS)*i );
-//		VectorAdd( start_points[i], origin, start_points[i] );
+		// VectorAdd( start_points[i], origin, start_points[i] );
 		VectorAdd( start_points[i], direction, end_points[i] );
+		*/
+		RotatePointAroundVector( points[i * 2], normalized_direction, perpvec, (360.0/NUM_BEAM_SEGS)*i );
+		VectorAdd( points[i * 2], direction, points[i * 2 + 1] );
 	}
 
 	GL_Bind( tr.whiteImage );
@@ -359,8 +364,10 @@ static void RB_SurfaceBeam( void )
 
 	for ( i = 0; i <= NUM_BEAM_SEGS; i++ )
 	{
-		qglVertex3fv( start_points[ i % NUM_BEAM_SEGS] );
-		qglVertex3fv( end_points[ i % NUM_BEAM_SEGS] );
+		//qglVertex3fv( start_points[ i % NUM_BEAM_SEGS] );
+		//qglVertex3fv( end_points[ i % NUM_BEAM_SEGS] );
+		qglVertex3fv( points[ i % NUM_BEAM_SEGS * 2] );
+		qglVertex3fv( points[ i % NUM_BEAM_SEGS * 2 + 1] );
 	}
 
 	qglEnd();
@@ -383,6 +390,7 @@ static void DoRailCore( const vec3_t start, const vec3_t end, const vec3_t up, f
 
 	// FIXME: use quad stamp?
 	VectorMA( start, spanWidth, up, tess.xyz[tess.numVertexes] );
+
 	tess.texCoords[tess.numVertexes][0][0] = 0;
 	tess.texCoords[tess.numVertexes][0][1] = 0;
 	tess.vertexColors[tess.numVertexes][0] = backEnd.currentEntity->e.shaderRGBA[0] * 0.25;
@@ -391,6 +399,7 @@ static void DoRailCore( const vec3_t start, const vec3_t end, const vec3_t up, f
 	tess.numVertexes++;
 
 	VectorMA( start, spanWidth2, up, tess.xyz[tess.numVertexes] );
+
 	tess.texCoords[tess.numVertexes][0][0] = 0;
 	tess.texCoords[tess.numVertexes][0][1] = 1;
 	tess.vertexColors[tess.numVertexes][0] = backEnd.currentEntity->e.shaderRGBA[0];
@@ -399,6 +408,7 @@ static void DoRailCore( const vec3_t start, const vec3_t end, const vec3_t up, f
 	tess.numVertexes++;
 
 	VectorMA( end, spanWidth, up, tess.xyz[tess.numVertexes] );
+
 	tess.texCoords[tess.numVertexes][0][0] = t;
 	tess.texCoords[tess.numVertexes][0][1] = 0;
 	tess.vertexColors[tess.numVertexes][0] = backEnd.currentEntity->e.shaderRGBA[0];
@@ -407,6 +417,7 @@ static void DoRailCore( const vec3_t start, const vec3_t end, const vec3_t up, f
 	tess.numVertexes++;
 
 	VectorMA( end, spanWidth2, up, tess.xyz[tess.numVertexes] );
+	
 	tess.texCoords[tess.numVertexes][0][0] = t;
 	tess.texCoords[tess.numVertexes][0][1] = 1;
 	tess.vertexColors[tess.numVertexes][0] = backEnd.currentEntity->e.shaderRGBA[0];
@@ -595,22 +606,11 @@ static void RB_SurfaceLightningBolt( void )
 * This means that we don't have to worry about zero length or enormously long vectors.
 */
 
-#if 1
 #if defined(AMIGA) && defined(__PPC__) // Cowcat
 
 float __asm_frsqrte(__reg("f1") float) = "\tfrsqrte\t1,1";
 #define __frsqrte(x) __asm_frsqrte(x)
 
-float __rsqrt(__reg("f1") float, __reg("f5") float) =
-	"\tfrsqrte\t0,1\n"
-	"\tfmsubs\t2,5,1,1\n"										
-	"\tfmuls\t4,0,0\n"		
-	"\tfnmsubs\t3,2,4,5\n"	
-	"\tfmuls\t1,3,0";
-
-#define rsqrt(x) __rsqrt(x , 1.5f)
-
-#endif
 #endif
 
 static void VectorArrayNormalize(vec4_t *normals, unsigned int count)
@@ -642,22 +642,14 @@ static void VectorArrayNormalize(vec4_t *normals, unsigned int count)
 
             		B = x*x + y*y + z*z;
 			
-			#if 1
-
 		#ifdef __GNUC__            
             		asm("frsqrte %0,%1" : "=f" (y0) : "f" (B));
 		#else
 			y0 = __frsqrte(B);
 		#endif
 
-            		y1 = y0 + half * y0 * (one - B * y0 * y0);
-
-			#else // Cowcat
-
-			y1 = rsqrt( B );
+			y1 = y0 + half * y0 * (one - (B * y0 * y0));
 			
-			#endif
-
             		x = x * y1;
             		y = y * y1;
             		components[-4] = x;
@@ -679,7 +671,6 @@ static void VectorArrayNormalize(vec4_t *normals, unsigned int count)
 
 	#endif
 }
-
 
 
 /*
@@ -1289,8 +1280,8 @@ static int SurfAxis[27] = {
 
 void RB_SurfaceAxis( void )
 {
-	int 	i;
-	vec3_t 	v[3];
+	//int 	i;
+	//vec3_t 	v[3];
 
 	
 	GL_Bind( tr.whiteImage );
@@ -1390,7 +1381,7 @@ static void RB_SurfaceBad( surfaceType_t *surfType )
 static void RB_SurfaceFlare(srfFlare_t *surf)
 {
 	if (r_flares->integer)
-		RB_AddFlare(surf, tess.fogNum, surf->origin, surf->color, surf->normal);
+		RB_AddFlare(surf, tess.fogNum, surf->origin, surf->color, surf->normal, 0); // openarena - Cowcat
 }
 
 static void RB_SurfaceSkip( void *surf )
@@ -1405,10 +1396,7 @@ void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])( void *) = {
 	(void(*)(void*))RB_SurfaceTriangles,		// SF_TRIANGLES,
 	(void(*)(void*))RB_SurfacePolychain,		// SF_POLY,
 	(void(*)(void*))RB_SurfaceMesh,			// SF_MD3,
-	(void(*)(void*))RB_SurfaceAnim,			// SF_MD4,
-  #ifdef RAVENMD4
 	(void(*)(void*))RB_MDRSurfaceAnim,		// SF_MDR,
-  #endif
 	(void(*)(void*))RB_SurfaceFlare,		// SF_FLARE,
 	(void(*)(void*))RB_SurfaceEntity,		// SF_ENTITY
 };

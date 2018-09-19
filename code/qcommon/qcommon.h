@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 #endif
 
-//#define	PRE_RELEASE_DEMO
+//#define PRE_RELEASE_DEMO
 
 //============================================================================
 
@@ -126,7 +126,7 @@ NET
 
 #define MAX_PACKET_USERCMDS	32	// max number of usercmd_t in a packet
 
-#define MAX_SNAPSHOT_ENTITIES	256	// new - Cowcat
+#define MAX_SNAPSHOT_ENTITIES	256
 
 #define PORT_ANY		-1
 
@@ -150,7 +150,7 @@ typedef enum {
 
 } netsrc_t;
 
-#define NET_ADDRSTRMAXLEN 48		// maximum length of an IPv6 address string including trailing '\0'
+#define NET_ADDRSTRMAXLEN 	48	// maximum length of an IPv6 address string including trailing '\0'
 
 typedef struct {
 	netadrtype_t	type;
@@ -165,7 +165,7 @@ typedef struct {
 
 void		NET_Init( void );
 void		NET_Shutdown( void );
-void		NET_Restart( void );
+void		NET_Restart_f( void );
 void		NET_Config( qboolean enableNetworking );
 void		NET_FlushPacketQueue(void);
 void		NET_SendPacket (netsrc_t sock, int length, const void *data, netadr_t to);
@@ -187,9 +187,10 @@ void		NET_Sleep(int msec);
 #define MAX_MSGLEN			16384	// max length of a message, which may
 						// be fragmented into multiple packets
 
-#define MAX_DOWNLOAD_WINDOW		8	// max of eight download frames
-#define MAX_DOWNLOAD_BLKSIZE		2048	// 2048 byte block chunks
+#define MAX_DOWNLOAD_WINDOW		48	// ACK window of 48 download chunks
+#define MAX_DOWNLOAD_BLKSIZE		1024	// 896 byte block chunks
  
+#define NETCHAN_GENCHECKSUM(challenge, sequence) ((challenge) ^ ((sequence) * (challenge)))
 
 /*
 Netchan handles packet fragmentation and out of order / duplicate suppression
@@ -219,12 +220,19 @@ typedef struct {
 	int		unsentLength;
 	byte		unsentBuffer[MAX_MSGLEN];
 
+	int		challenge;
+	int		lastSentTime;
+	int		lastSentSize;
+
+#ifdef LEGACY_PROTOCOL
+	qboolean	compat;
+#endif
 	qboolean	isLANAddress; // quake3e - Cowcat
 
 } netchan_t;
 
 void Netchan_Init( int qport );
-void Netchan_Setup( netsrc_t sock, netchan_t *chan, netadr_t adr, int qport );
+void Netchan_Setup(netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, int challenge, qboolean compat);
 
 void Netchan_Transmit( netchan_t *chan, int length, const byte *data );
 void Netchan_TransmitNextFragment( netchan_t *chan );
@@ -240,22 +248,31 @@ PROTOCOL
 ==============================================================
 */
 
-#define PROTOCOL_VERSION	68
+#define	PROTOCOL_VERSION	71
+
+#ifdef STANDALONE
+#define PROTOCOL_LEGACY_VERSION	71
+#else
+#define PROTOCOL_LEGACY_VERSION	68
+#endif
+
 // 1.31 - 67
 
 // maintain a list of compatible protocols for demo playing
 // NOTE: that stuff only works with two digits protocols
 extern int demo_protocols[];
 
+#if !defined UPDATE_SERVER_NAME	&& !defined STANDALONE
 #define UPDATE_SERVER_NAME	"update.quake3arena.com"
+#endif
 
 // override on command line, config files etc.
 #ifndef MASTER_SERVER_NAME
-# ifdef OPEN_ARENA
-#  define MASTER_SERVER_NAME  "dpmaster.deathmask.net"
-# else
-#  define MASTER_SERVER_NAME  "master.quake3arena.com"
-# endif
+#ifdef STANDALONE
+#define MASTER_SERVER_NAME  "dpmaster.deathmask.net"
+#else
+#define MASTER_SERVER_NAME  "master.quake3arena.com"
+#endif
 #endif
 
 #ifndef STANDALONE
@@ -290,10 +307,9 @@ enum svc_ops_e {
 	svc_snapshot,
 	svc_EOF,
 
-	// svc_extension follows a svc_EOF, followed by another svc_* ...
-	//  this keeps legacy clients compatible.
-	svc_extension,
-	svc_voip,		// not wrapped in USE_VOIP, so this value is reserved.
+// new commands, supported only by ioquake3 protocol but not legacy
+	//svc_voipSpeex, // not wrapped in USE_VOIP, so this value is reserved.
+	svc_voip,	//
 };
 
 
@@ -308,10 +324,9 @@ enum clc_ops_e {
 	clc_clientCommand,	// [string] message
 	clc_EOF,
 
-	// clc_extension follows a clc_EOF, followed by another clc_* ...
-	//  this keeps legacy servers compatible.
-	clc_extension,
-	clc_voip,		// not wrapped in USE_VOIP, so this value is reserved.
+// new commands, supported only by ioquake3 protocol but not legacy
+	//clc_voipSpeex,   // not wrapped in USE_VOIP, so this value is reserved.
+	clc_voip,	 // not wrapped in USE_VOIP, so this value is reserved.
 };
 
 /*
@@ -357,9 +372,13 @@ void	VM_Free( vm_t *vm );
 void	VM_Clear(void);
 void	VM_Forced_Unload_Start(void);
 void	VM_Forced_Unload_Done(void);
-vm_t	*VM_Restart( vm_t *vm );
+vm_t	*VM_Restart( vm_t *vm, qboolean unpure );
 
 intptr_t QDECL VM_Call( vm_t *vm, int callNum, ... );
+// test Cowcat
+//#define VM_Call(VM, ...) VM_Call_Impl(VM, &(int[13]){__VA_ARGS__})
+//intptr_t QDECL VM_Call_Impl( vm_t *vm, int (*args)[13] );
+
 
 void	VM_Debug( int level );
 void	*VM_ArgPtr( intptr_t intValue );
@@ -504,6 +523,9 @@ void	Cvar_Update( vmCvar_t *vmCvar );
 void	Cvar_Set( const char *var_name, const char *value );
 // will create the variable with no flags if it doesn't exist
 
+cvar_t	*Cvar_Set2(const char *var_name, const char *value, qboolean force);
+// same as Cvar_Set, but allows more control over setting of cvar
+
 void Cvar_SetLatched( const char *var_name, const char *value);
 // don't set the cvar immediately
 
@@ -548,6 +570,7 @@ char	*Cvar_InfoString_Big( int bit );
 void	Cvar_InfoStringBuffer( int bit, char *buff, int buffsize );
 void	Cvar_CheckRange( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral );
 
+void	Cvar_Restart(qboolean unsetVM);
 void	Cvar_Restart_f( void );
 
 void Cvar_CompleteCvarName( char *args, int argNum );
@@ -578,6 +601,7 @@ issues.
 
 // number of id paks that will never be autodownloaded from baseq3
 #define NUM_ID_PAKS		9
+#define NUM_TA_PAKS		4
 
 #define MAX_FILE_HANDLES	64
 
@@ -592,7 +616,7 @@ qboolean FS_Initialized( void );
 void	FS_InitFilesystem ( void );
 void	FS_Shutdown( qboolean closemfp );
 
-qboolean FS_ConditionalRestart( int checksumFeed );
+qboolean FS_ConditionalRestart( int checksumFeed, qboolean disconnect );
 void	FS_Restart( int checksumFeed );
 // shutdown and restart the filesystem so changes to fs_gamedir can take effect
 
@@ -607,7 +631,11 @@ void	FS_FreeFileList( char **list );
 
 qboolean FS_FileExists( const char *file );
 
+int 	FS_FindVM(void **startSearch, char *found, int foundlen, const char *name, int enableDll);
+
 char   *FS_BuildOSPath( const char *base, const char *game, const char *qpath );
+
+qboolean FS_CompareZipChecksum(const char *zipfile);
 
 int	FS_LoadStack( void );
 
@@ -619,9 +647,11 @@ fileHandle_t	FS_FOpenFileAppend( const char *filename );
 // will properly create any needed paths and deal with seperater character issues
 
 fileHandle_t FS_SV_FOpenFileWrite( const char *filename );
-int	FS_SV_FOpenFileRead( const char *filename, fileHandle_t *fp );
+long	FS_SV_FOpenFileRead( const char *filename, fileHandle_t *fp );
 void	FS_SV_Rename( const char *from, const char *to );
-int	FS_FOpenFileRead( const char *qpath, fileHandle_t *file, qboolean uniqueFILE );
+
+long	FS_FOpenFileRead( const char *qpath, fileHandle_t *file, qboolean uniqueFILE );
+
 
 // if uniqueFILE is true, then a new FILE will be fopened even if the file
 // is found in an already open pak file.  If uniqueFILE is false, you must call
@@ -634,14 +664,16 @@ int	FS_FileIsInPAK(const char *filename, int *pChecksum );
 
 int	FS_Write( const void *buffer, int len, fileHandle_t f );
 
-int	FS_Read2( void *buffer, int len, fileHandle_t f );
 int	FS_Read( void *buffer, int len, fileHandle_t f );
 // properly handles partial reads and reads from other dlls
 
 void	FS_FCloseFile( fileHandle_t f );
 // note: you can't just fclose from another DLL, due to MS libc issues
 
-int	FS_ReadFile( const char *qpath, void **buffer );
+long	FS_ReadFileDir(const char *qpath, void *searchPath, qboolean unpure, void **buffer);
+long	FS_ReadFile( const char *qpath, void **buffer );
+
+
 // returns the length of the file
 // a null buffer will just return the file length without loading
 // as a quick check for existance. -1 length == not present
@@ -658,7 +690,7 @@ void	FS_FreeFile( void *buffer );
 void	FS_WriteFile( const char *qpath, const void *buffer, int size );
 // writes a complete file, creating any subdirectories needed
 
-int	FS_filelength( fileHandle_t f );
+long	FS_filelength( fileHandle_t f );
 // doesn't work for files that are opened from a pack file
 
 int	FS_FTell( fileHandle_t f );
@@ -704,7 +736,8 @@ void FS_PureServerSetLoadedPaks( const char *pakSums, const char *pakNames );
 // sole exception of .cfg files.
 
 qboolean FS_CheckDirTraversal(const char *checkdir);
-qboolean FS_idPak( char *pak, char *base );
+qboolean FS_idPak( char *pak, char *base, int numPaks );
+
 qboolean FS_ComparePaks( char *neededpaks, int len, qboolean dlstring );
 
 void	FS_Rename( const char *from, const char *to );
@@ -713,6 +746,8 @@ void	FS_Remove( const char *osPath );
 void	FS_HomeRemove( const char *homePath );
 
 void	FS_FilenameCompletion( const char *dir, const char *ext, qboolean stripExt, void(*callback)(const char *s) );
+
+qboolean FS_Which(const char *filename, void *searchPath);
 
 /*
 ==============================================================
@@ -725,9 +760,9 @@ Edit fields and command line history/completion
 #define MAX_EDIT_LINE	256
 
 typedef struct {
-	int		cursor;
-	int		scroll;
-	int		widthInChars;
+	int	cursor;
+	int	scroll;
+	int	widthInChars;
 	char	buffer[MAX_EDIT_LINE];
 
 } field_t;
@@ -776,7 +811,6 @@ typedef enum {
 	SE_MOUSE,		// evValue and evValue2 are reletive signed x / y moves
 	SE_JOYSTICK_AXIS,	// evValue is an axis number and evValue2 is the current state (-127 to 127)
 	SE_CONSOLE,		// evPtr is a char*
-	SE_PACKET		// evPtr is a netadr_t followed by data bytes to evPtrLength
 
 } sysEventType_t;
 
@@ -802,6 +836,7 @@ void		QDECL Com_Printf( const char *fmt, ... ) __attribute__ ((format (printf, 1
 void		QDECL Com_DPrintf( const char *fmt, ... ) __attribute__ ((format (printf, 1, 2)));
 void		QDECL Com_Error( int code, const char *fmt, ... ) __attribute__ ((format (printf, 2, 3)));
 void		Com_Quit_f( void );
+void		Com_GameRestart(int checksumFeed, qboolean disconnect);
 
 int		Com_Milliseconds( void );	// will be journaled properly
 unsigned	Com_BlockChecksum( const void *buffer, int length );
@@ -811,12 +846,15 @@ int		Com_Filter(char *filter, char *name, int casesensitive);
 int		Com_FilterPath(char *filter, char *name, int casesensitive);
 int		Com_RealTime(qtime_t *qtime);
 qboolean	Com_SafeMode( void );
+void		Com_RunAndTimeServerPacket(netadr_t *evFrom, msg_t *buf);
 
 void		Com_StartupVariable( const char *match );
 // checks for and removes command line "+set var arg" constructs
 // if match is NULL, all set commands will be executed, otherwise
 // only a set with the exact name.  Only used during startup.
 
+#define DELAY_WRITECONFIG // Quake3e - test Cowcat
+void		Com_WriteConfiguration( void ); // Quake3e
 
 extern	cvar_t	*com_developer;
 extern	cvar_t	*com_dedicated;
@@ -835,6 +873,9 @@ extern	cvar_t	*com_maxfpsUnfocused;
 extern	cvar_t	*com_minimized;
 extern	cvar_t	*com_maxfpsMinimized;
 extern	cvar_t	*com_altivec;
+extern	cvar_t	*com_standalone;
+extern	cvar_t	*com_basegame;
+extern	cvar_t	*com_homepath;
 
 // both client and server must agree to pause
 extern	cvar_t	*cl_paused;
@@ -843,15 +884,21 @@ extern	cvar_t	*sv_paused;
 extern	cvar_t	*cl_packetdelay;
 extern	cvar_t	*sv_packetdelay;
 
+extern	cvar_t	*com_gamename;
+extern	cvar_t	*com_protocol;
+#ifdef LEGACY_PROTOCOL
+extern	cvar_t	*com_legacyprotocol;
+#endif
+
 // com_speeds times
 extern	int	time_game;
 extern	int	time_frontend;
 extern	int	time_backend;		// renderer backend time
 
 extern	int	com_frameTime;
-extern	int	com_frameMsec;
 
 extern	qboolean com_errorEntered;
+extern	qboolean com_fullyInitialized;
 
 extern	fileHandle_t com_journalFile;
 extern	fileHandle_t com_journalDataFile;
@@ -947,7 +994,7 @@ void CL_InitKeyCommands( void );
 
 void CL_Init( void );
 void CL_Disconnect( qboolean showMainMenu );
-void CL_Shutdown( void );
+void CL_Shutdown( char *finalmsg, qboolean disconnect, qboolean quit );
 void CL_Frame( int msec );
 qboolean CL_GameCommand( void );
 void CL_KeyEvent (int key, qboolean down, unsigned time);
@@ -977,11 +1024,14 @@ void CL_ForwardCommandToServer( const char *string );
 void CL_CDDialog( void );
 // bring up the "need a cd to play" dialog
 
-void CL_ShutdownAll( void );
-// shutdown all the client stuff
-
 void CL_FlushMemory( void );
 // dump all memory on an error
+
+void CL_ShutdownAll( qboolean shutdownRef );
+// shutdown all the client stuff
+
+void CL_InitRef(void);
+// initialize renderer interface
 
 void CL_StartHunkUsers( qboolean rendererOnly );
 // start all the client stuff using the hunk
@@ -1004,14 +1054,20 @@ void SV_Init( void );
 void SV_Shutdown( char *finalmsg );
 void SV_Frame( int msec );
 void SV_PacketEvent( netadr_t from, msg_t *msg );
+int SV_FrameMsec( void );
 qboolean SV_GameCommand( void );
-
+int SV_SendQueuedPackets(void);
 
 //
 // UI interface
 //
 qboolean UI_GameCommand( void );
 qboolean UI_usesUniqueCDKey(void);
+
+//
+// input interface
+//
+void IN_Frame( void );
 
 /*
 ==============================================================
@@ -1035,7 +1091,10 @@ typedef enum {
 void	Sys_Init (void);
 
 // general development dll loading for virtual machine testing
-void	* QDECL Sys_LoadDll( const char *name, char *fqpath , intptr_t (QDECL **entryPoint)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) );
+//void	*QDECL Sys_LoadDll( const char *name, char *fqpath , intptr_t (QDECL **entryPoint)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) );
+void	*QDECL Sys_LoadDll( const char *name, char *fqpath , intptr_t (QDECL **entryPoint)(int, int, int, int), intptr_t (QDECL *systemcalls)(intptr_t, ...) ); // Cowcat
+//void	*QDECL Sys_LoadDll( const char *name, char *fqpath , intptr_t (QDECL **entryPoint)(int, int, int, int, int, int, int, int, int, int, int, int, int), intptr_t (QDECL *systemcalls)(intptr_t*) );
+
 void	Sys_UnloadDll( void *dllHandle );
 
 void	Sys_UnloadGame( void );
@@ -1075,7 +1134,6 @@ cpuFeatures_t Sys_GetProcessorFeatures( void );
 void	Sys_SetErrorText( const char *text );
 
 void	Sys_SendPacket( int length, const void *data, netadr_t to );
-qboolean Sys_GetPacket( netadr_t *net_from, msg_t *net_message );
 
 qboolean Sys_StringToAdr( const char *s, netadr_t *a, netadrtype_t family );
 //Does NOT parse port numbers, only base addresses.

@@ -798,6 +798,8 @@ static sfxHandle_t SpinControl_Key( menulist_s *s, int key )
 	sound = 0;
 	switch (key)
 	{
+		case K_KP_RIGHTARROW:
+		case K_RIGHTARROW:
 		case K_MOUSE1:
 			s->curvalue++;
 			if (s->curvalue >= s->numitems)
@@ -807,24 +809,10 @@ static sfxHandle_t SpinControl_Key( menulist_s *s, int key )
 		
 		case K_KP_LEFTARROW:
 		case K_LEFTARROW:
-			if (s->curvalue > 0)
-			{
-				s->curvalue--;
-				sound = menu_move_sound;
-			}
-			else
-				sound = menu_buzz_sound;
-			break;
-
-		case K_KP_RIGHTARROW:
-		case K_RIGHTARROW:
-			if (s->curvalue < s->numitems-1)
-			{
-				s->curvalue++;
-				sound = menu_move_sound;
-			}
-			else
-				sound = menu_buzz_sound;
+			s->curvalue--;
+			if (s->curvalue < 0)
+				s->curvalue = s->numitems-1;
+			sound = menu_move_sound;
 			break;
 	}
 
@@ -893,13 +881,13 @@ static void ScrollList_Init( menulist_s *l )
 
 	if( !l->columns ) {
 		l->columns = 1;
-		l->seperation = 0;
+		l->separation = 0;
 	}
-	else if( !l->seperation ) {
-		l->seperation = 3;
+	else if( !l->separation ) {
+		l->separation = 3;
 	}
 
-	w = ( (l->width + l->seperation) * l->columns - l->seperation) * SMALLCHAR_WIDTH;
+	w = ( (l->width + l->separation) * l->columns - l->separation) * SMALLCHAR_WIDTH;
 
 	l->generic.left   =	l->generic.x;
 	l->generic.top    = l->generic.y;	
@@ -938,14 +926,14 @@ sfxHandle_t ScrollList_Key( menulist_s *l, int key )
 				// check scroll region
 				x = l->generic.x;
 				y = l->generic.y;
-				w = ( (l->width + l->seperation) * l->columns - l->seperation) * SMALLCHAR_WIDTH;
+				w = ( (l->width + l->separation) * l->columns - l->separation) * SMALLCHAR_WIDTH;
 				if( l->generic.flags & QMF_CENTER_JUSTIFY ) {
 					x -= w / 2;
 				}
 				if (UI_CursorInRect( x, y, w, l->height*SMALLCHAR_HEIGHT ))
 				{
 					cursorx = (uis.cursorx - x)/SMALLCHAR_WIDTH;
-					column = cursorx / (l->width + l->seperation);
+					column = cursorx / (l->width + l->separation);
 					cursory = (uis.cursory - y)/SMALLCHAR_HEIGHT;
 					index = column * l->height + cursory;
 					if (l->top + index < l->numitems)
@@ -1043,6 +1031,50 @@ sfxHandle_t ScrollList_Key( menulist_s *l, int key )
 					l->generic.callback( l, QM_GOTFOCUS );
 
 				return (menu_move_sound);
+			}
+			return (menu_buzz_sound);
+
+		case K_MWHEELUP:
+			if( l->columns > 1 ) {
+				return menu_null_sound;
+			}
+
+			if (l->top > 0)
+			{
+				// if scrolling 3 lines would replace over half of the
+				// displayed items, only scroll 1 item at a time.
+				int scroll = l->height < 6 ? 1 : 3;
+				l->top -= scroll;
+				if (l->top < 0)
+					l->top = 0;
+
+				if (l->generic.callback)
+					l->generic.callback( l, QM_GOTFOCUS );
+
+				// make scrolling silent
+				return (menu_null_sound);
+			}
+			return (menu_buzz_sound);
+
+		case K_MWHEELDOWN:
+			if( l->columns > 1 ) {
+				return menu_null_sound;
+			}
+
+			if (l->top < l->numitems-l->height)
+			{
+				// if scrolling 3 items would replace over half of the
+				// displayed items, only scroll 1 item at a time.
+				int scroll = l->height < 6 ? 1 : 3;
+				l->top += scroll;
+				if (l->top > l->numitems-l->height)
+					l->top = l->numitems-l->height;
+
+				if (l->generic.callback)
+					l->generic.callback( l, QM_GOTFOCUS );
+
+				// make scrolling silent
+				return (menu_null_sound);
 			}
 			return (menu_buzz_sound);
 
@@ -1253,7 +1285,7 @@ void ScrollList_Draw( menulist_s *l )
 
 			y += SMALLCHAR_HEIGHT;
 		}
-		x += (l->width + l->seperation) * SMALLCHAR_WIDTH;
+		x += (l->width + l->separation) * SMALLCHAR_WIDTH;
 	}
 }
 

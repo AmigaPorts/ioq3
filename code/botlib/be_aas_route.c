@@ -422,6 +422,7 @@ void AAS_CreateReversedReachability(void)
 	aas_reachability_t *reach;
 	aas_areasettings_t *settings;
 	char *ptr;
+
 #ifdef DEBUG
 	int starttime;
 
@@ -429,21 +430,28 @@ void AAS_CreateReversedReachability(void)
 #endif
 	//free reversed links that have already been created
 	if (aasworld.reversedreachability) FreeMemory(aasworld.reversedreachability);
+
 	//allocate memory for the reversed reachability links
 	ptr = (char *) GetClearedMemory(aasworld.numareas * sizeof(aas_reversedreachability_t) +
 							aasworld.reachabilitysize * sizeof(aas_reversedlink_t));
+
 	//
 	aasworld.reversedreachability = (aas_reversedreachability_t *) ptr;
 	//pointer to the memory for the reversed links
 	ptr += aasworld.numareas * sizeof(aas_reversedreachability_t);
+
+	#if 1 // 68k problems here - memory issues ?? - Cowcat
 	//check all reachabilities of all areas
 	for (i = 1; i < aasworld.numareas; i++)
 	{
 		//settings of the area
 		settings = &aasworld.areasettings[i];
 		//
-		if (settings->numreachableareas >= 128)
+		//if (settings->numreachableareas >= 128)
+		if (settings->numreachableareas > 128) // Quake3a fix - Cowcat
 			botimport.Print(PRT_WARNING, "area %d has more than 128 reachabilities\n", i);
+
+
 		//create reversed links for the reachabilities
 		for (n = 0; n < settings->numreachableareas && n < 128; n++)
 		{
@@ -460,6 +468,9 @@ void AAS_CreateReversedReachability(void)
 			aasworld.reversedreachability[reach->areanum].numlinks++;
 		} //end for
 	} //end for
+
+	#endif
+
 #ifdef DEBUG
 	botimport.Print(PRT_MESSAGE, "reversed reachability %d msec\n", Sys_MilliSeconds() - starttime);
 #endif
@@ -1234,7 +1245,9 @@ void AAS_InitRouting(void)
 	//calculate the maximum travel times through portals
 	AAS_InitPortalMaxTravelTimes();
 	//get the areas reachabilities go through
+	//printf("to AAS_InitReach..\n");
 	AAS_InitReachabilityAreas();
+	//printf("back from AAS_InitReach..\n");
 	//
 #ifdef ROUTING_DEBUG
 	numareacacheupdates = 0;
@@ -1296,8 +1309,8 @@ void AAS_UpdateAreaRoutingCache(aas_routingcache_t *areacache)
 	unsigned short int t, startareatraveltimes[128]; //NOTE: not more than 128 reachabilities per area allowed
 	aas_routingupdate_t *updateliststart, *updatelistend, *curupdate, *nextupdate;
 	aas_reachability_t *reach;
-	aas_reversedreachability_t *revreach;
-	aas_reversedlink_t *revlink;
+	const aas_reversedreachability_t *revreach; // const Quake3a - Cowcat
+	const aas_reversedlink_t *revlink; // const Quake3a - Cowcat
 
 #ifdef ROUTING_DEBUG
 	numareacacheupdates++;

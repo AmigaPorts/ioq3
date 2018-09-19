@@ -27,17 +27,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <altivec.h>
 #endif
 
-#if 0 // some ppc test - Cowcat
-float __Q_rsqrt2(__reg("f1") float, __reg("f5") float) =
-	"\tfrsqrte\t0,1\n"
-	"\tfmsubs\t2,5,1,1\n"										
-	"\tfmuls\t4,0,0\n"		
-	"\tfnmsubs\t3,2,4,5\n"	
-	"\tfmuls\t1,3,0";
-
-#define Q_rsqrt2(x) __Q_rsqrt2(x, 1.5f)
-#endif
-
 #define WAVEVALUE( table, base, amplitude, phase, freq )  ((base) + table[ myftol( ( ( (phase) + tess.shaderTime * (freq) ) * FUNCTABLE_SIZE ) ) & FUNCTABLE_MASK ] * (amplitude))
 
 static float *TableForFunc( genFunc_t func ) 
@@ -217,29 +206,46 @@ RB_CalcBulgeVertexes
 
 ========================
 */
+
 void RB_CalcBulgeVertexes( deformStage_t *ds )
 {
-        int             i;
-        const float     *st = ( const float * ) tess.texCoords[0];
-        float           *xyz = ( float * ) tess.xyz;
-        float           *normal = ( float * ) tess.normal;
-        float           now;
+        int	i;
+        float	*xyz = ( float * ) tess.xyz;
+        float	*normal = ( float * ) tess.normal;
+        
+	#if 1
+	if( ds->bulgeSpeed == 0.0f && ds->bulgeWidth == 0.0f) // from OpenArena
+	{
+		for ( i = 0; i < tess.numVertexes; i++, xyz += 4, normal += 4 )
+        	{
+			xyz[0] += normal[0] * ds->bulgeHeight;
+                	xyz[1] += normal[1] * ds->bulgeHeight;
+                	xyz[2] += normal[2] * ds->bulgeHeight;
+		}
+	}
 
-        now = backEnd.refdef.time * ds->bulgeSpeed * 0.001f;
+	else
+	#endif
+	{
+		const float     *st = ( const float * ) tess.texCoords[0];
+		float           now;
 
-        for ( i = 0; i < tess.numVertexes; i++, xyz += 4, st += 4, normal += 4 )
-        {
-                int     off;
-                float   scale;
+        	now = backEnd.refdef.time * ds->bulgeSpeed * 0.001f;
 
-                off = (float)( FUNCTABLE_SIZE / (M_PI*2) ) * ( st[0] * ds->bulgeWidth + now );
+        	for ( i = 0; i < tess.numVertexes; i++, xyz += 4, st += 4, normal += 4 )
+        	{
+                	int     off;
+                	float   scale;
 
-                scale = tr.sinTable[ off & FUNCTABLE_MASK ] * ds->bulgeHeight;
+                	off = (float)( FUNCTABLE_SIZE / (M_PI*2) ) * ( st[0] * ds->bulgeWidth + now );
+
+                	scale = tr.sinTable[ off & FUNCTABLE_MASK ] * ds->bulgeHeight;
                         
-                xyz[0] += normal[0] * scale;
-                xyz[1] += normal[1] * scale;
-                xyz[2] += normal[2] * scale;
-        }
+                	xyz[0] += normal[0] * scale;
+                	xyz[1] += normal[1] * scale;
+                	xyz[2] += normal[2] * scale;
+        	}
+	}
 }
 
 
@@ -428,7 +434,7 @@ static void AutospriteDeform( void )
                 mid[2] = 0.25f * (xyz[2] + xyz[6] + xyz[10] + xyz[14]);
 
                 VectorSubtract( xyz, mid, delta );
-                radius = VectorLength( delta ) * 0.707f;                // / sqrt(2)
+                radius = VectorLength( delta ) * 0.707f;	// / sqrt(2)
 
                 VectorScale( leftDir, radius, left );
                 VectorScale( upDir, radius, up );
@@ -1061,20 +1067,81 @@ void RB_CalcFogTexCoords( float *st )
 ** RB_CalcEnvironmentTexCoords
 */
 
+#if 0
+float __rsqrt(__reg("f1") float, __reg("f5") float) =
+	"\tfrsqrte\t0,1\n"
+	"\tfmsubs\t2,5,1,1\n"										
+	"\tfmuls\t4,0,0\n"		
+	"\tfnmsubs\t3,2,4,5\n"	
+	"\tfmuls\t1,3,0";
+
+#define rsqrt(x) __rsqrt(x, 1.5)
+#endif
+
 void RB_CalcEnvironmentTexCoords( float *st ) 
 {
         int     i;
         float   *v, *normal;
-        vec3_t  viewer, reflected, viewOrigin;
+        vec3_t  viewer, reflected;
         float   d;
 
         v = tess.xyz[0];
         normal = tess.normal[0];
 
+	#if 0
+	if(r_drawSun->integer && backEnd.skyRenderedThisView )
+	{
+		vec3_t sundy, sunned, vec1, vec2;
+		float dist, size;
+
+		dist = backEnd.viewParms.zFar / 1.75;
+		size = dist * 0.4;
+
+		VectorScale( tr.sunDirection, dist, sundy);
+		PerpendicularVector (vec1, tr.sunDirection);
+		CrossProduct( tr.sunDirection, vec1, vec2);
+
+		VectorScale( vec1, size, vec1);
+		VectorScale( vec2, size, vec2);
+		
+		for (i = 0 ; i < tess.numVertexes ; i++, v += 4, normal += 4, st += 2 ) 
+        	{
+                	VectorSubtract (backEnd.or.viewOrigin, v, viewer);
+                	VectorNormalizeFast (viewer);
+
+			VectorSubtract (sundy, v, sunned);
+                	VectorNormalizeFast (sunned);
+
+                	d = DotProduct (normal, viewer) + DotProduct (viewer, sunned);
+
+                	//reflected[0] = normal[0]*d - viewer[0]; // ?? - Cowcat
+                	reflected[1] = normal[1]*2*d - viewer[1];
+                	reflected[2] = normal[2]*2*d - viewer[2];
+
+                	st[0] = 0.5 + reflected[1] * 0.5;
+                	st[1] = 0.5 - reflected[2] * 0.5;
+        	}
+	}
+
+	else
+	#endif
+
+	{
+
         for (i = 0 ; i < tess.numVertexes ; i++, v += 4, normal += 4, st += 2 ) 
         {
                 VectorSubtract (backEnd.or.viewOrigin, v, viewer);
                 VectorNormalizeFast (viewer);
+
+		/*
+		float ilength = rsqrt( DotProduct( viewer, viewer ) );
+
+		viewer[0] *= ilength;
+		viewer[1] *= ilength;
+		viewer[2] *= ilength;
+		*/
+
+		#if 1
 
                 d = 2 * DotProduct (normal, viewer);
 
@@ -1082,9 +1149,20 @@ void RB_CalcEnvironmentTexCoords( float *st )
                 reflected[1] = normal[1]*d - viewer[1];
                 reflected[2] = normal[2]*d - viewer[2];
 
+		#else
+
+		d = DotProduct (normal, viewer);
+
+                //reflected[0] = normal[0]*d - viewer[0]; // ?? - Cowcat
+                reflected[1] = normal[1]*2*d - viewer[1];
+                reflected[2] = normal[2]*2*d - viewer[2];
+
+		#endif
+		
                 st[0] = 0.5 + reflected[1] * 0.5;
                 st[1] = 0.5 - reflected[2] * 0.5;
         }
+	}
 }
 
 /*
@@ -1207,29 +1285,8 @@ long myftol( float f ) {
 **
 ** Calculates specular coefficient and places it in the alpha channel
 */
+
 vec3_t lightOrigin = { -960, 1980, 96 };                // FIXME: track dynamically
-
-#if 0 // some ppc test - Cowcat
-float __rsqrt(__reg("f1") float, __reg("f5") float) =
-	"\tfrsqrte\t0,1\n"
-	"\tfmsubs\t2,5,1,1\n"										
-	"\tfmuls\t4,0,0\n"		
-	"\tfnmsubs\t3,2,4,5\n"	
-	"\tfmuls\t1,3,0";
-
-#define rsqrt(x) __rsqrt(x, 1.5)
-
-void VectorNormalizeFast2( vec3_t v )
-{
-	float ilength;
-
-	ilength = rsqrt( DotProduct( v, v ) );
-
-	v[0] *= ilength;
-	v[1] *= ilength;
-	v[2] *= ilength;
-}
-#endif
 
 void RB_CalcSpecularAlpha( unsigned char *alphas )
 {
@@ -1240,8 +1297,6 @@ void RB_CalcSpecularAlpha( unsigned char *alphas )
         int             b;
         vec3_t          lightDir;
         int             numVertexes;
-
-	//ri.Printf( PRINT_ALL, "SpecularAlpha\n");
 
         v = tess.xyz[0];
         normal = tess.normal[0];
@@ -1254,24 +1309,20 @@ void RB_CalcSpecularAlpha( unsigned char *alphas )
         {
                 float ilength;
 
-		//if( backEnd.currentEntity == &tr.worldEntity ) // test - Cowcat
-                	VectorSubtract( lightOrigin, v, lightDir );
-
-		//else
-			//VectorCopy( backEnd.currentEntity->lightDir, lightDir );
+		VectorSubtract( lightOrigin, v, lightDir );
 
 //              ilength = Q_rsqrt( DotProduct( lightDir, lightDir ) );
                 VectorNormalizeFast( lightDir );
 
                 // calculate the specular color
-                d = DotProduct (normal, lightDir);
+                d = 2 * DotProduct (normal, lightDir); // now 2 * - Cowcat
 //              d *= ilength;
 
                 // we don't optimize for the d < 0 case since this tends to
                 // cause visual artifacts such as faceted "snapping"
-                reflected[0] = normal[0]*2*d - lightDir[0];
-                reflected[1] = normal[1]*2*d - lightDir[1];
-                reflected[2] = normal[2]*2*d - lightDir[2];
+                reflected[0] = normal[0] * d - lightDir[0];
+                reflected[1] = normal[1] * d - lightDir[1];
+                reflected[2] = normal[2] * d - lightDir[2];
 
                 VectorSubtract (backEnd.or.viewOrigin, v, viewer);
                 ilength = Q_rsqrt( DotProduct( viewer, viewer ) );
@@ -1378,11 +1429,11 @@ static void RB_CalcDiffuseColor_altivec( unsigned char *colors )
 
 static void RB_CalcDiffuseColor_scalar( unsigned char *colors )
 {
-        int             i, j, c;
+        int             i, j;
         float           *v, *normal;
         float           incoming;
         trRefEntity_t   *ent;
-        int             ambientLightInt;
+	int		ambientLightInt;
         vec3_t          ambientLight;
         vec3_t          lightDir;
         vec3_t          directedLight;
@@ -1408,8 +1459,6 @@ static void RB_CalcDiffuseColor_scalar( unsigned char *colors )
                         *(int *)&colors[i*4] = ambientLightInt;
                         continue;
                 }
-
-		#if 1
 
                 j = myftol( ambientLight[0] + incoming * directedLight[0] );
 
@@ -1437,26 +1486,11 @@ static void RB_CalcDiffuseColor_scalar( unsigned char *colors )
                 }
 
                 colors[i*4+2] = j;
-
-		#else // test - Cowcat
-
-		for (j = 0; j < 3; j++)
-		{
-			c = myftol( ambientLight[j] + incoming * directedLight[j] );
-
-			if ( c > 255 )
-                	{
-                        	c = 255;
-                	}
-
-			colors[i*4+j] = c;
-		}
-
-		#endif
 		
                 colors[i*4+3] = 255;
         }
 }
+
 
 void RB_CalcDiffuseColor( unsigned char *colors )
 {

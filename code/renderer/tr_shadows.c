@@ -45,12 +45,12 @@ typedef struct {
 
 } edgeDef_t;
 
-#define	MAX_EDGE_DEFS	32
+#define MAX_EDGE_DEFS	32
 
 static	edgeDef_t	edgeDefs[SHADER_MAX_VERTEXES][MAX_EDGE_DEFS];
 static	int		numEdgeDefs[SHADER_MAX_VERTEXES];
 static	int		facing[SHADER_MAX_INDEXES/3];
-static  vec3_t		shadowXyz[SHADER_MAX_VERTEXES];
+static	vec3_t		shadowXyz[SHADER_MAX_VERTEXES];
 
 void R_AddEdgeDef( int i1, int i2, int facing )
 {
@@ -148,10 +148,8 @@ void R_RenderShadowEdges( void )
 			{
 				qglBegin( GL_TRIANGLE_STRIP );
 				qglVertex3fv( tess.xyz[ i ] );
-				//qglVertex3fv( tess.xyz[ i + tess.numVertexes ] );
 				qglVertex3fv( shadowXyz[ i ] );
 				qglVertex3fv( tess.xyz[ i2 ] );
-				//qglVertex3fv( tess.xyz[ i2 + tess.numVertexes ] );
 				qglVertex3fv( shadowXyz[ i2 ] );
 				qglEnd();
 
@@ -184,20 +182,12 @@ void RB_ShadowTessEnd( void )
 	int		i;
 	int		numTris;
 	vec3_t		lightDir;
-	GLboolean 	rgba[4];
+	GLboolean	rgba[4];
 
-	#if 1
-	// we can only do this if we have enough space in the vertex buffers
-	if ( tess.numVertexes >= SHADER_MAX_VERTEXES / 2 )
-	{
-		return;
-	}
-
-	//if ( glConfig.stencilBits < 4 )
+	//if ( glConfig.stencilBits < 4 ) // Cowcat
 	{
 		//return;
 	}
-	#endif
 
 	VectorCopy( backEnd.currentEntity->lightDir, lightDir );
 
@@ -252,8 +242,6 @@ void RB_ShadowTessEnd( void )
 	// draw the silhouette edges
 
 	GL_Bind( tr.whiteImage );
-
-	//qglEnable( GL_CULL_FACE ); // disabled - new ioq3 - Cowcat
 	GL_State( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ZERO );
 	qglColor3f( 0.2f, 0.2f, 0.2f );
 
@@ -264,32 +252,15 @@ void RB_ShadowTessEnd( void )
 	//qglEnable( GL_STENCIL_TEST ); // Cowcat
 	//qglStencilFunc( GL_ALWAYS, 1, 255 ); // Cowcat
 
-	// mirrors have the culling order reversed
-	if ( backEnd.viewParms.isMirror )
-	{
-		GL_Cull (CT_FRONT_SIDED);
-		//qglStencilOp( GL_KEEP, GL_KEEP, GL_INCR ); // Cowcat
+	GL_Cull (CT_BACK_SIDED);
+	//qglStencilOp( GL_KEEP, GL_KEEP, GL_INCR ); // Cowcat
 
-		R_RenderShadowEdges();
+	R_RenderShadowEdges();
 
-		GL_Cull (CT_BACK_SIDED);
-		//qglStencilOp( GL_KEEP, GL_KEEP, GL_DECR ); // Cowcat
+	GL_Cull (CT_FRONT_SIDED);
+	//qglStencilOp( GL_KEEP, GL_KEEP, GL_DECR ); // Cowcat
 
-		R_RenderShadowEdges();
-	}
-
-	else
-	{
-		GL_Cull (CT_BACK_SIDED);
-		//qglStencilOp( GL_KEEP, GL_KEEP, GL_INCR ); // Cowcat
-
-		R_RenderShadowEdges();
-
-		GL_Cull (CT_FRONT_SIDED);
-		//qglStencilOp( GL_KEEP, GL_KEEP, GL_DECR ); // Cowcat
-
-		R_RenderShadowEdges();
-	}
+	R_RenderShadowEdges();
 
 	// reenable writing to the color buffer
 	//qglColorMask(rgba[0], rgba[1], rgba[2], rgba[3]); // Cowcat
@@ -320,9 +291,6 @@ void RB_ShadowFinish( void )
 	}
 	#endif
 
-	//if ( r_shadows->integer != 1 )
-		//return;
-
 	//qglEnable( GL_STENCIL_TEST ); // Cowcat
 	//qglStencilFunc( GL_NOTEQUAL, 0, 255 ); // Cowcat
 
@@ -331,7 +299,7 @@ void RB_ShadowFinish( void )
 
 	GL_Bind( tr.whiteImage );
 
-    	qglLoadIdentity ();
+	qglLoadIdentity ();
 
 	qglColor3f( 0.6f, 0.6f, 0.6f );
 	GL_State( GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO );

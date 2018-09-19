@@ -1,11 +1,12 @@
 #
 B = ioquake3_objs_wos
+BUI = ioquake3_objs_wos/q3_ui
 
-CC = vc +warpos_warpos
+CC = vc +warpos
 CC68K = vc +aos68k
-INCLUDES = -ISystem:PosixLib/include # -ISystem:amitcp/netinclude
+INCLUDES = -ISystem:PosixLib/include
 
-CFLAGS = -c99 -O2 -cpu=603 -speed -merge-constants -maxoptpasses=20 $(INCLUDES) -DAMIGA -DBOTLIB -DNO_VM_COMPILED
+CFLAGS = -c99 -O2 -cpu=603 -speed -merge-constants -maxoptpasses=20 $(INCLUDES) -DAMIGA -DBOTLIB -DUSE_LOCAL_HEADERS #-DNO_VM_COMPILED
 CFLAGS68K = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -DAMIGA
 
 DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
@@ -67,8 +68,17 @@ OBJS = \
 	  $(B)/sv_snapshot.o \
 	  $(B)/sv_world.o \
 	  $(B)/unzip.o \
+	  $(B)/ioapi.o \
+	  $(B)/adler32.o \
+	  $(B)/crc32.o \
+	  $(B)/inffast.o \
+	  $(B)/inflate.o \
+	  $(B)/inftrees.o \
+	  $(B)/zutil.o \
 	  $(B)/vm.o \
 	  $(B)/vm_interpreted.o \
+	  $(B)/vm_ppc_new.o \
+	  $(B)/vm_ppc_asm.o \
 	\
 	  $(B)/be_aas_bspq3.o \
 	  $(B)/be_aas_cluster.o \
@@ -168,19 +178,71 @@ OBJS = \
 	  \
 	  $(B)/amiga_input.o \
 	  $(B)/amiga_main.o \
-	  $(B)/amiga_syscon.o \
 	  $(B)/amiga_glimp.o \
 	  $(B)/amiga_qgl.o \
 	  $(B)/amiga_shared.o \
 	  $(B)/wos_asm.o
 ##
+  
+OBJSUI  = \
+        $(BUI)/ui_addbots.o \
+        $(BUI)/ui_atoms.o \
+        $(BUI)/ui_cdkey.o \
+        $(BUI)/ui_cinematics.o \
+        $(BUI)/ui_confirm.o \
+        $(BUI)/ui_connect.o \
+        $(BUI)/ui_controls2.o \
+        $(BUI)/ui_credits.o \
+        $(BUI)/ui_demo2.o \
+        $(BUI)/ui_display.o \
+        $(BUI)/ui_gameinfo.o \
+        $(BUI)/ui_ingame.o \
+        $(BUI)/ui_loadconfig.o \
+        $(BUI)/ui_main.o \
+        $(BUI)/ui_menu.o \
+        $(BUI)/ui_mfield.o \
+        $(BUI)/ui_mods.o \
+        $(BUI)/ui_network.o \
+        $(BUI)/ui_options.o \
+        $(BUI)/ui_playermodel.o \
+        $(BUI)/ui_players.o \
+        $(BUI)/ui_playersettings.o \
+        $(BUI)/ui_preferences.o \
+        $(BUI)/ui_qmenu.o \
+        $(BUI)/ui_removebots.o \
+        $(BUI)/ui_saveconfig.o \
+        $(BUI)/ui_serverinfo.o \
+        $(BUI)/ui_servers2.o \
+        $(BUI)/ui_setup.o \
+        $(BUI)/ui_sound.o \
+        $(BUI)/ui_sparena.o \
+        $(BUI)/ui_specifyserver.o \
+        $(BUI)/ui_splevel.o \
+        $(BUI)/ui_sppostgame.o \
+        $(BUI)/ui_spskill.o \
+        $(BUI)/ui_startserver.o \
+        $(BUI)/ui_team.o \
+        $(BUI)/ui_teamorders.o \
+        $(BUI)/ui_video.o \
+	$(BUI)/ui_syscalls.o \
+	$(BUI)/q_math.o \
+	$(BUI)/q_shared.o \
+	$(BUI)/bg_misc.o \
+        \
+        
 
-QUAKE3 = $(B)/quake3
+##
+
+QUAKE3 = $(B)/quake3-6
+Q3UI = $(B)/q3_ui
 
 all: $(QUAKE3)
 
 $(QUAKE3): $(OBJS)
 	$(CC) -o $@ $(B)/#?.o $(LIBS)
+
+$(Q3UI): $(OBJSUI)
+	$(CC) -o $@ $(BUI)/#?.o
 
 #
 
@@ -267,12 +329,29 @@ $(B)/sv_world.o:  code/server/sv_world.c
 $(B)/unzip.o:  code/qcommon/unzip.c
 	$(DO_CC)
 
+$(B)/ioapi.o:  code/qcommon/ioapi.c
+	$(DO_CC)
+
+$(B)/adler32.o:  code/zlib/adler32.c
+	$(DO_CC)
+
+$(B)/crc32.o:  code/zlib/crc32.c
+	$(DO_CC)
+$(B)/inffast.o:  code/zlib/inffast.c
+	$(DO_CC)
+$(B)/inflate.o:  code/zlib/inflate.c
+	$(DO_CC)
+$(B)/inftrees.o:  code/zlib/inftrees.c
+	$(DO_CC)
+$(B)/zutil.o:  code/zlib/zutil.c
+	$(DO_CC)
+
 $(B)/vm.o:  code/qcommon/vm.c
 	$(DO_CC)
+
 $(B)/vm_interpreted.o:  code/qcommon/vm_interpreted.c
 	$(DO_CC)
-$(B)/$(VM_JIT):  code/qcommon/$(VM_JIT)
-	$(DO_CC)
+
 
 $(B)/be_aas_bspq3.o:  code/botlib/be_aas_bspq3.c
 	$(DO_CC)
@@ -353,7 +432,6 @@ $(B)/tr_light.o:  code/renderer/tr_light.c
 	$(DO_CC)
 $(B)/tr_main.o:  code/renderer/tr_main.c
 	$(DO_CC)
-
 $(B)/tr_marks.o:  code/renderer/tr_marks.c
 	$(DO_CC)
 $(B)/tr_mesh.o:  code/renderer/tr_mesh.c
@@ -486,7 +564,6 @@ $(B)/amiga_ahi68k.o:  code/amiga/amiga_ahi68k.c
 $(B)/wos_asm.o:  code/amiga/wos_asm.asm
 	$(DO_CC)
 
-
 $(B)/snd_adpcm.o:  code/client/snd_adpcm.c
 	$(DO_CC)
 $(B)/snd_dma.o:  code/client/snd_dma.c
@@ -502,6 +579,119 @@ $(B)/snd_main.o:  code/client/snd_main.c
 $(B)/snd_codec.o:  code/client/snd_codec.c
 	$(DO_CC)
 $(B)/snd_codec_wav.o:  code/client/snd_codec_wav.c
+	$(DO_CC)
+
+$(B)/vm_ppc.o:  code/qcommon/vm_ppc.c
+	$(DO_CC)
+
+$(B)/vm_ppc_new.o:  code/qcommon/vm_ppc_new.c
+	$(DO_CC)
+
+$(B)/vm_ppc_asm.o:  code/qcommon/vm_ppc_asm.s
+	$(DO_CC)
+
+
+$(BUI)/ui_addbots.o:  code/q3_ui/ui_addbots.c
+	$(DO_CC)
+$(BUI)/ui_atoms.o:  code/q3_ui/ui_atoms.c
+	$(DO_CC)
+$(BUI)/ui_cdkey.o:  code/q3_ui/ui_cdkey.c
+	$(DO_CC)
+$(BUI)/ui_cinematics.o:  code/q3_ui/ui_cinematics.c
+	$(DO_CC)
+$(BUI)/ui_confirm.o:  code/q3_ui/ui_confirm.c
+	$(DO_CC)
+$(BUI)/ui_connect.o:  code/q3_ui/ui_connect.c
+	$(DO_CC)
+$(BUI)/ui_controls2.o:  code/q3_ui/ui_controls2.c
+	$(DO_CC)
+$(BUI)/ui_credits.o:  code/q3_ui/ui_credits.c
+	$(DO_CC)
+$(BUI)/ui_demo2.o:  code/q3_ui/ui_demo2.c
+	$(DO_CC)
+$(BUI)/ui_display.o:  code/q3_ui/ui_display.c
+	$(DO_CC)
+$(BUI)/ui_gameinfo.o:  code/q3_ui/ui_gameinfo.c
+	$(DO_CC)
+$(BUI)/ui_ingame.o:  code/q3_ui/ui_ingame.c
+	$(DO_CC)
+$(BUI)/ui_loadconfig.o:  code/q3_ui/ui_loadconfig.c
+	$(DO_CC)
+$(BUI)/ui_main.o:  code/q3_ui/ui_main.c
+	$(DO_CC)
+$(BUI)/ui_menu.o:  code/q3_ui/ui_menu.c
+	$(DO_CC)
+$(BUI)/ui_mfield.o:  code/q3_ui/ui_mfield.c
+	$(DO_CC)
+$(BUI)/ui_mods.o:  code/q3_ui/ui_mods.c
+	$(DO_CC)
+$(BUI)/ui_network.o:  code/q3_ui/ui_network.c
+	$(DO_CC)
+$(BUI)/ui_options.o:  code/q3_ui/ui_options.c
+	$(DO_CC)
+$(BUI)/ui_playermodel.o:  code/q3_ui/ui_playermodel.c
+	$(DO_CC)
+$(BUI)/ui_players.o:  code/q3_ui/ui_players.c
+	$(DO_CC)
+$(BUI)/ui_playersettings.o:  code/q3_ui/ui_playersettings.c
+	$(DO_CC)
+$(BUI)/ui_preferences.o:  code/q3_ui/ui_preferences.c
+	$(DO_CC)
+$(BUI)/ui_qmenu.o:  code/q3_ui/ui_qmenu.c
+	$(DO_CC)
+$(BUI)/ui_removebots.o:  code/q3_ui/ui_removebots.c
+	$(DO_CC)
+$(BUI)/ui_saveconfig.o:  code/q3_ui/ui_saveconfig.c
+	$(DO_CC)
+$(BUI)/ui_serverinfo.o:  code/q3_ui/ui_serverinfo.c
+	$(DO_CC)
+$(BUI)/ui_servers2.o:  code/q3_ui/ui_servers2.c
+	$(DO_CC)
+$(BUI)/ui_setup.o:  code/q3_ui/ui_setup.c
+	$(DO_CC)
+$(BUI)/ui_sound.o:  code/q3_ui/ui_sound.c
+	$(DO_CC)
+$(BUI)/ui_sparena.o:  code/q3_ui/ui_sparena.c
+	$(DO_CC)
+$(BUI)/ui_specifyserver.o:  code/q3_ui/ui_specifyserver.c
+	$(DO_CC)
+$(BUI)/ui_specifyleague.o:  code/q3_ui/ui_specifyleague.c
+	$(DO_CC)
+$(BUI)/ui_splevel.o:  code/q3_ui/ui_splevel.c
+	$(DO_CC)
+$(BUI)/ui_sppostgame.o:  code/q3_ui/ui_sppostgame.c
+	$(DO_CC)
+$(BUI)/ui_spskill.o:  code/q3_ui/ui_spskill.c
+	$(DO_CC)
+$(BUI)/ui_startserver.o:  code/q3_ui/ui_startserver.c
+	$(DO_CC)
+
+$(BUI)/ui_syscalls.o:  code/ui/ui_syscalls.c
+	$(DO_CC)
+
+$(BUI)/ui_team.o:  code/q3_ui/ui_team.c
+	$(DO_CC)
+
+$(BUI)/ui_teamorders.o:  code/q3_ui/ui_teamorders.c
+	$(DO_CC)
+$(BUI)/ui_video.o:  code/q3_ui/ui_video.c
+	$(DO_CC)
+$(BUI)/ui_login.o:  code/q3_ui/ui_login.c
+	$(DO_CC)
+$(BUI)/ui_rankings.o:  code/q3_ui/ui_rankings.c
+	$(DO_CC)
+$(BUI)/ui_spreset.o:  code/q3_ui/ui_spreset.c
+	$(DO_CC)
+$(BUI)/ui_rankstatus.o:  code/q3_ui/ui_rankstatus.c
+	$(DO_CC)
+$(BUI)/ui_signup.o:  code/q3_ui/ui_signup.c
+	$(DO_CC)
+
+$(BUI)/q_math.o:  code/qcommon/q_math.c
+	$(DO_CC)
+$(BUI)/q_shared.o:  code/qcommon/q_shared.c
+	$(DO_CC)
+$(BUI)/bg_misc.o:  code/game/bg_misc.c
 	$(DO_CC)
 
 

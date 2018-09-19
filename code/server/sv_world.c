@@ -300,7 +300,6 @@ void SV_LinkEntity( sharedEntity_t *gEnt )
 	{
 		// expand for rotation
 		float	max;
-		int	i;
 
 		max = RadiusFromBounds( gEnt->r.mins, gEnt->r.maxs );
 
@@ -451,10 +450,7 @@ static void SV_AreaEntities_r( worldSector_t *node, areaParms_t *ap )
 {
 	svEntity_t	*check, *next;
 	sharedEntity_t 	*gcheck;
-	int		count;
-
-	count = 0;
-
+	
 	for ( check = node->entities  ; check ; check = next )
 	{
 		next = check->nextEntityInWorldSector;
@@ -551,7 +547,7 @@ void SV_ClipToEntity( trace_t *trace, const vec3_t start, const vec3_t mins, con
 
 	touch = SV_GentityNum( entityNum );
 
-	Com_Memset(trace, 0, sizeof(trace_t));
+	Com_Memset( trace, 0, sizeof( *trace ) ); // Quake3e - was sizeof(trace_t)) - Cowcat
 
 	// if it doesn't have any brushes of a type we
 	// are looking for, ignore it
@@ -714,7 +710,7 @@ void SV_Trace( trace_t *results, const vec3_t start, vec3_t mins, vec3_t maxs, c
 		maxs = vec3_origin;
 	}
 
-	Com_Memset ( &clip, 0, sizeof ( moveclip_t ) );
+	Com_Memset ( &clip, 0, sizeof( clip ) ); // Quake3e - was sizeof ( moveclip_t ) ); - Cowcat
 
 	// clip to world
 	CM_BoxTrace( &clip.trace, start, end, mins, maxs, 0, contentmask, capsule );
@@ -793,14 +789,14 @@ int SV_PointContents( const vec3_t p, int passEntityNum )
 
 		// might intersect, so do an exact clip
 		clipHandle = SV_ClipHandleForEntity( hit );
-		angles = hit->s.angles;
+		angles = hit->r.currentAngles;
 
 		if ( !hit->r.bmodel )
 		{
 			angles = vec3_origin;	// boxes don't rotate
 		}
 
-		c2 = CM_TransformedPointContents (p, clipHandle, hit->s.origin, angles); // was hit->s.angles); -fix Cowcat
+		c2 = CM_TransformedPointContents (p, clipHandle, hit->r.currentOrigin, angles);
 
 		contents |= c2;
 	}

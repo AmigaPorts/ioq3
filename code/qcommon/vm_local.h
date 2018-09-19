@@ -156,11 +156,13 @@ struct vm_s {
 	//------------------------------------
    
     	char		name[MAX_QPATH];
-	//void		*searchPath;		// hint for FS_ReadFileDir() - future - Cowcat
+	void		*searchPath;		// hint for FS_ReadFileDir() - new Cowcat
 
 	// for dynamic linked modules
 	void		*dllHandle;
-	intptr_t	(QDECL *entryPoint)( int callNum, ... );
+	//intptr_t	(QDECL *entryPoint)( int callNum, ... );
+	intptr_t	(QDECL *entryPoint)( int callNum, int arg0, int arg1, int arg2 ); // Cowcat
+	//intptr_t	(QDECL *entryPoint)( int callNum, int, int, int, int, int, int, int, int, int, int, int, int); // Cowcat
 	void 		(*destroy)(vm_t* self);
 
 	// for interpreted modules
@@ -176,6 +178,7 @@ struct vm_s {
 
 	byte		*dataBase;
 	int		dataMask;
+	int		dataAlloc;
 
 	int		stackBottom;		// if programStack < stackBottom, error
 

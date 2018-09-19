@@ -1,0 +1,145 @@
+
+SRC="code/game/"
+OUT="qvm/vm/game/"
+
+echo "q3cpp/rcc"
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_main.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_main.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ai_chat.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}ai_chat.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ai_cmd.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}ai_cmd.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ai_dmnet.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}ai_dmnet.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ai_dmq3.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}ai_dmq3.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ai_main.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}ai_main.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ai_team.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}ai_team.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ai_vcmd.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}ai_vcmd.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}bg_lib.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}bg_lib.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}bg_misc.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}bg_misc.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}bg_pmove.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}bg_pmove.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}bg_slidemove.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}bg_slidemove.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_active.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_active.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_arenas.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_arenas.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_bot.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_bot.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_client.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_client.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_cmds.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_cmds.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_combat.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_combat.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_items.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_items.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_mem.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_mem.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_misc.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_misc.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_missile.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_missile.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_mover.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_mover.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_session.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_session.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_spawn.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_spawn.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_svcmds.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_svcmds.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_target.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_target.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_team.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_team.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_trigger.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_trigger.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_utils.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_utils.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}g_weapon.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}g_weapon.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ code/qcommon/q_math.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}q_math.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ code/qcommon/q_shared.c /tmp/qagame.i 
+q3rcc -target=bytecode /tmp/qagame.i ${OUT}q_shared.asm
+
+echo "q3asm"
+
+q3asm -o bin/qagame.qvm \
+${OUT}g_main.asm \
+${SRC}g_syscalls.asm \
+${OUT}q_math.asm \
+${OUT}g_bot.asm \
+${OUT}q_shared.asm \
+${OUT}bg_lib.asm \
+${OUT}bg_misc.asm \
+${OUT}ai_chat.asm \
+${OUT}ai_cmd.asm \
+${OUT}ai_dmnet.asm \
+${OUT}ai_dmq3.asm \
+${OUT}ai_main.asm \
+${OUT}ai_team.asm \
+${OUT}ai_vcmd.asm \
+${OUT}g_active.asm \
+${OUT}g_arenas.asm \
+${OUT}g_client.asm \
+${OUT}g_cmds.asm \
+${OUT}g_team.asm \
+${OUT}g_combat.asm \
+${OUT}g_items.asm \
+${OUT}g_mem.asm \
+${OUT}g_misc.asm \
+${OUT}g_missile.asm \
+${OUT}g_mover.asm \
+${OUT}g_session.asm \
+${OUT}g_spawn.asm \
+${OUT}g_svcmds.asm \
+${OUT}g_target.asm \
+${OUT}g_trigger.asm \
+${OUT}g_utils.asm \
+${OUT}g_weapon.asm \
+${OUT}bg_pmove.asm \
+${OUT}bg_slidemove.asm \
+
+
+

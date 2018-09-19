@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_flares.c
 
 #include "tr_local.h"
+#include "../qcommon/cm_local.h" // added Cowcat
 
 /*
 =============================================================================
@@ -78,15 +79,24 @@ typedef struct flare_s
 
 	vec3_t		origin;
 	vec3_t		color;
-
+	int		radius;			// leilei - dynamic light flares
 } flare_t;
 
-#define MAX_FLARES	128
+#define		MAX_FLARES	256 // was 128 - Cowcat
 
-flare_t r_flareStructs[MAX_FLARES];
-flare_t *r_activeFlares, *r_inactiveFlares;
+flare_t		r_flareStructs[MAX_FLARES];
+flare_t		*r_activeFlares, *r_inactiveFlares;
 
 int flareCoeff;
+
+static void R_SetFlareCoeff( void )
+{
+	if(r_flareCoeff->value == 0.0f)
+		flareCoeff = atof(FLARE_STDCOEFF);
+
+	else
+		flareCoeff = r_flareCoeff->value;
+}
 
 /*
 ==================
@@ -106,8 +116,9 @@ void R_ClearFlares( void )
 		r_flareStructs[i].next = r_inactiveFlares;
 		r_inactiveFlares = &r_flareStructs[i];
 	}
-}
 
+	R_SetFlareCoeff();
+}
 
 /*
 ==================
@@ -116,10 +127,10 @@ RB_AddFlare
 This is called at surface tesselation time
 ==================
 */
-void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t normal )
+void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t normal, int radii )
 {
 	int		i;
-	flare_t		*f, *oldest;
+	flare_t		*f;
 	vec3_t		local;
 	float		d = 1;
 	vec4_t		eye, clip, normalized, window;
@@ -159,7 +170,6 @@ void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t 
 	}
 
 	// see if a flare with a matching surface, scene, and view exists
-	oldest = r_flareStructs;
 
 	for ( f = r_activeFlares ; f ; f = f->next )
 	{
@@ -210,6 +220,8 @@ void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t 
 	f->windowX = backEnd.viewParms.viewportX + window[0];
 	f->windowY = backEnd.viewParms.viewportY + window[1];
 
+	f->radius = radii / 3; // leilei - 
+
 	f->eyeZ = eye[2];
 }
 
@@ -218,6 +230,7 @@ void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t 
 RB_AddDlightFlares
 ==================
 */
+
 void RB_AddDlightFlares( void )
 {
 	dlight_t	*l;
@@ -236,7 +249,6 @@ void RB_AddDlightFlares( void )
 
 	for (i=0 ; i<backEnd.refdef.num_dlights ; i++, l++)
 	{
-
 		if(fog)
 		{
 			// find which fog volume the light is in 
@@ -267,7 +279,8 @@ void RB_AddDlightFlares( void )
 		else
 			j = 0;
 
-		RB_AddFlare( (void *)l, j, l->origin, l->color, NULL );
+		//RB_AddFlare( (void *)l, j, l->origin, l->color, NULL );
+		RB_AddFlare( (void *)l, j, l->origin, l->color, NULL, l->radius * 0.6);
 	}
 }
 
@@ -284,14 +297,20 @@ FLARE BACK END
 RB_TestFlare
 ==================
 */
+
+void CM_Trace( trace_t *results, const vec3_t start, const vec3_t end, vec3_t mins, vec3_t maxs,
+		clipHandle_t model, const vec3_t origin, int brushmask, int capsule, sphere_t *sphere );
+
 void RB_TestFlare( flare_t *f )
 {
 	float		depth;
 	qboolean	visible;
 	float		fade;
-	float		screenZ;
+	//float		screenZ;
 
 	backEnd.pc.c_flareTests++;
+
+	#if 0 // Cowcat
 
 	// doing a readpixels is as good as doing a glFinish(), so
 	// don't bother with another sync
@@ -299,12 +318,28 @@ void RB_TestFlare( flare_t *f )
 
 	// read back the z buffer contents
 	qglReadPixels( f->windowX, f->windowY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth ); // not ok - Cowcat
-	//qglFinish(); // Cowcat
 
 	screenZ = backEnd.viewParms.projectionMatrix[14] / 
 		( ( 2*depth - 1 ) * backEnd.viewParms.projectionMatrix[11] - backEnd.viewParms.projectionMatrix[10] );
 
 	visible = ( -f->eyeZ - -screenZ ) < 24;
+
+	#endif
+
+	// OpenArena - Cowcat
+	trace_t	yeah;
+	CM_Trace( &yeah, f->origin, backEnd.or.viewOrigin, NULL, NULL, 0, f->origin, 1, 0, NULL);
+
+	if( yeah.fraction < 1 )
+	{
+		visible = 0;
+		return;
+	}
+
+	else
+		visible = 1;
+
+	//
 
 	if ( visible )
 	{
@@ -364,8 +399,12 @@ void RB_RenderFlare( flare_t *f )
 	else
 		distance = -f->eyeZ;
 
+	if(!f->radius)
+		f->radius = 0.0f; 	// leilei
+
 	// calculate the flare size..
-	size = backEnd.viewParms.viewportWidth * ( r_flareSize->value/640.0f + 8 / distance );
+	//size = backEnd.viewParms.viewportWidth * ( r_flareSize->value/640.0f + 8 / distance );
+	size = backEnd.viewParms.viewportWidth * ( (r_flareSize->value + f->radius)/640.0f + 8 / distance );
 
 /*
  * This is an alternative to intensity scaling. It changes the size of the flare on screen instead
@@ -375,18 +414,18 @@ void RB_RenderFlare( flare_t *f )
 */
 
 /*
- * As flare sizes stay nearly constant with increasing distance we must decrease the intensity
- * to achieve a reasonable visual result. The intensity is ~ (size^2 / distance^2) which can be
- * got by considering the ratio of
- * (flaresurface on screen) : (Surface of sphere defined by flare origin and distance from flare)
- * An important requirement is:
- * intensity <= 1 for all distances.
- *
- * The formula used here to compute the intensity is as follows:
- * intensity = flareCoeff * size^2 / (distance + size*sqrt(flareCoeff))^2
- * As you can see, the intensity will have a max. of 1 when the distance is 0.
- * The coefficient flareCoeff will determine the falloff speed with increasing distance.
- */
+* As flare sizes stay nearly constant with increasing distance we must decrease the intensity
+* to achieve a reasonable visual result. The intensity is ~ (size^2 / distance^2) which can be
+* got by considering the ratio of
+* (flaresurface on screen) : (Surface of sphere defined by flare origin and distance from flare)
+* An important requirement is:
+* intensity <= 1 for all distances.
+*
+* The formula used here to compute the intensity is as follows:
+* intensity = flareCoeff * size^2 / (distance + size*sqrt(flareCoeff))^2
+* As you can see, the intensity will have a max. of 1 when the distance is 0.
+* The coefficient flareCoeff will determine the falloff speed with increasing distance.
+*/
 
 	factor = distance + size * sqrt(flareCoeff);
 	
@@ -492,14 +531,15 @@ void RB_RenderFlares (void)
 		return;
 	}
 
+	#ifdef STANDALONE
+	if ( (backEnd.refdef.rdflags & RDF_NOWORLDMODEL) ) // nasty recursion in UI.
+		return;
+	#endif
+
+
 	if(r_flareCoeff->modified)
 	{
-		if(r_flareCoeff->value == 0.0f)
-			flareCoeff = atof(FLARE_STDCOEFF);
-
-		else
-			flareCoeff = r_flareCoeff->value;
-			
+		R_SetFlareCoeff();
 		r_flareCoeff->modified = qfalse;
 	}
 
@@ -508,7 +548,8 @@ void RB_RenderFlares (void)
 	backEnd.currentEntity = &tr.worldEntity;
 	backEnd.or = backEnd.viewParms.world;
 
-//	RB_AddDlightFlares();
+	if(r_flaresDlight->integer) // OpenArena - Cowcat
+		RB_AddDlightFlares();
 
 	// perform z buffer readback on each flare in this view
 	draw = qfalse;
@@ -555,10 +596,12 @@ void RB_RenderFlares (void)
 		return;		// none visible
 	}
 
+	#if 0 // Cowcat
 	if ( backEnd.viewParms.isPortal )
 	{
-		//qglDisable (GL_CLIP_PLANE0); // Cowcat
+		qglDisable (GL_CLIP_PLANE0); 
 	}
+	#endif
 
 	qglPushMatrix();
 	qglLoadIdentity();

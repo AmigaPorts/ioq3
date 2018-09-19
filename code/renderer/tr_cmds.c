@@ -93,7 +93,7 @@ R_IssueRenderCommands
 */
 
 //void R_IssueRenderCommands( qboolean runPerformanceCounters )
-void R_IssueRenderCommands( void ) // Quake3e - Cowcat
+void R_IssueRenderCommands( void ) // Quake3e
 {
 	renderCommandList_t	*cmdList;
 
@@ -366,13 +366,11 @@ void RE_BeginFrame( stereoFrame_t stereoFrame )
 		{
 			R_IssuePendingRenderCommands();
 
-			#if 0 // Cowcat
 			qglEnable( GL_STENCIL_TEST );
 			qglStencilMask( ~0U );
 			qglClearStencil( 0U );
 			qglStencilFunc( GL_ALWAYS, 0U, ~0U );
 			qglStencilOp( GL_KEEP, GL_INCR, GL_INCR );
-			#endif
 		}
 
 		r_measureOverdraw->modified = qfalse;
@@ -384,7 +382,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame )
 		if ( r_measureOverdraw->modified )
 		{
 			R_IssuePendingRenderCommands();
-			//qglDisable( GL_STENCIL_TEST ); // Cowcat
+			qglDisable( GL_STENCIL_TEST );
 		}
 
 		r_measureOverdraw->modified = qfalse;

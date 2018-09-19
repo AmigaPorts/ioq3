@@ -441,10 +441,12 @@ void Controls_GetConfig( void );
 void Controls_SetConfig(qboolean restart);
 void Controls_SetDefaults( void );
 
-int			trap_PC_AddGlobalDefine( char *define );
-int			trap_PC_LoadSource( const char *filename );
-int			trap_PC_FreeSource( int handle );
-int			trap_PC_ReadToken( int handle, pc_token_t *pc_token );
-int			trap_PC_SourceFileAndLine( int handle, char *filename, int *line );
+// Cowcat
+#define DLLFUNCB
+DLLFUNCB int			trap_PC_AddGlobalDefine( char *define );
+DLLFUNCB int			trap_PC_LoadSource( const char *filename );
+DLLFUNCB int			trap_PC_FreeSource( int handle );
+DLLFUNCB int			trap_PC_ReadToken( int handle, pc_token_t *pc_token );
+DLLFUNCB int			trap_PC_SourceFileAndLine( int handle, char *filename, int *line );
 
 #endif

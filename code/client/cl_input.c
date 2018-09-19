@@ -699,7 +699,7 @@ void CL_CreateNewCommands( void )
 	int		cmdNum;
 
 	// no need to create usercmds until we have a gamestate
-	if ( cls.state < CA_PRIMED )
+	if ( clc.state < CA_PRIMED )
 	{
 		return;
 	}
@@ -739,7 +739,7 @@ qboolean CL_ReadyToSendPacket( void )
 	int	delta;
 
 	// don't send anything if playing back a demo
-	if ( clc.demoplaying || cls.state == CA_CINEMATIC )
+	if ( clc.demoplaying || clc.state == CA_CINEMATIC )
 	{
 		return qfalse;
 	}
@@ -752,7 +752,7 @@ qboolean CL_ReadyToSendPacket( void )
 
 	// if we don't have a valid gamestate yet, only send
 	// one packet a second
-	if ( cls.state != CA_ACTIVE && cls.state != CA_PRIMED && !*clc.downloadTempName &&
+	if ( clc.state != CA_ACTIVE && clc.state != CA_PRIMED && !*clc.downloadTempName &&
 		cls.realtime - clc.lastPacketSentTime < 1000 )
 	{
 		return qfalse;
@@ -829,7 +829,7 @@ void CL_WritePacket( void )
 	int		count, key;
 
 	// don't send anything if playing back a demo
-	if ( clc.demoplaying || cls.state == CA_CINEMATIC )
+	if ( clc.demoplaying || clc.state == CA_CINEMATIC )
 	{
 		return;
 	}
@@ -928,8 +928,7 @@ void CL_WritePacket( void )
 			cl_voipSendTarget->modified = qfalse;
 		}
 
-		MSG_WriteByte (&buf, clc_EOF);  // placate legacy servers.
-		MSG_WriteByte (&buf, clc_extension);
+		
 		MSG_WriteByte (&buf, clc_voip);
 		MSG_WriteByte (&buf, clc.voipOutgoingGeneration);
 		MSG_WriteLong (&buf, clc.voipOutgoingSequence);
@@ -952,8 +951,7 @@ void CL_WritePacket( void )
 			MSG_Init (&fakemsg, fakedata, sizeof (fakedata));
 			MSG_Bitstream (&fakemsg);
 			MSG_WriteLong (&fakemsg, clc.reliableAcknowledge);
-			MSG_WriteByte (&fakemsg, svc_EOF);
-			MSG_WriteByte (&fakemsg, svc_extension);
+			
 			MSG_WriteByte (&fakemsg, svc_voip);
 			MSG_WriteShort (&fakemsg, clc.clientNum);
 			MSG_WriteByte (&fakemsg, clc.voipOutgoingGeneration);
@@ -1025,16 +1023,6 @@ void CL_WritePacket( void )
 
 	CL_Netchan_Transmit (&clc.netchan, &buf);	
 
-	// clients never really should have messages large enough
-	// to fragment, but in case they do, fire them all off
-	// at once
-	// TTimo: this causes a packet burst, which is bad karma for winsock
-	// added a WARNING message, we'll see if there are legit situations where this happens
-	while ( clc.netchan.unsentFragments )
-	{
-		Com_DPrintf( "WARNING: #462 unsent fragments (not supposed to happen!)\n" );
-		CL_Netchan_TransmitNextFragment( &clc.netchan );
-	}
 }
 
 /*
@@ -1047,7 +1035,7 @@ Called every frame to builds and sends a command packet to the server.
 void CL_SendCmd( void )
 {
 	// don't send any message if not connected
-	if ( cls.state < CA_CONNECTED ) {
+	if ( clc.state < CA_CONNECTED ) {
 		return;
 	}
 
@@ -1147,4 +1135,78 @@ void CL_InitInput( void )
 
 	cl_nodelta = Cvar_Get ("cl_nodelta", "0", 0);
 	cl_debugMove = Cvar_Get ("cl_debugMove", "0", 0);
+}
+
+/*
+============
+CL_ShutdownInput
+============
+*/
+void CL_ShutdownInput(void)
+{
+	Cmd_RemoveCommand("centerview");
+
+	Cmd_RemoveCommand("+moveup");
+	Cmd_RemoveCommand("-moveup");
+	Cmd_RemoveCommand("+movedown");
+	Cmd_RemoveCommand("-movedown");
+	Cmd_RemoveCommand("+left");
+	Cmd_RemoveCommand("-left");
+	Cmd_RemoveCommand("+right");
+	Cmd_RemoveCommand("-right");
+	Cmd_RemoveCommand("+forward");
+	Cmd_RemoveCommand("-forward");
+	Cmd_RemoveCommand("+back");
+	Cmd_RemoveCommand("-back");
+	Cmd_RemoveCommand("+lookup");
+	Cmd_RemoveCommand("-lookup");
+	Cmd_RemoveCommand("+lookdown");
+	Cmd_RemoveCommand("-lookdown");
+	Cmd_RemoveCommand("+strafe");
+	Cmd_RemoveCommand("-strafe");
+	Cmd_RemoveCommand("+moveleft");
+	Cmd_RemoveCommand("-moveleft");
+	Cmd_RemoveCommand("+moveright");
+	Cmd_RemoveCommand("-moveright");
+	Cmd_RemoveCommand("+speed");
+	Cmd_RemoveCommand("-speed");
+	Cmd_RemoveCommand("+attack");
+	Cmd_RemoveCommand("-attack");
+	Cmd_RemoveCommand("+button0");
+	Cmd_RemoveCommand("-button0");
+	Cmd_RemoveCommand("+button1");
+	Cmd_RemoveCommand("-button1");
+	Cmd_RemoveCommand("+button2");
+	Cmd_RemoveCommand("-button2");
+	Cmd_RemoveCommand("+button3");
+	Cmd_RemoveCommand("-button3");
+	Cmd_RemoveCommand("+button4");
+	Cmd_RemoveCommand("-button4");
+	Cmd_RemoveCommand("+button5");
+	Cmd_RemoveCommand("-button5");
+	Cmd_RemoveCommand("+button6");
+	Cmd_RemoveCommand("-button6");
+	Cmd_RemoveCommand("+button7");
+	Cmd_RemoveCommand("-button7");
+	Cmd_RemoveCommand("+button8");
+	Cmd_RemoveCommand("-button8");
+	Cmd_RemoveCommand("+button9");
+	Cmd_RemoveCommand("-button9");
+	Cmd_RemoveCommand("+button10");
+	Cmd_RemoveCommand("-button10");
+	Cmd_RemoveCommand("+button11");
+	Cmd_RemoveCommand("-button11");
+	Cmd_RemoveCommand("+button12");
+	Cmd_RemoveCommand("-button12");
+	Cmd_RemoveCommand("+button13");
+	Cmd_RemoveCommand("-button13");
+	Cmd_RemoveCommand("+button14");
+	Cmd_RemoveCommand("-button14");
+	Cmd_RemoveCommand("+mlook");
+	Cmd_RemoveCommand("-mlook");
+
+#ifdef USE_VOIP
+	Cmd_RemoveCommand("+voiprecord");
+	Cmd_RemoveCommand("-voiprecord");
+#endif
 }

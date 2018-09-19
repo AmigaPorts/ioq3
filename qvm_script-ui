@@ -1,0 +1,181 @@
+SRC="code/q3_ui/"
+OUT="qvm/vm/ui/"
+
+echo "q3cpp/rcc"
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_main.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_main.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ code/game/bg_misc.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}bg_misc.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ code/game/bg_lib.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}bg_lib.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_addbots.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_addbots.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_atoms.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_atoms.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_cdkey.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_cdkey.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_cinematics.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_cinematics.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_confirm.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_confirm.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_connect.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_connect.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_controls2.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_controls2.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_credits.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_credits.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_demo2.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_demo2.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_display.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_display.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_gameinfo.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_gameinfo.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_ingame.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_ingame.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_loadconfig.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_loadconfig.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_menu.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_menu.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_mfield.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_mfield.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_mods.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_mods.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_network.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_network.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_options.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_options.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_playermodel.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_playermodel.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_players.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_players.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_playersettings.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_playersettings.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_preferences.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_preferences.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_qmenu.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_qmenu.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_removebots.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_removebots.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_saveconfig.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_saveconfig.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_serverinfo.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_serverinfo.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_servers2.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_servers2.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_setup.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_setup.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_sound.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_sound.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_sparena.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_sparena.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_specifyserver.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_specifyserver.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_splevel.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_splevel.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_sppostgame.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_sppostgame.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_spskill.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_spskill.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_startserver.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_startserver.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_team.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_team.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_teamorders.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_teamorders.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ ${SRC}ui_video.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}ui_video.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ code/qcommon/q_math.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}q_math.asm
+
+q3cpp -D__STDC__=1 -D__STRICT_ANSI__ -D__signed__=signed -DQ3_VM -D__LCC__ code/qcommon/q_shared.c /tmp/ui.i 
+q3rcc -target=bytecode /tmp/ui.i ${OUT}q_shared.asm
+
+echo "q3asm"
+
+q3asm -o bin/ui.qvm \
+${OUT}ui_main.asm \
+${OUT}bg_misc.asm \
+${OUT}bg_lib.asm \
+${OUT}ui_addbots.asm \
+${OUT}ui_atoms.asm \
+${OUT}ui_cdkey.asm \
+${OUT}ui_cinematics.asm \
+${OUT}ui_confirm.asm \
+${OUT}ui_connect.asm \
+${OUT}ui_controls2.asm \
+${OUT}ui_credits.asm \
+${OUT}ui_demo2.asm \
+${OUT}ui_display.asm \
+${OUT}ui_gameinfo.asm \
+${OUT}ui_ingame.asm \
+${OUT}ui_loadconfig.asm \
+${OUT}ui_menu.asm \
+${OUT}ui_mfield.asm \
+${OUT}ui_mods.asm \
+${OUT}ui_network.asm \
+${OUT}ui_options.asm \
+${OUT}ui_playermodel.asm \
+${OUT}ui_players.asm \
+${OUT}ui_playersettings.asm \
+${OUT}ui_preferences.asm \
+${OUT}ui_qmenu.asm \
+${OUT}ui_removebots.asm \
+${OUT}ui_saveconfig.asm \
+${OUT}ui_serverinfo.asm \
+${OUT}ui_servers2.asm \
+${OUT}ui_setup.asm \
+${OUT}ui_sound.asm \
+${OUT}ui_sparena.asm \
+${OUT}ui_specifyserver.asm \
+${OUT}ui_splevel.asm \
+${OUT}ui_sppostgame.asm \
+${OUT}ui_spskill.asm \
+${OUT}ui_startserver.asm \
+${OUT}ui_team.asm \
+${OUT}ui_teamorders.asm \
+${OUT}ui_video.asm \
+${OUT}q_math.asm \
+${OUT}q_shared.asm \
+code/ui/ui_syscalls.asm

@@ -194,7 +194,7 @@ static void R_SetupEntityLightingGrid( trRefEntity_t *ent )
 		int	lat, lng;
 		vec3_t	normal;
 
-		#if idppc
+		#if 1 // idppc
 		float	d0, d1, d2, d3, d4, d5;
 		#endif
 
@@ -224,7 +224,7 @@ static void R_SetupEntityLightingGrid( trRefEntity_t *ent )
 
 		totalFactor += factor;
 
-		#if idppc
+		#if 1 // idppc - seems to be ok with 68k too -Cowcat
 
 		d0 = data[0]; d1 = data[1]; d2 = data[2];
 		d3 = data[3]; d4 = data[4]; d5 = data[5];
@@ -332,7 +332,6 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent )
 	// lighting calculations 
 	if ( ent->lightingCalculated )
 	{
-		//ri.Printf( PRINT_ALL, "entitylightcalculated\n");
 		return;
 	}
 
@@ -410,7 +409,7 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent )
 	((byte *)&ent->ambientLightInt)[1] = myftol( ent->ambientLight[1] );
 	((byte *)&ent->ambientLightInt)[2] = myftol( ent->ambientLight[2] );
 	((byte *)&ent->ambientLightInt)[3] = 0xff;
-	
+
 	// transform the direction to local space
 	VectorNormalize( lightDir );
 	ent->lightDir[0] = DotProduct( lightDir, ent->e.axis[0] );
@@ -423,6 +422,7 @@ void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent )
 R_LightForPoint
 =================
 */
+
 int R_LightForPoint( vec3_t point, vec3_t ambientLight, vec3_t directedLight, vec3_t lightDir )
 {
 	trRefEntity_t ent;
@@ -439,3 +439,4 @@ int R_LightForPoint( vec3_t point, vec3_t ambientLight, vec3_t directedLight, ve
 
 	return qtrue;
 }
+

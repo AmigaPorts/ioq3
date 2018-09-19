@@ -111,12 +111,16 @@ void AAS_ContinueInit(float time)
 {
 	//if no AAS file loaded
 	if (!aasworld.loaded) return;
+
 	//if AAS is already initialized
 	if (aasworld.initialized) return;
+
 	//calculate reachability, if not finished return
 	if (AAS_ContinueInitReachability(time)) return;
+
 	//initialize clustering for the new map
 	AAS_InitClustering();
+
 	//if reachability has been calculated and an AAS file should be written
 	//or there is a forced data optimization
 	if (aasworld.savefile || ((int)LibVarGetValue("forcewrite")))
@@ -133,8 +137,10 @@ void AAS_ContinueInit(float time)
 			botimport.Print(PRT_ERROR, "couldn't write %s\n", aasworld.filename);
 		} //end else
 	} //end if
+	
 	//initialize the routing
 	AAS_InitRouting();
+
 	//at this point AAS is initialized
 	AAS_SetInitialized();
 } //end of the function AAS_ContinueInit
@@ -148,10 +154,13 @@ void AAS_ContinueInit(float time)
 int AAS_StartFrame(float time)
 {
 	aasworld.time = time;
+
 	//unlink all entities that were not updated last frame
 	AAS_UnlinkInvalidEntities();
+
 	//invalidate the entities
 	AAS_InvalidateEntities();
+
 	//initialize AAS
 	AAS_ContinueInit(time);
 	//

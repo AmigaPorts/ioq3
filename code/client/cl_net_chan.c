@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/qcommon.h"
 #include "client.h"
 
+#ifdef LEGACY_PROTOCOL
+
 /*
 ==============
 CL_Netchan_Encode
@@ -84,6 +86,7 @@ static void CL_Netchan_Encode( msg_t *msg )
 		}
 
 		index++;
+
 		// encode the data with this key
 		*(msg->data + i) = (*(msg->data + i)) ^ key;
 	}
@@ -99,14 +102,25 @@ CL_Netchan_Decode
 ==============
 */
 
-#if defined(AMIGA) && defined(__VBCC__) && defined (__PPC__)
+#if defined(AMIGA) && defined(__VBCC__)
 
 #undef LittleLong
+
+#if defined (__PPC__)
 
 int __LittleLong(__reg("r4") int) =
 	"\trlwinm\t3,4,24,0,31\n"
 	"\trlwimi\t3,4,8,8,15\n"
 	"\trlwimi\t3,4,8,24,31";
+
+#else // 68k
+
+int __LittleLong(__reg("d0") int) =
+	"\trol.w\t#8,d0\n"
+	"\tswap\td0\n"
+	"\trol.w\t#8,d0";
+
+#endif
 
 #define LittleLong(x) __LittleLong(x)
 
@@ -158,14 +172,23 @@ static void CL_Netchan_Decode( msg_t *msg )
 	}
 }
 
+#endif
+
+
 /*
 =================
 CL_Netchan_TransmitNextFragment
 =================
 */
-void CL_Netchan_TransmitNextFragment( netchan_t *chan )
+qboolean CL_Netchan_TransmitNextFragment(netchan_t *chan)
 {
-	Netchan_TransmitNextFragment( chan );
+	if(chan->unsentFragments)
+	{
+		Netchan_TransmitNextFragment(chan);
+		return qtrue;
+	}
+	
+	return qfalse;
 }
 
 /*
@@ -177,12 +200,19 @@ void CL_Netchan_Transmit( netchan_t *chan, msg_t* msg )
 {
 	MSG_WriteByte( msg, clc_EOF );
 
-	CL_Netchan_Encode( msg );
-	Netchan_Transmit( chan, msg->cursize, msg->data );
-}
+#ifdef LEGACY_PROTOCOL
+	if(chan->compat)
+		CL_Netchan_Encode(msg);
+#endif
 
-extern 	int oldsize;
-int newsize = 0;
+	Netchan_Transmit(chan, msg->cursize, msg->data);
+	
+	// Transmit all fragments without delay
+	while(CL_Netchan_TransmitNextFragment(chan))
+	{
+		Com_DPrintf("WARNING: #462 unsent fragments (not supposed to happen!)\n");
+	}
+}
 
 /*
 =================
@@ -198,7 +228,11 @@ qboolean CL_Netchan_Process( netchan_t *chan, msg_t *msg )
 	if (!ret)
 		return qfalse;
 
-	CL_Netchan_Decode( msg );
-	newsize += msg->cursize;
+#ifdef LEGACY_PROTOCOL
+	if(chan->compat)
+		CL_Netchan_Decode(msg);
+#endif
+
 	return qtrue;
 }
+

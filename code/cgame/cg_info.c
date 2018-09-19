@@ -104,7 +104,7 @@ void CG_LoadingClient( int clientNum ) {
 
 	if ( loadingPlayerIconCount < MAX_LOADING_PLAYER_ICONS ) {
 		Q_strncpyz( model, Info_ValueForKey( info, "model" ), sizeof( model ) );
-		skin = Q_strrchr( model, '/' );
+		skin = strrchr( model, '/' );
 		if ( skin ) {
 			*skin++ = '\0';
 		} else {
@@ -290,7 +290,6 @@ void CG_DrawInformation( void ) {
 		if ( value ) {
 			UI_DrawProportionalString( 320, y, va( "capturelimit %i", value ),
 				UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
-			y += PROP_HEIGHT;
 		}
 	}
 }

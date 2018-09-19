@@ -52,7 +52,7 @@ qboolean mouse_active = qtrue;
 int mx = 0, my = 0;
 
 struct Library *KeymapBase = 0;
-struct KeymapIFace *IKeymap = 0;
+//struct KeymapIFace *IKeymap = 0;
 
 void IN_ProcessEvents(void);
 
@@ -127,12 +127,14 @@ void IN_Shutdown(void)
 {
 	mouse_avail = qfalse;
 	
+	/*
 	if (IKeymap)
 	{
 		//DropInterface((struct Interface *)IKeymap);
 		IKeymap = 0;
 	}
-	
+	*/
+
 	if (KeymapBase)
 	{
 		CloseLibrary(KeymapBase);
@@ -183,6 +185,7 @@ void IN_ProcessEvents(void)
 	//int xlated;
 	struct InputEvent ie;
 	//int16 res;
+	WORD res;
 	char buf[20];
 
 	if (!Sys_EventPort)
@@ -197,7 +200,6 @@ void IN_ProcessEvents(void)
 			case IDCMP_RAWKEY:
 			{
 				int key = XLateKey(imsg);
-				int res = 0;
 
 				//if (IKeymap) // Cowcat
 				{
@@ -208,13 +210,15 @@ void IN_ProcessEvents(void)
 					ie.ie_Code = imsg->Code;
 					ie.ie_Qualifier = imsg->Qualifier;
 					ie.ie_EventAddress = 0;
-					res = MapRawKey(&ie, buf, 20, 0);
-				}
 
-				if (key == '`')
-				{
-					key = K_CONSOLE;
-					res = 0;
+					if (key == '`')
+					{
+						key = K_CONSOLE;
+						res = 0;
+					}
+
+					else
+						res = MapRawKey(&ie, buf, 20, 0);
 				}
 
 				Com_QueueEvent(msgTime, SE_KEY, key, keyDown(imsg->Code), 0, NULL);
@@ -223,6 +227,7 @@ void IN_ProcessEvents(void)
 				{
 					Com_QueueEvent(msgTime, SE_CHAR, buf[0], 0, 0, NULL);
 				}
+
 			}
 				
 			break;
@@ -276,7 +281,7 @@ void IN_ProcessEvents(void)
 						break;
 				}
 		}
-		
+
 		if (Sys_EventPort)
 			ReplyMsg((struct Message *)imsg);
 

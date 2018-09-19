@@ -165,21 +165,24 @@ demo through a file.
 
 typedef struct {
 
-	int			clientNum;
-	int			lastPacketSentTime;			// for retransmits during connection
-	int			lastPacketTime;				// for timeouts
+	connstate_t	state;					// connection status
 
+	int		clientNum;
+	int		lastPacketSentTime;			// for retransmits during connection
+	int		lastPacketTime;				// for timeouts
+
+	char		servername[MAX_OSPATH];			// name of server from original connect (used by reconnect)
 	netadr_t	serverAddress;
-	int			connectTime;				// for connection retransmits
-	int			connectPacketCount;			// for display on connection dialog
+	int		connectTime;				// for connection retransmits
+	int		connectPacketCount;			// for display on connection dialog
 	char		serverMessage[MAX_STRING_TOKENS];	// for display on connection dialog
 
-	int			challenge;					// from the server to use for connecting
-	int			checksumFeed;				// from the server for checksum calculations
+	int		challenge;				// from the server to use for connecting
+	int		checksumFeed;				// from the server for checksum calculations
 
 	// these are our reliable messages that go to the server
-	int			reliableSequence;
-	int			reliableAcknowledge;		// the last one the server has executed
+	int		reliableSequence;
+	int		reliableAcknowledge;			// the last one the server has executed
 	char		reliableCommands[MAX_RELIABLE_COMMANDS][MAX_STRING_CHARS];
 
 	// server message (unreliable) and command (reliable) sequence
@@ -188,17 +191,18 @@ typedef struct {
 
 	// message sequence is used by both the network layer and the
 	// delta compression layer
-	int			serverMessageSequence;
+	int		serverMessageSequence;
 
 	// reliable messages received from server
-	int			serverCommandSequence;
-	int			lastExecutedServerCommand;		// last server command grabbed or executed with CL_GetServerCommand
+	int		serverCommandSequence;
+	int		lastExecutedServerCommand;		// last server command grabbed or executed with CL_GetServerCommand
 	char		serverCommands[MAX_RELIABLE_COMMANDS][MAX_STRING_CHARS];
 
 	// file transfer from server
 	fileHandle_t download;
 	char		downloadTempName[MAX_OSPATH];
 	char		downloadName[MAX_OSPATH];
+
 #ifdef USE_CURL
 	qboolean	cURLEnabled;
 	qboolean	cURLUsed;
@@ -207,12 +211,13 @@ typedef struct {
 	CURL		*downloadCURL;
 	CURLM		*downloadCURLM;
 #endif /* USE_CURL */
+
 	int		sv_allowDownload;
 	char		sv_dlURL[MAX_CVAR_VALUE_STRING];
-	int			downloadNumber;
-	int			downloadBlock;	// block we are waiting for
-	int			downloadCount;	// how many bytes we got
-	int			downloadSize;	// how many bytes we got
+	int		downloadNumber;
+	int		downloadBlock;	// block we are waiting for
+	int		downloadCount;	// how many bytes we got
+	int		downloadSize;	// how many bytes we got
 	char		downloadList[MAX_INFO_STRING]; // list of paks we need to download
 	qboolean	downloadRestart;	// if true, we need to do another FS_Restart because we downloaded a pak
 
@@ -225,18 +230,18 @@ typedef struct {
 	qboolean	firstDemoFrameSkipped;
 	fileHandle_t	demofile;
 
-	int			timeDemoFrames;		// counter of rendered frames
-	int			timeDemoStart;		// cls.realtime before first frame
-	int			timeDemoBaseTime;	// each frame will be at this time + frameNum * 50
-	int			timeDemoLastFrame;// time the last frame was rendered
-	int			timeDemoMinDuration;	// minimum frame duration
-	int			timeDemoMaxDuration;	// maximum frame duration
+	int		timeDemoFrames;		// counter of rendered frames
+	int		timeDemoStart;		// cls.realtime before first frame
+	int		timeDemoBaseTime;	// each frame will be at this time + frameNum * 50
+	int		timeDemoLastFrame;	// time the last frame was rendered
+	int		timeDemoMinDuration;	// minimum frame duration
+	int		timeDemoMaxDuration;	// maximum frame duration
 	unsigned char	timeDemoDurations[ MAX_TIMEDEMO_DURATIONS ];	// log of frame durations
 
 #ifdef USE_VOIP
-	qboolean speexInitialized;
-	int speexFrameSize;
-	int speexSampleRate;
+	qboolean 	speexInitialized;
+	int 		speexFrameSize;
+	int 		speexSampleRate;
 
 	// incoming data...
 	// !!! FIXME: convert from parallel arrays to array of a struct.
@@ -263,6 +268,10 @@ typedef struct {
 	float voipPower;
 #endif
 
+#ifdef LEGACY_PROTOCOL
+	qboolean compat;
+#endif
+
 	// big stuff at end of structure so most offsets are 15 bits or less
 	netchan_t	netchan;
 } clientConnection_t;
@@ -280,8 +289,8 @@ no client connection is active at all
 
 typedef struct {
 	netadr_t	adr;
-	int			start;
-	int			time;
+	int		start;
+	int		time;
 	char		info[MAX_INFO_STRING];
 } ping_t;
 
@@ -290,23 +299,20 @@ typedef struct {
 	char	  	hostName[MAX_NAME_LENGTH];
 	char	  	mapName[MAX_NAME_LENGTH];
 	char	  	game[MAX_NAME_LENGTH];
-	int			netType;
-	int			gameType;
-	int		  	clients;
-	int		  	maxClients;
-	int			minPing;
-	int			maxPing;
-	int			ping;
+	int		netType;
+	int		gameType;
+	int		clients;
+	int		maxClients;
+	int		minPing;
+	int		maxPing;
+	int		ping;
 	qboolean	visible;
-	int			punkbuster;
+	int		punkbuster;
 } serverInfo_t;
 
 typedef struct {
-	connstate_t	state;				// connection status
 
 	qboolean	cddialog;			// bring up the cd needed dialog next frame
-
-	char		servername[MAX_OSPATH];		// name of server from original connect (used by reconnect)
 
 	// when the server clears the hunk, all of these must be restarted
 	qboolean	rendererStarted;
@@ -315,25 +321,26 @@ typedef struct {
 	qboolean	uiStarted;
 	qboolean	cgameStarted;
 
-	int			framecount;
-	int			frametime;			// msec since last frame
+	int		framecount;
+	int		frametime;			// msec since last frame
 
-	int			realtime;			// ignores pause
-	int			realFrametime;		// ignoring pause, so console always works
+	int		realtime;			// ignores pause
+	int		realFrametime;			// ignoring pause, so console always works
 
-	int			numlocalservers;
+	int		numlocalservers;
 	serverInfo_t	localServers[MAX_OTHER_SERVERS];
 
-	int			numglobalservers;
-	serverInfo_t  globalServers[MAX_GLOBAL_SERVERS];
-	// additional global servers
-	int			numGlobalServerAddresses;
-	netadr_t		globalServerAddresses[MAX_GLOBAL_SERVERS];
+	int		numglobalservers;
+	serverInfo_t	globalServers[MAX_GLOBAL_SERVERS];
 
-	int			numfavoriteservers;
+	// additional global servers
+	int		numGlobalServerAddresses;
+	netadr_t	globalServerAddresses[MAX_GLOBAL_SERVERS];
+
+	int		numfavoriteservers;
 	serverInfo_t	favoriteServers[MAX_OTHER_SERVERS];
 
-	int pingUpdateSource;		// source currently pinging or updating
+	int 		pingUpdateSource;		// source currently pinging or updating
 
 	// update server info
 	netadr_t	updateServer;
@@ -349,13 +356,16 @@ typedef struct {
 	qhandle_t	consoleShader;
 } clientStatic_t;
 
-extern	clientStatic_t		cls;
+extern	clientStatic_t	cls;
+
+extern	char		cl_oldGame[MAX_QPATH];
+extern	qboolean	cl_oldGameSet;
 
 //=============================================================================
 
-extern	vm_t			*cgvm;	// interface to cgame dll or vm
-extern	vm_t			*uivm;	// interface to ui dll or vm
-extern	refexport_t		re;		// interface to refresh .dll
+extern	vm_t		*cgvm;	// interface to cgame dll or vm
+extern	vm_t		*uivm;	// interface to ui dll or vm
+extern	refexport_t	re;	// interface to refresh .dll
 
 
 //
@@ -432,8 +442,6 @@ extern	cvar_t	*cl_voip;
 //
 
 void CL_Init (void);
-void CL_FlushMemory(void);
-void CL_ShutdownAll(void);
 void CL_AddReliableCommand( const char *cmd, qboolean isDisconnectCmd );
 
 void CL_StartHunkUsers( qboolean rendererOnly );
@@ -457,9 +465,7 @@ int CL_GetPingQueueCount( void );
 
 void CL_ShutdownRef( void );
 void CL_InitRef( void );
-#ifndef STANDALONE
 qboolean CL_CDKeyValidate( const char *key, const char *checksum );
-#endif
 int CL_ServerStatus( char *serverAddress, char *serverStatusString, int maxLen );
 
 qboolean CL_CheckPaused(void);
@@ -468,22 +474,16 @@ qboolean CL_CheckPaused(void);
 // cl_input
 //
 typedef struct {
-	int			down[2];		// key nums holding it down
+	int		down[2];		// key nums holding it down
 	unsigned	downtime;		// msec timestamp
 	unsigned	msec;			// msec down this frame if both a down and up happened
 	qboolean	active;			// current state
 	qboolean	wasPressed;		// set when down, not cleared when up
 } kbutton_t;
 
-extern	kbutton_t	in_mlook, in_klook;
-extern 	kbutton_t 	in_strafe;
-extern 	kbutton_t 	in_speed;
-
-#ifdef USE_VOIP
-extern 	kbutton_t 	in_voiprecord;
-#endif
 
 void CL_InitInput (void);
+void CL_ShutdownInput(void);
 void CL_SendCmd (void);
 void CL_ClearState (void);
 void CL_ReadPackets (void);
@@ -528,6 +528,7 @@ void Con_DrawCharacter (int cx, int line, int num);
 
 void Con_CheckResize (void);
 void Con_Init (void);
+void Con_Shutdown(void);
 void Con_Clear_f (void);
 void Con_ToggleConsole_f (void);
 void Con_DrawNotify (void);
@@ -551,15 +552,14 @@ void	SCR_UpdateScreen (void);
 
 void	SCR_DebugGraph (float value, int color);
 
-int		SCR_GetBigStringWidth( const char *str );	// returns in virtual 640x480 coordinates
+int	SCR_GetBigStringWidth( const char *str );	// returns in virtual 640x480 coordinates
 
 void	SCR_AdjustFrom640( float *x, float *y, float *w, float *h );
-void	SCR_FillRect( float x, float y, float width, float height, 
-					 const float *color );
+void	SCR_FillRect( float x, float y, float width, float height, const float *color );
 void	SCR_DrawPic( float x, float y, float width, float height, qhandle_t hShader );
 void	SCR_DrawNamedPic( float x, float y, float width, float height, const char *picname );
 
-void	SCR_DrawBigString( int x, int y, const char *s, float alpha, qboolean noColorEscape );			// draws a string with embedded color control characters with fade
+void	SCR_DrawBigString( int x, int y, const char *s, float alpha, qboolean noColorEscape );		// draws a string with embedded color control characters with fade
 void	SCR_DrawBigStringColor( int x, int y, const char *s, vec4_t color, qboolean noColorEscape );	// ignores embedded color control characters
 void	SCR_DrawSmallStringExt( int x, int y, const char *string, float *setColor, qboolean forceColor, qboolean noColorEscape );
 void	SCR_DrawSmallChar( int x, int y, int ch );
@@ -608,7 +608,6 @@ void LAN_SaveServersToCache( void );
 // cl_net_chan.c
 //
 void CL_Netchan_Transmit( netchan_t *chan, msg_t* msg);	//int length, const byte *data );
-void CL_Netchan_TransmitNextFragment( netchan_t *chan );
 qboolean CL_Netchan_Process( netchan_t *chan, msg_t *msg );
 
 //

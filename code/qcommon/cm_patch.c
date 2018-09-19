@@ -816,7 +816,7 @@ static void CM_SetBorderInward( facet_t *facet, cGrid_t *grid, int gridPlanes[MA
 
 		for ( l = 0 ; l < numPoints ; l++ )
 		{
-			int		side;
+			int	side;
 
 			side = CM_PointOnPlaneSide( points[l], facet->borderPlanes[k] );
 
@@ -827,13 +827,20 @@ static void CM_SetBorderInward( facet_t *facet, cGrid_t *grid, int gridPlanes[MA
 			}
 		}
 
-		if ( front && !back ) {
+		if ( front && !back )
+		{
 			facet->borderInward[k] = qtrue;
 
-		} else if ( back && !front ) {
+		}
+
+		else if ( back && !front )
+		{
 			facet->borderInward[k] = qfalse;
 
-		} else if ( !front && !back ) {
+		}
+
+		else if ( !front && !back )
+		{
 			// flat side border
 			facet->borderPlanes[k] = -1;
 		}
@@ -1123,6 +1130,12 @@ void CM_AddFacetBevels( facet_t *facet )
 
 #ifndef BSPC
 	//add opposite plane
+	if (facet->numBorders >= 4 + 6 + 16)
+	{
+		Com_Printf("ERROR: too many bevels\n");
+		return;
+	}
+
 	facet->borderPlanes[facet->numBorders] = facet->surfacePlane;
 	facet->borderNoAdjust[facet->numBorders] = 0;
 	facet->borderInward[facet->numBorders] = qtrue;

@@ -200,6 +200,7 @@ static struct sockaddr_in6 boundto;
 
 #endif
 
+static cvar_t	*net_dropsim;
 static struct sockaddr	socksRelayAddr;
 
 static SOCKET	ip_socket = INVALID_SOCKET;
@@ -239,8 +240,6 @@ NET_ErrorString
 */
 char *NET_ErrorString( void )
 {
-	//Com_Printf( "Net_errorstring.\n" );
-
 #ifdef _WIN32
 	//FIXME: replace with FormatMessage?
 	switch( socketError ) {
@@ -291,7 +290,7 @@ char *NET_ErrorString( void )
 		default: return "NO ERROR";
 	}
 #else
-	return strerror (errno);
+	return strerror (socketError);
 #endif
 }
 
@@ -310,6 +309,7 @@ static void NetadrToSockadr( netadr_t *a, struct sockaddr *s )
 		((struct sockaddr_in *)s)->sin_addr.s_addr = *(int *)&a->ip;
 		((struct sockaddr_in *)s)->sin_port = a->port;
 	}
+
 #ifndef AMIGA //__amigaos__
 	else if( a->type == NA_IP6 )
 	{
@@ -416,11 +416,11 @@ static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int s
 
 		if(search)
 		{
-			if(res->ai_addrlen > sadr_len)
-				res->ai_addrlen = sadr_len;
+			if(search->ai_addrlen > sadr_len)
+				search->ai_addrlen = sadr_len;
 
-			memcpy(sadr, res->ai_addr, res->ai_addrlen);
-			freeaddrinfo(res);
+			memcpy(sadr, search->ai_addr, search->ai_addrlen);
+			freeaddrinfo(res); // Cowcat search ??
 			
 			return qtrue;
 		}
@@ -455,8 +455,7 @@ static void Sys_SockaddrToString(char *dest, int destlen, struct sockaddr *input
 #endif
 		inputlen = sizeof(struct sockaddr_in);
 
-	//getnameinfo(input, inputlen, dest, destlen, NULL, 0, NI_NUMERICHOST);
-	if(getnameinfo(input, inputlen, dest, destlen, NULL, 0, NI_NUMERICHOST) && destlen > 0 ) // Cowcat
+	if(getnameinfo(input, inputlen, dest, destlen, NULL, 0, NI_NUMERICHOST) && destlen > 0 )
 		*dest = '\0';
 }
 
@@ -565,7 +564,7 @@ const char *NET_AdrToString (netadr_t a)
 
 const char *NET_AdrToStringwPort (netadr_t a)
 {
-	static char s[NET_ADDRSTRMAXLEN];
+	static char	s[NET_ADDRSTRMAXLEN];
 
 	if (a.type == NA_LOOPBACK)
 	{
@@ -633,7 +632,7 @@ Never called by the game logic, just the system event queing
 int	recvfromCount;
 #endif
 
-qboolean Sys_GetPacket( netadr_t *net_from, msg_t *net_message )
+qboolean NET_GetPacket( netadr_t *net_from, msg_t *net_message, fd_set *fdr )
 {
 	int 			ret;
 	struct sockaddr_storage from;
@@ -644,7 +643,7 @@ qboolean Sys_GetPacket( netadr_t *net_from, msg_t *net_message )
 	recvfromCount++;	// performance check
 #endif
 	
-	if(ip_socket != INVALID_SOCKET) // && FD_ISSET(ip_socket, fdr)) // Cowcat
+	if(ip_socket != INVALID_SOCKET && FD_ISSET(ip_socket, fdr))
 	{
 		fromlen = sizeof(from);
 		ret = recvfrom( ip_socket, (void *)net_message->data, net_message->maxsize, 0, (struct sockaddr *) &from, &fromlen );
@@ -695,7 +694,7 @@ qboolean Sys_GetPacket( netadr_t *net_from, msg_t *net_message )
 	}
 
 #ifndef AMIGA //__amigaos__
-	if(ip6_socket != INVALID_SOCKET)
+	if(ip6_socket != INVALID_SOCKET && FD_ISSET(ip6_socket, fdr))
 	{
 		fromlen = sizeof(from);
 		ret = recvfrom(ip6_socket, (void *)net_message->data, net_message->maxsize, 0, (struct sockaddr *) &from, &fromlen);
@@ -724,7 +723,7 @@ qboolean Sys_GetPacket( netadr_t *net_from, msg_t *net_message )
 		}
 	}
 
-	if(multicast6_socket != INVALID_SOCKET && multicast6_socket != ip6_socket)
+	if(multicast6_socket != INVALID_SOCKET && multicast6_socket != ip6_socket && FD_ISSET(multicast6_socket, fdr))
 	{
 		fromlen = sizeof(from);
 		ret = recvfrom(multicast6_socket, (void *)net_message->data, net_message->maxsize, 0, (struct sockaddr *) &from, &fromlen);
@@ -1023,9 +1022,6 @@ SOCKET NET_IPSocket( char *net_interface, int port, int *err )
 	if( setsockopt( newsocket, SOL_SOCKET, SO_BROADCAST, (char *) &i, sizeof(i) ) == SOCKET_ERROR )
 	{
 		Com_Printf( "WARNING: NET_IPSocket: setsockopt SO_BROADCAST: %s\n", NET_ErrorString() );
-
-		// it is not that bad if this one fails.
-//		return newsocket;
 	}
 
 	if( !net_interface || !net_interface[0])
@@ -1150,11 +1146,6 @@ int NET_IP6Socket( char *net_interface, int port, struct sockaddr_in6 *bindto, i
 	return newsocket;
 }
 
-#endif
-
-
-#ifndef AMIGA //__amigaos__
-
 /*
 ====================
 NET_SetMulticast
@@ -1189,9 +1180,6 @@ void NET_SetMulticast6(void)
 		curgroup.ipv6mr_interface = 0;
 }
 
-#endif
-
-#ifndef AMIGA //__amigaos__
 
 /*
 ====================
@@ -1272,7 +1260,6 @@ NET_OpenSocks
 void NET_OpenSocks( int port )
 {
 	struct sockaddr_in	address;
-	//int			err; // Cowcat
 	struct hostent		*h;
 	int			len;
 	qboolean		rfc1929;
@@ -1284,7 +1271,6 @@ void NET_OpenSocks( int port )
 
 	if ( ( socks_socket = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP ) ) == INVALID_SOCKET )
 	{
-		//err = socketError; // Cowcat
 		Com_Printf( "WARNING: NET_OpenSocks: socket: %s\n", NET_ErrorString() );
 		return;
 	}
@@ -1293,7 +1279,6 @@ void NET_OpenSocks( int port )
 
 	if ( h == NULL )
 	{
-		//err = socketError; // Cowcat
 		Com_Printf( "WARNING: NET_OpenSocks: gethostbyname: %s\n", NET_ErrorString() );
 		return;
 	}
@@ -1310,7 +1295,6 @@ void NET_OpenSocks( int port )
 
 	if ( connect( socks_socket, (struct sockaddr *)&address, sizeof( address ) ) == SOCKET_ERROR )
 	{
-		//err = socketError; // Cowcat
 		Com_Printf( "NET_OpenSocks: connect: %s\n", NET_ErrorString() );
 		return;
 	}
@@ -1350,7 +1334,6 @@ void NET_OpenSocks( int port )
 
 	if ( send( socks_socket, (void *)buf, len, 0 ) == SOCKET_ERROR )
 	{
-		//err = socketError; // Cowcat
 		Com_Printf( "NET_OpenSocks: send: %s\n", NET_ErrorString() );
 		return;
 	}
@@ -1360,7 +1343,6 @@ void NET_OpenSocks( int port )
 
 	if ( len == SOCKET_ERROR )
 	{
-		//err = socketError; // Cowcat
 		Com_Printf( "NET_OpenSocks: recv: %s\n", NET_ErrorString() );
 		return;
 	}
@@ -1412,7 +1394,6 @@ void NET_OpenSocks( int port )
 		// send it
 		if ( send( socks_socket, (void *)buf, 3 + ulen + plen, 0 ) == SOCKET_ERROR )
 		{
-			//err = socketError; // Cowcat
 			Com_Printf( "NET_OpenSocks: send: %s\n", NET_ErrorString() );
 			return;
 		}
@@ -1422,7 +1403,6 @@ void NET_OpenSocks( int port )
 
 		if ( len == SOCKET_ERROR )
 		{
-			//err = socketError; // Cowcat
 			Com_Printf( "NET_OpenSocks: recv: %s\n", NET_ErrorString() );
 			return;
 		}
@@ -1450,7 +1430,6 @@ void NET_OpenSocks( int port )
 
 	if ( send( socks_socket, (void *)buf, 10, 0 ) == SOCKET_ERROR )
 	{
-		//err = socketError; // Cowcat
 		Com_Printf( "NET_OpenSocks: send: %s\n", NET_ErrorString() );
 		return;
 	}
@@ -1460,7 +1439,6 @@ void NET_OpenSocks( int port )
 
 	if( len == SOCKET_ERROR )
 	{
-		//err = socketError; // Cowcat
 		Com_Printf( "NET_OpenSocks: recv: %s\n", NET_ErrorString() );
 		return;
 	}
@@ -1787,6 +1765,8 @@ static qboolean NET_GetCvars( void )
 	modified += net_socksPassword->modified;
 	net_socksPassword->modified = qfalse;
 
+	net_dropsim = Cvar_Get( "net_dropsim", "", CVAR_TEMP);
+
 	return modified ? qtrue : qfalse;
 }
 
@@ -1946,7 +1926,44 @@ void NET_Shutdown( void )
 #endif
 }
 
+/*
+====================
+NET_Event
 
+Called from NET_Sleep which uses select() to determine which sockets have seen action.
+====================
+*/
+
+static void NET_Event(fd_set *fdr)
+{
+	byte	bufData[MAX_MSGLEN + 1];
+	netadr_t from = {0};
+	msg_t	netmsg;
+	
+	while(1)
+	{
+		MSG_Init(&netmsg, bufData, sizeof(bufData));
+
+		if(NET_GetPacket(&from, &netmsg, fdr))
+		{
+			if(net_dropsim->value > 0.0f && net_dropsim->value <= 100.0f)
+			{
+				// com_dropsim->value percent of incoming packets get dropped.
+				if(rand() < (int) (((double) RAND_MAX) / 100.0 * (double) net_dropsim->value))
+					continue;          // drop this packet
+			}
+
+			if(com_sv_running->integer)
+				Com_RunAndTimeServerPacket(&from, &netmsg);
+
+			else
+				CL_PacketEvent(from, &netmsg);
+		}
+
+		else
+			break;
+	}
+}
 /*
 ====================
 NET_Sleep
@@ -1955,52 +1972,56 @@ Sleeps msec or until something happens on the network
 ====================
 */
 
-void NET_Sleep( int msec )
+void NET_Sleep(int msec)
 {
-	struct timeval 	timeout;
-	fd_set		fdset;
-	int 		highestfd = -1;
+	struct timeval timeout;
+	fd_set	fdr;
+	int	retval;
+	SOCKET	highestfd = INVALID_SOCKET;
 
-	// unneeded ?? - Cowcat
-	//if (!com_dedicated->integer)
-		//return; // we're not a server, just run full speed - 
-	//
+	if(msec < 0)
+		msec = 0;
 
-#ifndef AMIGA //__amigaos__
-	if (ip_socket == INVALID_SOCKET && ip6_socket == INVALID_SOCKET)
-		return;
-#else
-	if (ip_socket == INVALID_SOCKET)
-		return;
-#endif
-
-	if (msec < 0 )
-		return;
-
-	FD_ZERO(&fdset);
+	FD_ZERO(&fdr);
 
 	if(ip_socket != INVALID_SOCKET)
 	{
-		FD_SET(ip_socket, &fdset);
+		FD_SET(ip_socket, &fdr);
 
-		if(ip_socket > highestfd)
-			highestfd = ip_socket;
+		highestfd = ip_socket;
 	}
 
 #ifndef AMIGA //__amigaos__
 	if(ip6_socket != INVALID_SOCKET)
 	{
-		FD_SET(ip6_socket, &fdset);
-		
-		if(ip6_socket > highestfd)
+		FD_SET(ip6_socket, &fdr);
+
+		if(highestfd == INVALID_SOCKET || ip6_socket > highestfd)
 			highestfd = ip6_socket;
+	}
+#endif
+
+#ifdef _WIN32
+	if(highestfd == INVALID_SOCKET)
+	{
+		// windows ain't happy when select is called without valid FDs
+		SleepEx(msec, 0);
+		return;
 	}
 #endif
 
 	timeout.tv_sec = msec/1000;
 	timeout.tv_usec = (msec%1000)*1000;
-	select(ip_socket+1, &fdset, NULL, NULL, &timeout);
+
+	retval = select(highestfd + 1, &fdr, NULL, NULL, &timeout);
+
+	if(retval == SOCKET_ERROR)
+		Com_Printf("Warning: select() syscall failed: %s\n", NET_ErrorString());
+
+	else if(retval > 0)
+		NET_Event(&fdr);
 }
+
 
 /*
 ====================

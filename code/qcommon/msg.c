@@ -71,7 +71,7 @@ Handles byte ordering and avoids alignment errors
 ==============================================================================
 */
 
-int oldsize = 0;
+//int oldsize = 0; // Cowcat
 
 void MSG_initHuffman( void );
 
@@ -147,12 +147,35 @@ bit functions
 =============================================================================
 */
 
+#if 0
+void CopyShortSwap(void *dest, void *src)
+{
+	byte *to = dest, *from = src;
+
+	to[0] = from[1];
+	to[1] = from[0];
+}
+
+void CopyLongSwap(void *dest, void *src)
+{
+	byte *to = dest, *from = src;
+
+	to[0] = from[3];
+	to[1] = from[2];
+	to[2] = from[1];
+	to[3] = from[0];
+}
+
+#define CopyLittleShort(dest, src) CopyShortSwap(dest, src)
+#define CopyLittleLong(dest, src) CopyLongSwap(dest, src)
+#endif
+
 // negative bit values include signs
 void MSG_WriteBits( msg_t *msg, int value, int bits )
 {
 	int	i;
 
-	oldsize += bits;
+	//oldsize += bits;
 	 
 	if(msg->overflowed)
 		return;
@@ -184,20 +207,42 @@ void MSG_WriteBits( msg_t *msg, int value, int bits )
 
 		else if (bits==16)
 		{
+			#if 1
+
 			unsigned short *sp = (unsigned short *)&msg->data[msg->cursize];
 			*sp = LittleShort(value);
 
 			msg->cursize += 2;
 			msg->bit += 16;
+
+			#else
+
+			short temp = value;
+
+			CopyLittleShort( &msg->data[msg->cursize], &temp );
+			msg->cursize += 2;
+			msg->bit += 16;
+
+			#endif
 		}
 
 		else if (bits==32)
 		{
+			#if 1
+
 			unsigned int *ip = (unsigned int *)&msg->data[msg->cursize];
 			*ip = LittleLong(value);
 
 			msg->cursize += 4;
 			msg->bit += 32;
+
+			#else
+
+			CopyLittleLong( &msg->data[msg->cursize], &value );
+			msg->cursize += 4;
+			msg->bit += 32;
+
+			#endif
 		}
 
 		else
@@ -289,20 +334,43 @@ int MSG_ReadBits( msg_t *msg, int bits )
 
 		else if (bits==16)
 		{
+			#if 1
+
 			unsigned short *sp = (unsigned short *)&msg->data[msg->readcount];
 			value = LittleShort(*sp);
 
 			msg->readcount += 2;
 			msg->bit += 16;
+
+			#else
+
+			short temp;
+			
+			CopyLittleShort(&temp, &msg->data[msg->readcount]);
+			value = temp;
+			msg->readcount += 2;
+			msg->bit += 16;
+
+			#endif
 		}
 
 		else if (bits==32)
 		{
+			#if 1
+
 			unsigned int *ip = (unsigned int *)&msg->data[msg->readcount];
 			value = LittleLong(*ip);
 			
 			msg->readcount += 4;
 			msg->bit += 32;
+
+			#else
+			
+			CopyLittleLong(&value, &msg->data[msg->readcount]);
+			msg->readcount += 4;
+			msg->bit += 32;
+			
+			#endif
 		}
 
 		else
@@ -339,7 +407,8 @@ int MSG_ReadBits( msg_t *msg, int bits )
 			for(i=0; i<bits; i+=8)
 			{
 				Huff_offsetReceive (msgHuff.decompressor.tree, &get, msg->data, &msg->bit, msg->cursize << 3);
-				value |= (get<<(i+nbits));
+				//value |= (get<<(i+nbits));
+				value = (unsigned int)value | ((unsigned int)get<<(i+nbits)); // new ioQ3 - Cowcat
 				
 				if(msg->bit > msg->cursize << 3)
 				{	
@@ -761,6 +830,7 @@ extern cvar_t *cl_shownet;
 
 #define LOG(x) if( cl_shownet && cl_shownet->integer == 4 ) { Com_Printf("%s ", x ); };
 
+#if 0
 void MSG_WriteDelta( msg_t *msg, int oldV, int newV, int bits )
 {
 	if ( oldV == newV )
@@ -810,6 +880,7 @@ float MSG_ReadDeltaFloat( msg_t *msg, float oldV )
 
 	return oldV;
 }
+#endif
 
 /*
 =============================================================================
@@ -919,7 +990,7 @@ void MSG_WriteDeltaUsercmdKey( msg_t *msg, int key, usercmd_t *from, usercmd_t *
 		from->weapon == to->weapon)
 	{
 			MSG_WriteBits( msg, 0, 1 );	// no change
-			oldsize += 7;
+			//oldsize += 7;
 			return;
 	}
 
@@ -960,8 +1031,20 @@ void MSG_ReadDeltaUsercmdKey( msg_t *msg, int key, usercmd_t *from, usercmd_t *t
 		to->angles[1] = MSG_ReadDeltaKey( msg, key, from->angles[1], 16);
 		to->angles[2] = MSG_ReadDeltaKey( msg, key, from->angles[2], 16);
 		to->forwardmove = MSG_ReadDeltaKey( msg, key, from->forwardmove, 8);
+
+		if( to->forwardmove == -128 )
+			to->forwardmove = -127;
+
 		to->rightmove = MSG_ReadDeltaKey( msg, key, from->rightmove, 8);
+
+		if( to->rightmove == -128 )
+			to->rightmove = -127;
+
 		to->upmove = MSG_ReadDeltaKey( msg, key, from->upmove, 8);
+
+		if( to->upmove == -128 )
+			to->upmove = -127;
+
 		to->buttons = MSG_ReadDeltaKey( msg, key, from->buttons, 16);
 		to->weapon = MSG_ReadDeltaKey( msg, key, from->weapon, 8);
 	}
@@ -1171,7 +1254,7 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 	float		fullFloat;
 	int		*fromF, *toF;
 
-	numFields = sizeof(entityStateFields)/sizeof(entityStateFields[0]);
+	numFields = ARRAY_LEN(entityStateFields);
 
 	// all fields should be 32 bits to avoid any compiler packing issues
 	// the "number" field is not part of the field list
@@ -1232,7 +1315,7 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 
 	MSG_WriteByte( msg, lc );	// # of changes
 
-	oldsize += numFields;
+	//oldsize += numFields;
 
 	for ( i = 0, field = entityStateFields ; i < lc ; i++, field++ )
 	{
@@ -1256,7 +1339,7 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 			if (fullFloat == 0.0f)
 			{
 				MSG_WriteBits( msg, 0, 1 );
-				oldsize += FLOAT_INT_BITS;
+				//oldsize += FLOAT_INT_BITS;
 			}
 
 			else
@@ -1320,7 +1403,7 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to, in
 	int		trunc;
 	int		startBit, endBit;
 
-	if ( number < 0 || number >= MAX_GENTITIES)
+	if ( number < 0 || number >= MAX_GENTITIES )
 	{
 		Com_Error( ERR_DROP, "Bad delta entity number: %i", number );
 	}
@@ -1341,7 +1424,7 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to, in
 		Com_Memset( to, 0, sizeof( *to ) );	
 		to->number = MAX_GENTITIES - 1;
 
-		if ( cl_shownet && (cl_shownet->integer >= 2 || cl_shownet->integer == -1) ) // fix - Cowcat
+		if ( cl_shownet && (cl_shownet->integer >= 2 || cl_shownet->integer == -1) )
 		{
 			Com_Printf( "%3i: #%-3i remove\n", msg->readcount, number );
 		}
@@ -1357,12 +1440,15 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to, in
 		return;
 	}
 
-	numFields = sizeof(entityStateFields)/sizeof(entityStateFields[0]);
+	numFields = ARRAY_LEN(entityStateFields);
 	lc = MSG_ReadByte(msg);
+
+	if ( lc > numFields || lc < 0 )
+		Com_Error( ERR_DROP, "invalid entityState field count" );
 
 	// shownet 2/3 will interleave with other printed info, -1 will
 	// just print the delta records`
-	if ( cl_shownet && (cl_shownet->integer >= 2 || cl_shownet->integer == -1 ) ) // fix - Cowcat
+	if ( cl_shownet && (cl_shownet->integer >= 2 || cl_shownet->integer == -1 ) )
 	{
 		print = 1;
 		Com_Printf( "%3i: #%-3i ", msg->readcount, to->number );
@@ -1596,7 +1682,7 @@ netField_t playerStateFields[] =
 { PSF(grapplePoint[0]), 0 },
 { PSF(grapplePoint[1]), 0 },
 { PSF(grapplePoint[2]), 0 },
-{ PSF(jumppad_ent), 10 },
+{ PSF(jumppad_ent), GENTITYNUM_BITS },
 { PSF(loopSound), 16 }
 };
 
@@ -1617,7 +1703,6 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	int		ammobits;
 	int		powerupbits;
 	int		numFields;
-	int		c;
 	netField_t	*field;
 	int		*fromF, *toF;
 	float		fullFloat;
@@ -1629,9 +1714,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 		Com_Memset (&dummy, 0, sizeof(dummy));
 	}
 
-	c = msg->cursize;
-
-	numFields = sizeof( playerStateFields ) / sizeof( playerStateFields[0] );
+	numFields = ARRAY_LEN( playerStateFields );
 
 	lc = 0;
 
@@ -1648,7 +1731,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 
 	MSG_WriteByte( msg, lc );	// # of changes
 
-	oldsize += numFields - lc;
+	//oldsize += numFields - lc;
 
 	for ( i = 0, field = playerStateFields ; i < lc ; i++, field++ )
 	{
@@ -1692,9 +1775,6 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 			MSG_WriteBits( msg, *toF, field->bits );
 		}
 	}
-
-	c = msg->cursize - c;
-
 
 	//
 	// send the arrays
@@ -1742,7 +1822,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	if (!statsbits && !persistantbits && !ammobits && !powerupbits)
 	{
 		MSG_WriteBits( msg, 0, 1 );	// no change
-		oldsize += 4;
+		//oldsize += 4;
 		return;
 	}
 
@@ -1847,7 +1927,7 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 
 	// shownet 2/3 will interleave with other printed info, -2 will
 	// just print the delta records
-	if ( cl_shownet && (cl_shownet->integer >= 2 || cl_shownet->integer == -2 ) ) // fix - Cowcat
+	if ( cl_shownet && (cl_shownet->integer >= 2 || cl_shownet->integer == -2 ) )
 	{
 		print = 1;
 		Com_Printf( "%3i: playerstate ", msg->readcount );
@@ -1858,8 +1938,11 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 		print = 0;
 	}
 
-	numFields = sizeof( playerStateFields ) / sizeof( playerStateFields[0] );
+	numFields = ARRAY_LEN( playerStateFields );
 	lc = MSG_ReadByte(msg);
+
+	if ( lc > numFields || lc < 0 )
+		Com_Error( ERR_DROP, "invalid playerState field count" );
 
 	for ( i = 0, field = playerStateFields ; i < lc ; i++, field++ )
 	{

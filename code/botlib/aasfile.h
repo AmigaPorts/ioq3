@@ -20,13 +20,63 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
+#if defined(AMIGA) && defined(__VBCC__)
+
+#undef LittleShort
+#undef LittleLong
+#undef LittleFloat
+
+#if defined (__PPC__)
+
+short __LittleShort(__reg("r4") short ) =
+	"\trlwinm\t3,4,24,24,31\n"
+	"\trlwimi\t3,4,8,16,23";
+
+int __LittleLong(__reg("r4") int) =
+	"\trlwinm\t3,4,24,0,31\n"
+	"\trlwimi\t3,4,8,8,15\n"
+	"\trlwimi\t3,4,8,24,31";
+
+float __LittleFloat(__reg("f1") float) =
+	"\tstwu\tr1,-32(r1)\n"
+	"\tstfs\tf1,24(r1)\n"
+	"\tlwz\tr3,24(r1)\n"
+	"\tli\tr0,24\n"
+	"\tstwbrx\tr3,r1,r0\n"
+	"\tlfs\tf1,24(r1)\n"
+	"\taddi\tr1,r1,32";
+
+#else // 68k
+
+short __LittleShort(__reg("d0") short ) =
+	"\trol.w\t#8,d0";
+
+int __LittleLong(__reg("d0") int) =
+	"\trol.w\t#8,d0\n"
+	"\tswap\td0\n"
+	"\trol.w\t#8,d0";
+
+float __LittleFloat(__reg("fp0") float) =
+	"\tfmove.s\tfp0,d0\n"
+	"\trol.w\t#8,d0\n"
+	"\tswap\td0\n"
+	"\trol.w\t#8,d0\n"
+	"\tfmove.s\td0,fp0";
+
+#endif
+
+#define LittleShort(x) __LittleShort(x)
+#define LittleLong(x) __LittleLong(x)
+#define LittleFloat(x) __LittleFloat(x)
+
+#endif
 
 //NOTE:	int =	default signed
-//				default long
+//		default long
 
-#define AASID						(('S'<<24)+('A'<<16)+('A'<<8)+'E')
+#define AASID					(('S'<<24)+('A'<<16)+('A'<<8)+'E')
 #define AASVERSION_OLD				4
-#define AASVERSION					5
+#define AASVERSION				5
 
 //presence types
 #define PRESENCE_NONE				1
@@ -36,13 +86,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //travel types
 #define MAX_TRAVELTYPES				32
 #define TRAVEL_INVALID				1		//temporary not possible
-#define TRAVEL_WALK					2		//walking
+#define TRAVEL_WALK				2		//walking
 #define TRAVEL_CROUCH				3		//crouching
 #define TRAVEL_BARRIERJUMP			4		//jumping onto a barrier
-#define TRAVEL_JUMP					5		//jumping
+#define TRAVEL_JUMP				5		//jumping
 #define TRAVEL_LADDER				6		//climbing a ladder
 #define TRAVEL_WALKOFFLEDGE			7		//walking of a ledge
-#define TRAVEL_SWIM					8		//swimming
+#define TRAVEL_SWIM				8		//swimming
 #define TRAVEL_WATERJUMP			9		//jump out of the water
 #define TRAVEL_TELEPORT				10		//teleportation
 #define TRAVEL_ELEVATOR				11		//travel by elevator
@@ -61,18 +111,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define TRAVELFLAG_NOTTEAM2			(2 << 24)
 
 //face flags
-#define FACE_SOLID					1		//just solid at the other side
-#define FACE_LADDER					2		//ladder
-#define FACE_GROUND					4		//standing on ground when in this face
-#define FACE_GAP					8		//gap in the ground
-#define FACE_LIQUID					16		//face separating two areas with liquid
+#define FACE_SOLID				1		//just solid at the other side
+#define FACE_LADDER				2		//ladder
+#define FACE_GROUND				4		//standing on ground when in this face
+#define FACE_GAP				8		//gap in the ground
+#define FACE_LIQUID				16		//face separating two areas with liquid
 #define FACE_LIQUIDSURFACE			32		//face separating liquid and air
-#define FACE_BRIDGE					64		//can walk over this face if bridge is closed
+#define FACE_BRIDGE				64		//can walk over this face if bridge is closed
 
 //area contents
-#define AREACONTENTS_WATER				1
-#define AREACONTENTS_LAVA				2
-#define AREACONTENTS_SLIME				4
+#define AREACONTENTS_WATER			1
+#define AREACONTENTS_LAVA			2
+#define AREACONTENTS_SLIME			4
 #define AREACONTENTS_CLUSTERPORTAL		8
 #define AREACONTENTS_TELEPORTAL			16
 #define AREACONTENTS_ROUTEPORTAL		32
@@ -80,7 +130,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define AREACONTENTS_JUMPPAD			128
 #define AREACONTENTS_DONOTENTER			256
 #define	AREACONTENTS_VIEWPORTAL			512
-#define AREACONTENTS_MOVER				1024
+#define AREACONTENTS_MOVER			1024
 #define AREACONTENTS_NOTTEAM1			2048
 #define AREACONTENTS_NOTTEAM2			4096
 //number of model of the mover inside this area
@@ -89,14 +139,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define AREACONTENTS_MODELNUM			(AREACONTENTS_MAXMODELNUM << AREACONTENTS_MODELNUMSHIFT)
 
 //area flags
-#define AREA_GROUNDED				1		//bot can stand on the ground
-#define AREA_LADDER					2		//area contains one or more ladder faces
-#define AREA_LIQUID					4		//area contains a liquid
-#define AREA_DISABLED				8		//area is disabled for routing when set
-#define AREA_BRIDGE					16		//area ontop of a bridge
+#define AREA_GROUNDED				1	//bot can stand on the ground
+#define AREA_LADDER				2	//area contains one or more ladder faces
+#define AREA_LIQUID				4	//area contains a liquid
+#define AREA_DISABLED				8	//area is disabled for routing when set
+#define AREA_BRIDGE				16	//area ontop of a bridge
 
 //aas file header lumps
-#define AAS_LUMPS					14
+#define AAS_LUMPS				14
 #define AASLUMP_BBOXES				0
 #define AASLUMP_VERTEXES			1
 #define AASLUMP_PLANES				2
@@ -105,8 +155,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define AASLUMP_FACES				5
 #define AASLUMP_FACEINDEX			6
 #define AASLUMP_AREAS				7
-#define AASLUMP_AREASETTINGS		8
-#define AASLUMP_REACHABILITY		9
+#define AASLUMP_AREASETTINGS			8
+#define AASLUMP_REACHABILITY			9
 #define AASLUMP_NODES				10
 #define AASLUMP_PORTALS				11
 #define AASLUMP_PORTALINDEX			12
@@ -127,11 +177,11 @@ typedef struct aas_bbox_s
 //reachability to another area
 typedef struct aas_reachability_s
 {
-	int areanum;						//number of the reachable area
-	int facenum;						//number of the face towards the other area
-	int edgenum;						//number of the edge towards the other area
-	vec3_t start;						//start point of inter area movement
-	vec3_t end;							//end point of inter area movement
+	int areanum;					//number of the reachable area
+	int facenum;					//number of the face towards the other area
+	int edgenum;					//number of the edge towards the other area
+	vec3_t start;					//start point of inter area movement
+	vec3_t end;					//end point of inter area movement
 	int traveltype;					//type of travel required to get to the area
 	unsigned short int traveltime;//travel time of the inter area movement
 } aas_reachability_t;
@@ -140,22 +190,22 @@ typedef struct aas_reachability_s
 typedef struct aas_areasettings_s
 {
 	//could also add all kind of statistic fields
-	int contents;						//contents of the area
-	int areaflags;						//several area flags
-	int presencetype;					//how a bot can be present in this area
-	int cluster;						//cluster the area belongs to, if negative it's a portal
+	int contents;					//contents of the area
+	int areaflags;					//several area flags
+	int presencetype;				//how a bot can be present in this area
+	int cluster;					//cluster the area belongs to, if negative it's a portal
 	int clusterareanum;				//number of the area in the cluster
-	int numreachableareas;			//number of reachable areas from this one
-	int firstreachablearea;			//first reachable area in the reachable area index
+	int numreachableareas;				//number of reachable areas from this one
+	int firstreachablearea;				//first reachable area in the reachable area index
 } aas_areasettings_t;
 
 //cluster portal
 typedef struct aas_portal_s
 {
-	int areanum;						//area that is the actual portal
-	int frontcluster;					//cluster at front of portal
-	int backcluster;					//cluster at back of portal
-	int clusterareanum[2];			//number of the area in the front and back cluster
+	int areanum;					//area that is the actual portal
+	int frontcluster;				//cluster at front of portal
+	int backcluster;				//cluster at back of portal
+	int clusterareanum[2];				//number of the area in the front and back cluster
 } aas_portal_t;
 
 //cluster portal index
@@ -164,10 +214,10 @@ typedef int aas_portalindex_t;
 //cluster
 typedef struct aas_cluster_s
 {
-	int numareas;						//number of areas in the cluster
+	int numareas;					//number of areas in the cluster
 	int numreachabilityareas;			//number of areas with reachabilities
-	int numportals;						//number of cluster portals
-	int firstportal;					//first cluster portal in the index
+	int numportals;					//number of cluster portals
+	int firstportal;				//first cluster portal in the index
 } aas_cluster_t;
 
 //============ 3d definition ============
@@ -177,15 +227,15 @@ typedef vec3_t aas_vertex_t;
 //just a plane in the third dimension
 typedef struct aas_plane_s
 {
-	vec3_t normal;						//normal vector of the plane
-	float dist;							//distance of the plane (normal vector * distance = point in plane)
+	vec3_t normal;					//normal vector of the plane
+	float dist;					//distance of the plane (normal vector * distance = point in plane)
 	int type;
 } aas_plane_t;
 
 //edge
 typedef struct aas_edge_s
 {
-	int v[2];							//numbers of the vertexes of this edge
+	int v[2];					//numbers of the vertexes of this edge
 } aas_edge_t;
 
 //edge index, negative if vertexes are reversed
@@ -194,12 +244,12 @@ typedef int aas_edgeindex_t;
 //a face bounds an area, often it will also separate two areas
 typedef struct aas_face_s
 {
-	int planenum;						//number of the plane this face is in
-	int faceflags;						//face flags (no use to create face settings for just this field)
-	int numedges;						//number of edges in the boundary of the face
-	int firstedge;						//first edge in the edge index
-	int frontarea;						//area at the front of this face
-	int backarea;						//area at the back of this face
+	int planenum;					//number of the plane this face is in
+	int faceflags;					//face flags (no use to create face settings for just this field)
+	int numedges;					//number of edges in the boundary of the face
+	int firstedge;					//first edge in the edge index
+	int frontarea;					//area at the front of this face
+	int backarea;					//area at the back of this face
 } aas_face_t;
 
 //face index, stores a negative index if backside of face
@@ -208,21 +258,21 @@ typedef int aas_faceindex_t;
 //area with a boundary of faces
 typedef struct aas_area_s
 {
-	int areanum;						//number of this area
+	int areanum;					//number of this area
 	//3d definition
-	int numfaces;						//number of faces used for the boundary of the area
-	int firstface;						//first face in the face index used for the boundary of the area
-	vec3_t mins;						//mins of the area
-	vec3_t maxs;						//maxs of the area
-	vec3_t center;						//'center' of the area
+	int numfaces;					//number of faces used for the boundary of the area
+	int firstface;					//first face in the face index used for the boundary of the area
+	vec3_t mins;					//mins of the area
+	vec3_t maxs;					//maxs of the area
+	vec3_t center;					//'center' of the area
 } aas_area_t;
 
 //nodes of the bsp tree
 typedef struct aas_node_s
 {
 	int planenum;
-	int children[2];					//child nodes of this node, or areas as leaves when negative
-										//when a child is zero it's a solid leaf
+	int children[2];				//child nodes of this node, or areas as leaves when negative
+							//when a child is zero it's a solid leaf
 } aas_node_t;
 
 //=========== aas file ===============

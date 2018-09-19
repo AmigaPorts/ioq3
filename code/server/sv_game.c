@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../botlib/botlib.h"
 
 // Cowcat
+#if 0
 #if defined(AMIGA) && defined(__VBCC__)
 static ID_INLINE float _vmf(intptr_t x)
 {
@@ -35,18 +36,12 @@ static ID_INLINE float _vmf(intptr_t x)
 }
 #define VMF(x)	_vmf(args[x])
 #endif
+#endif
+
+// Cowcat
+#define VMF(x)	((float *)args)[x]
 
 botlib_export_t	*botlib_export;
-
-void SV_GameError( const char *string )
-{
-	Com_Error( ERR_DROP, "%s", string );
-}
-
-void SV_GamePrint( const char *string )
-{
-	Com_Printf( "%s", string );
-}
 
 // these functions must be used instead of pointer arithmetic, because
 // the game allocates gentities with private information after the server shared part
@@ -392,7 +387,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args )
 		return FS_FOpenFileByMode( VMA(1), VMA(2), args[3] );
 
 	case G_FS_READ:
-		FS_Read2( VMA(1), args[2], args[3] );
+		FS_Read( VMA(1), args[2], args[3] );
 		return 0;
 
 	case G_FS_WRITE:
@@ -1119,7 +1114,7 @@ void SV_RestartGameProgs( void )
 	VM_Call( gvm, GAME_SHUTDOWN, qtrue );
 
 	// do a restart instead of a free
-	gvm = VM_Restart( gvm );
+	gvm = VM_Restart( gvm, qtrue );
 
 	if ( !gvm ) {
 		Com_Error( ERR_FATAL, "VM_Restart on game failed" );

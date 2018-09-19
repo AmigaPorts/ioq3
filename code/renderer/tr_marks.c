@@ -42,8 +42,8 @@ Out must have space for two more vertexes than in
 static void R_ChopPolyBehindPlane( int numInPoints, vec3_t inPoints[MAX_VERTS_ON_POLY],
 		int *numOutPoints, vec3_t outPoints[MAX_VERTS_ON_POLY], vec3_t normal, vec_t dist, vec_t epsilon)
 {
-	float		dists[MAX_VERTS_ON_POLY+4] = {0};
-	int		sides[MAX_VERTS_ON_POLY+4] = {0};
+	float		dists[MAX_VERTS_ON_POLY+4]; //= {0};
+	int		sides[MAX_VERTS_ON_POLY+4]; //= {0};
 	int		counts[3];
 	float		dot;
 	int		i, j;
@@ -58,6 +58,8 @@ static void R_ChopPolyBehindPlane( int numInPoints, vec3_t inPoints[MAX_VERTS_ON
 	}
 
 	counts[0] = counts[1] = counts[2] = 0;
+	dists[0] = 0.0; // Quake3e
+	sides[0] = 0;	//
 
 	// determine sides for each point
 	for ( i = 0 ; i < numInPoints ; i++ )
@@ -473,13 +475,12 @@ int R_MarkFragments( int numPoints, const vec3_t *points, const vec3_t projectio
 			}
 
 			indexes = (int *)( (byte *)surf + surf->ofsIndices );
-			//indexes = (glIndex_t *)( (byte *)surf + surf->ofsIndices ); // Cowcat
 
 			for ( k = 0 ; k < surf->numIndices ; k += 3 )
 			{
 				for ( j = 0 ; j < 3 ; j++ )
 				{
-					v = surf->points[0] + VERTEXSIZE * indexes[k+j];;
+					v = &surf->points[0][0] + VERTEXSIZE * indexes[k+j];
 					VectorMA( v, MARKER_OFFSET, surf->plane.normal, clipPoints[0][j] );
 				}
 
