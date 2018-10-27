@@ -31,7 +31,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 // Cowcat
 #if 0
-#if defined(AMIGA) && defined(__VBCC__)
+//#if defined(AMIGA) && 
+#if defined(__VBCC__)
 static ID_INLINE float _vmf(intptr_t x)
 {
 	floatint_t fi;
@@ -41,8 +42,11 @@ static ID_INLINE float _vmf(intptr_t x)
 #define VMF(x)	_vmf(args[x])
 #endif
 #endif
+
 // Cowcat
+#if defined(__VBCC__)
 #define VMF(x)	((float *)args)[x]
+#endif
 
 extern botlib_export_t *botlib_export;
 

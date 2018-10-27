@@ -27,7 +27,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "amiga_local.h"
 
+#ifdef __VBCC__
 #pragma amiga-align
+#elif defined(WARPUP)
+#pragma pack(2)
+#endif
 
 #include <devices/timer.h>
 #include <exec/ports.h>
@@ -37,7 +41,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <proto/intuition.h>
 #include <proto/keymap.h>
 
+#ifdef __VBCC__
 #pragma default-align
+#elif defined (WARPUP)
+#pragma pack()
+#endif
 
 static cvar_t *in_mouse	 = NULL;
 cvar_t *in_nograb        = NULL; 
@@ -77,9 +85,11 @@ void IN_DeactivateMouse( void )
 	if (mouse_active)
 	{
 		uninstall_grabs();
+
+		mouse_active = qfalse;
 	}
 
-	mouse_active = qfalse;
+	
 }
 
 
@@ -241,11 +251,11 @@ void IN_ProcessEvents(void)
 					Com_QueueEvent(msgTime, SE_MOUSE, mx, my, 0, NULL);
 				}
 
-				break;
+				break; // drop through ? Cowcat
 
 			/*
 			case IDCMP_EXTENDEDMOUSE:
-			// FIXME: Add additional mouse buttons
+				// FIXME: Add additional mouse buttons
 				if (imsg->Code & IMSGCODE_INTUIWHEELDATA)
 				{
 					struct IntuiWheelData *iwd = (struct IntuiWheelData *)imsg->IAddress;

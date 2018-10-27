@@ -24,6 +24,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "../qcommon/cm_local.h" // added Cowcat
 
+#ifdef __VBCC__
+extern qboolean smoothshade; // Cowcat
+#endif
+
 /*
 =============================================================================
 
@@ -382,6 +386,7 @@ void RB_TestFlare( flare_t *f )
 RB_RenderFlare
 ==================
 */
+
 void RB_RenderFlare( flare_t *f )
 {
 	float	size;
@@ -434,7 +439,7 @@ void RB_RenderFlare( flare_t *f )
 	VectorScale(f->color, f->drawIntensity * intensity, color);
 
 	// Calculations for fogging
-	if(tr.world && f->fogNum < tr.world->numfogs)
+	if(tr.world && f->fogNum > 0 && f->fogNum < tr.world->numfogs)
 	{
 		tess.numVertexes = 1;
 		VectorCopy(f->origin, tess.xyz[0]);
@@ -450,7 +455,7 @@ void RB_RenderFlare( flare_t *f )
 	iColor[0] = color[0] * fogFactors[0];
 	iColor[1] = color[1] * fogFactors[1];
 	iColor[2] = color[2] * fogFactors[2];
-	
+
 	RB_BeginSurface( tr.flareShader, f->fogNum );
 
 	// FIXME: use quadstamp?
@@ -611,6 +616,13 @@ void RB_RenderFlares (void)
 	qglOrtho( backEnd.viewParms.viewportX, backEnd.viewParms.viewportX + backEnd.viewParms.viewportWidth,
 			  backEnd.viewParms.viewportY, backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight,
 			  -99999, 99999 );
+
+	#ifdef __VBCC__ // minigl vbcc workaround - Cowcat
+
+	qglShadeModel(GL_SMOOTH); 
+	smoothshade = qtrue; //
+
+	#endif
 
 	for ( f = r_activeFlares ; f ; f = f->next )
 	{

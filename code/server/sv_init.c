@@ -300,13 +300,13 @@ void SV_Startup( void )
 
 	if ( com_dedicated->integer )
 	{
-		svs.numSnapshotEntities = sv_maxclients->integer * PACKET_BACKUP * MAX_SNAPSHOT_ENTITIES; // 64; - Cowcat
+		svs.numSnapshotEntities = sv_maxclients->integer * PACKET_BACKUP * MAX_SNAPSHOT_ENTITIES;
 	}
 
 	else
 	{
 		// we don't need nearly as many when playing locally
-		svs.numSnapshotEntities = sv_maxclients->integer * 4 * MAX_SNAPSHOT_ENTITIES; // 64; - Cowcat
+		svs.numSnapshotEntities = sv_maxclients->integer * 4 * MAX_SNAPSHOT_ENTITIES;
 	}
 
 	svs.initialized = qtrue;
@@ -319,7 +319,7 @@ void SV_Startup( void )
 
 	Cvar_Set( "sv_running", "1" );
 
-#ifndef AMIGA //__amigaos4__
+#ifndef __amiga__
 	// Join the ipv6 multicast group now that a map is running so clients can scan for us on the local network.
 	NET_JoinMulticast6();
 #endif
@@ -400,13 +400,13 @@ void SV_ChangeMaxClients( void )
 	// allocate new snapshot entities
 	if ( com_dedicated->integer )
 	{
-		svs.numSnapshotEntities = sv_maxclients->integer * PACKET_BACKUP * MAX_SNAPSHOT_ENTITIES; // 64; - Cowcat
+		svs.numSnapshotEntities = sv_maxclients->integer * PACKET_BACKUP * MAX_SNAPSHOT_ENTITIES;
 	}
 
 	else
 	{
 		// we don't need nearly as many when playing locally
-		svs.numSnapshotEntities = sv_maxclients->integer * 4 * MAX_SNAPSHOT_ENTITIES; // 64; - Cowcat
+		svs.numSnapshotEntities = sv_maxclients->integer * 4 * MAX_SNAPSHOT_ENTITIES;
 	}
 }
 
@@ -476,7 +476,7 @@ void SV_SpawnServer( char *server, qboolean killBots )
 	CL_MapLoading();
 
 	// make sure all the client stuff is unloaded
-	CL_ShutdownAll(qfalse); // Cowcat
+	CL_ShutdownAll(qfalse);
 
 	// clear the whole hunk because we're (re)loading the server
 	Hunk_Clear();
@@ -535,11 +535,7 @@ void SV_SpawnServer( char *server, qboolean killBots )
 	// make sure we are not paused
 	Cvar_Set("cl_paused", "0");
 
-	// get a new checksum feed and restart the file system
-	//srand(Com_Milliseconds()); // why ? - Cowcat
-
-	//sv.checksumFeed = ( ((int) rand() << 16) ^ rand() ) ^ Com_Milliseconds();
-	sv.checksumFeed = ( ((unsigned int)rand() << 16) ^ (unsigned int)rand() ) ^ Com_Milliseconds(); // new - Cowcat
+	sv.checksumFeed = ( ((unsigned int)rand() << 16) ^ (unsigned int)rand() ) ^ Com_Milliseconds();
 
 	FS_Restart( sv.checksumFeed );
 
@@ -844,7 +840,7 @@ void SV_Shutdown( char *finalmsg )
 
 	Com_Printf( "----- Server Shutdown (%s) -----\n", finalmsg );
 
-#ifndef AMIGA //__amigaos4__
+#ifndef __amiga__
 	NET_LeaveMulticast6();
 #endif
 

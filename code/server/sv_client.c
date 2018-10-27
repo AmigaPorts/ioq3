@@ -164,7 +164,7 @@ void SV_GetChallenge( netadr_t from )
 
 			const char *game;
 
-			if( com_developer->integer ) // new Cowcat
+			if( com_developer->integer ) // Quake3e - Cowcat
 				Com_Printf( "sending getIpAuthorize for %s\n", NET_AdrToString( from ));
 
 			game = Cvar_VariableString("fs_game");
@@ -185,7 +185,7 @@ void SV_GetChallenge( netadr_t from )
 #endif
 
 	challenge->pingTime = svs.time;
-	NET_OutOfBandPrint( NS_SERVER, challenge->adr, "challengeResponse %i", challenge->challenge, clientChallenge, com_protocol->integer );
+	NET_OutOfBandPrint( NS_SERVER, challenge->adr, "challengeResponse %d %d %d", challenge->challenge, clientChallenge, com_protocol->integer );
 }
 
 #ifndef STANDALONE
@@ -244,7 +244,7 @@ void SV_AuthorizeIpPacket( netadr_t from )
 
 	if ( !Q_stricmp( s, "accept" ) )
 	{
-		NET_OutOfBandPrint( NS_SERVER, challengeptr->adr, "challengeResponse %d %d", challengeptr->challenge, 
+		NET_OutOfBandPrint( NS_SERVER, challengeptr->adr, "challengeResponse %d %d %d", challengeptr->challenge, 
 			challengeptr->clientChallenge, com_protocol->integer );
 		return;
 	}
@@ -429,7 +429,7 @@ void SV_DirectConnect( netadr_t from )
 		{
 			if (( svs.time - cl->lastConnectTime) < (sv_reconnectlimit->integer * 1000))
 			{
-				if( com_developer->integer ) // new Cowcat
+				if( com_developer->integer ) // Quake3e - Cowcat
 					Com_Printf ("%s:reconnect rejected : too soon\n", NET_AdrToString (from));
 
 				return;

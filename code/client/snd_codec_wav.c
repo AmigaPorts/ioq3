@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "client.h"
 #include "snd_codec.h"
 
-#if defined(AMIGA) && defined(__VBCC__)
+#if defined(__amiga__) && defined(__VBCC__)
 
 #undef LittleShort
 #undef LittleLong
@@ -55,7 +55,17 @@ int __LittleLong(__reg("d0") int) =
 #define LittleShort(x) __LittleShort(x)
 #define LittleLong(x) __LittleLong(x)
 
+#else // (__GNUC__)
+
+#undef LittleShort
+#undef LittleLong
+
+#define LittleShort(x) ((((uint16_t)(x) & 0xff) << 8 ) | ((uint16_t)(x) >> 8))
+#define LittleLong(x) (((uint32_t)(x) << 24 ) | (((uint32_t)(x) & 0xff00) << 8 ) | (((uint32_t)(x) & 0x00ff0000) >> 8 ) | ((uint32_t)(x) >> 24))
+
 #endif
+
+
 
 /*
 =================

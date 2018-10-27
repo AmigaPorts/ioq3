@@ -40,6 +40,9 @@ It is safe to actually issue drawing commands here if you don't want to use the 
 
 */
 
+#ifdef __VBCC__
+extern qboolean smoothshade; // Cowcat
+#endif
 
 //============================================================================
 
@@ -95,6 +98,8 @@ void RB_AddQuadStampExt( vec3_t origin, vec3_t left, vec3_t up, byte *color, flo
 	tess.indexes[ tess.numIndexes + 4 ] = ndx + 1;
 	tess.indexes[ tess.numIndexes + 5 ] = ndx + 2;
 
+	#if 1
+
 	tess.xyz[ndx][0] = origin[0] + left[0] + up[0];
 	tess.xyz[ndx][1] = origin[1] + left[1] + up[1];
 	tess.xyz[ndx][2] = origin[2] + left[2] + up[2];
@@ -110,6 +115,41 @@ void RB_AddQuadStampExt( vec3_t origin, vec3_t left, vec3_t up, byte *color, flo
 	tess.xyz[ndx+3][0] = origin[0] + left[0] - up[0];
 	tess.xyz[ndx+3][1] = origin[1] + left[1] - up[1];
 	tess.xyz[ndx+3][2] = origin[2] + left[2] - up[2];
+
+	#else // ppc test - Cowcat
+
+	float left0 = left[0];
+	float left1 = left[1];
+	float left2 = left[2];
+	float up0 = up[0];
+	float up1 = up[1];
+	float up2 = up[2];
+	float origin0 = origin[0];
+	float origin1 = origin[1];
+	float origin2 = origin[2];
+
+	tess.xyz[ndx][0] = origin0 + left0 + up0;
+	tess.xyz[ndx][1] = origin1 + left1 + up1;
+	tess.xyz[ndx][2] = origin2 + left2 + up2;
+
+	float ori0left0 = origin0 - left0;
+	float ori1left1 = origin1 - left1;
+	float ori2left2 = origin2 - left2;
+
+	tess.xyz[ndx+1][0] = ori0left0 + up0;
+	tess.xyz[ndx+1][1] = ori1left1 + up1;
+	tess.xyz[ndx+1][2] = ori2left2 + up2;
+
+	tess.xyz[ndx+2][0] = ori0left0 - up0;
+	tess.xyz[ndx+2][1] = ori1left1 - up1;
+	tess.xyz[ndx+2][2] = ori2left2 - up2;
+
+	tess.xyz[ndx+3][0] = origin0 + left0 - up0;
+	tess.xyz[ndx+3][1] = origin1 + left1 - up1;
+	tess.xyz[ndx+3][2] = origin2 + left2 - up2;
+
+	#endif
+
 
 	// constant normal all the way around
 	VectorSubtract( vec3_origin, backEnd.viewParms.or.axis[0], normal );
@@ -158,6 +198,7 @@ void RB_AddQuadStamp( vec3_t origin, vec3_t left, vec3_t up, byte *color )
 RB_SurfaceSprite
 ==============
 */
+
 static void RB_SurfaceSprite( void )
 {
 	vec3_t	left, up;
@@ -194,6 +235,15 @@ static void RB_SurfaceSprite( void )
 	}
 
 	RB_AddQuadStamp( backEnd.currentEntity->e.origin, left, up, backEnd.currentEntity->e.shaderRGBA );
+
+	#ifdef __VBCC__ // minigl vbcc blending workaround - see backend/GL_State - Cowcat
+
+	#ifdef STANDALONE // only for OpenArena
+	qglShadeModel(GL_SMOOTH); // minigl blending workaround - see backend/GL_State - Cowcat
+	//smoothshade = qtrue;
+	#endif
+
+	#endif
 }
 
 
@@ -202,6 +252,7 @@ static void RB_SurfaceSprite( void )
 RB_SurfacePolychain
 =============
 */
+
 static void RB_SurfacePolychain( srfPoly_t *p )
 {
 	int	i;
@@ -249,12 +300,12 @@ static void RB_SurfaceTriangles( srfTriangles_t *srf )
 	int		dlightBits;
 	qboolean	needsNormal;
 
-	//RB_CHECKOVERFLOW( srf->numVerts, srf->numIndexes ); // test here - Cowcat
+	RB_CHECKOVERFLOW( srf->numVerts, srf->numIndexes ); // test here - Cowcat
 
 	dlightBits = srf->dlightBits;
 	tess.dlightBits |= dlightBits;
 
-	RB_CHECKOVERFLOW( srf->numVerts, srf->numIndexes );
+	//RB_CHECKOVERFLOW( srf->numVerts, srf->numIndexes );
 
 	for ( i = 0 ; i < srf->numIndexes ; i += 3 )
 	{
@@ -371,7 +422,6 @@ static void RB_SurfaceBeam( void )
 	}
 
 	qglEnd();
-
 }
 
 //================================================================================
@@ -495,6 +545,7 @@ static void DoRailDiscs( int numSegs, const vec3_t start, const vec3_t dir, cons
 	}
 }
 
+
 /*
 ** RB_SurfaceRailRinges
 */
@@ -531,6 +582,7 @@ static void RB_SurfaceRailRings( void )
 /*
 ** RB_SurfaceRailCore
 */
+
 static void RB_SurfaceRailCore( void )
 {
 	refEntity_t 	*e;
@@ -557,6 +609,18 @@ static void RB_SurfaceRailCore( void )
 	VectorNormalize( right );
 
 	DoRailCore( start, end, right, len, r_railCoreWidth->integer );
+	
+	#ifdef __VBCC__ // minigl vbcc blending workaround - see backend/GL_State - Cowcat
+
+	#ifndef STANDALONE
+	qglShadeModel(GL_SMOOTH); 
+	smoothshade = qtrue;
+	#else
+	smoothshade = qfalse;
+	#endif
+
+	#endif
+	
 }
 
 /*
@@ -606,11 +670,13 @@ static void RB_SurfaceLightningBolt( void )
 * This means that we don't have to worry about zero length or enormously long vectors.
 */
 
-#if defined(AMIGA) && defined(__PPC__) // Cowcat
+#if !defined(__GNUC__)
+#if defined(__VBCC__) && defined(__PPC__) // Cowcat
 
 float __asm_frsqrte(__reg("f1") float) = "\tfrsqrte\t1,1";
 #define __frsqrte(x) __asm_frsqrte(x)
 
+#endif
 #endif
 
 static void VectorArrayNormalize(vec4_t *normals, unsigned int count)
@@ -618,7 +684,7 @@ static void VectorArrayNormalize(vec4_t *normals, unsigned int count)
 	//    assert(count);
         
 	//#if idppc
-	#if defined(AMIGA) && defined(__PPC__) // Cowcat
+	#if defined(__PPC__) // Cowcat
     	{
         	float half = 0.5;
         	float one  = 1.0;
@@ -641,7 +707,7 @@ static void VectorArrayNormalize(vec4_t *normals, unsigned int count)
             		components += 4;
 
             		B = x*x + y*y + z*z;
-			
+
 		#ifdef __GNUC__            
             		asm("frsqrte %0,%1" : "=f" (y0) : "f" (B));
 		#else
@@ -649,7 +715,10 @@ static void VectorArrayNormalize(vec4_t *normals, unsigned int count)
 		#endif
 
 			y1 = y0 + half * y0 * (one - (B * y0 * y0));
-			
+			//float y2 = y0 * y0;
+			//y2 = -(y2 * B - one);
+			//y1 = y0 + half * y0 * y2;
+
             		x = x * y1;
             		y = y * y1;
             		components[-4] = x;
@@ -676,8 +745,10 @@ static void VectorArrayNormalize(vec4_t *normals, unsigned int count)
 /*
 ** LerpMeshVertexes
 */
+
 #if idppc_altivec
-static void LerpMeshVertexes_altivec(md3Surface_t *surf, float backlerp)
+
+void LerpMeshVertexes_altivec(md3Surface_t *surf, float backlerp)
 {
 	short	*oldXyz, *newXyz, *oldNormals, *newNormals;
 	float	*outXyz, *outNormal;
@@ -804,9 +875,10 @@ static void LerpMeshVertexes_altivec(md3Surface_t *surf, float backlerp)
     		VectorArrayNormalize((vec4_t *)tess.normal[tess.numVertexes], numVerts);
    	}
 }
+
 #endif
 
-static void LerpMeshVertexes_scalar(md3Surface_t *surf, float backlerp)
+void LerpMeshVertexes_scalar(md3Surface_t *surf, float backlerp)
 {
 	short	*oldXyz, *newXyz, *oldNormals, *newNormals;
 	float	*outXyz, *outNormal;
@@ -875,6 +947,7 @@ static void LerpMeshVertexes_scalar(md3Surface_t *surf, float backlerp)
 			outXyz[2] = oldXyz[2] * oldXyzScale + newXyz[2] * newXyzScale;
 
 			// FIXME: interpolate lat/long instead?
+
 			lat = ( newNormals[0] >> 8 ) & 0xff;
 			lng = ( newNormals[0] & 0xff );
 			lat *= 4;
@@ -895,7 +968,7 @@ static void LerpMeshVertexes_scalar(md3Surface_t *surf, float backlerp)
 			outNormal[0] = uncompressedOldNormal[0] * oldNormalScale + uncompressedNewNormal[0] * newNormalScale;
 			outNormal[1] = uncompressedOldNormal[1] * oldNormalScale + uncompressedNewNormal[1] * newNormalScale;
 			outNormal[2] = uncompressedOldNormal[2] * oldNormalScale + uncompressedNewNormal[2] * newNormalScale;
-
+			
 //			VectorNormalize (outNormal);
 		}
 
@@ -903,7 +976,7 @@ static void LerpMeshVertexes_scalar(md3Surface_t *surf, float backlerp)
    	}
 }
 
-static void LerpMeshVertexes(md3Surface_t *surf, float backlerp)
+void LerpMeshVertexes(md3Surface_t *surf, float backlerp)
 {
 	#if idppc_altivec
 	if (com_altivec->integer)
@@ -932,6 +1005,8 @@ static void RB_SurfaceMesh(md3Surface_t *surface)
 	int	indexes;
 	int	Bob, Doug;
 	int	numVerts;
+
+	//RB_CHECKOVERFLOW( surface->numVerts, surface->numTriangles*3 ); // test here - Cowcat
 
 	if (  backEnd.currentEntity->e.oldframe == backEnd.currentEntity->e.frame )
 	{
@@ -1283,7 +1358,6 @@ void RB_SurfaceAxis( void )
 	//int 	i;
 	//vec3_t 	v[3];
 
-	
 	GL_Bind( tr.whiteImage );
 
 	//qglLineWidth( 3 ); // Cowcat
@@ -1342,6 +1416,7 @@ RB_SurfaceEntity
 Entities that have a single procedurally generated surface
 ====================
 */
+
 static void RB_SurfaceEntity( surfaceType_t *surfType )
 {
 	switch( backEnd.currentEntity->e.reType )

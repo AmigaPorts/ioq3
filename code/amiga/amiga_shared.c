@@ -49,7 +49,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <math.h>
 //#include <sys/time.h> // Cowcat
 
+#ifdef __VBCC__
 #pragma amiga-align
+#elif defined(WARPUP)
+#pragma pack(2)
+#endif
 
 #include <utility/tagitem.h>
 #include <exec/exec.h>
@@ -59,17 +63,33 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <proto/dos.h>
 
 #ifdef __PPC__
+#if defined(__GNUC__)
+#include <powerpc/powerpc.h>
+#include <powerpc/powerpc_protos.h>
+#else
 #include <powerpc/powerpc.h>
 #include <proto/powerpc.h>
+#endif
 #endif
 
 #ifndef __PPC__
 #include <inline/timer_protos.h>
 #endif
 
+#ifdef __VBCC__
 #pragma default-align
+#elif defined (WARPUP)
+#pragma pack()
+#endif
 
 #endif
+
+#if defined(__GNUC__)
+//typedef void *DIR;
+#endif
+
+DIR *findhandle = NULL;
+
 
 // Used to determine CD Path
 static char cdPath[MAX_OSPATH];
@@ -84,22 +104,6 @@ qboolean Sys_RandomBytes( byte *string, int len )
 {
 	return qfalse;
 }
-
-#if 0
-#ifndef TIMERNAME
-
-struct timeval {
-	long tv_sec;
-	long tv_usec;
-};
-
-#else
-
-#define tv_sec tv_secs
-#define tv_usec tv_micro
-
-#endif
-#endif
 
 #if 0
 
@@ -146,7 +150,7 @@ int Sys_Milliseconds(void)
 
 #else // Cowcat
 
-#if defined(AMIGA) && !defined(__PPC__)
+#if defined(__amiga__) && !defined(__PPC__)
 extern struct Library *TimerBase;
 #endif
 
@@ -184,7 +188,8 @@ int Sys_Milliseconds(void)
 
 #endif
 
-#if defined(AMIGA) && defined(__VBCC__) && defined(__PPC__)
+//#if defined(AMIGA) && 
+#if defined(__VBCC__) && defined(__PPC__)
 extern float rint(float x);
 #endif
 
@@ -237,8 +242,6 @@ void Sys_Mkdir(const char *path)
 
 
 #define	MAX_FOUND_FILES	0x1000
-
-DIR * 	findhandle=NULL;
 
 // bk001129 - new in 1.26
 void Sys_ListFilteredFiles( const char *basedir, char *subdirs, char *filter, char **list, int *numfiles ) 

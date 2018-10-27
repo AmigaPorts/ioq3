@@ -43,32 +43,40 @@ This is the only way control passes into the module.
 This must be the very first function compiled into the .q3vm file
 ================
 */
-//Q_EXPORT __saveds intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11 )
-
+Q_EXPORT
+// warpos saveds - Cowcat
 #ifndef Q3_VM
 __saveds 
 #endif
-intptr_t vmMain( int command, int arg0, int arg1, int arg2 ) // Cowcat
+intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11 )
 {
-	switch ( command ) {
+	switch ( command )
+	{
 	case CG_INIT:
 		CG_Init( arg0, arg1, arg2 );
 		return 0;
+
 	case CG_SHUTDOWN:
 		CG_Shutdown();
 		return 0;
+
 	case CG_CONSOLE_COMMAND:
 		return CG_ConsoleCommand();
+
 	case CG_DRAW_ACTIVE_FRAME:
 		CG_DrawActiveFrame( arg0, arg1, arg2 );
 		return 0;
+
 	case CG_CROSSHAIR_PLAYER:
 		return CG_CrosshairPlayer();
+
 	case CG_LAST_ATTACKER:
 		return CG_LastAttacker();
+
 	case CG_KEY_EVENT:
 		CG_KeyEvent(arg0, arg1);
 		return 0;
+
 	case CG_MOUSE_EVENT:
 #ifdef MISSIONPACK
 		cgDC.cursorx = cgs.cursorX;
@@ -76,13 +84,16 @@ intptr_t vmMain( int command, int arg0, int arg1, int arg2 ) // Cowcat
 #endif
 		CG_MouseEvent(arg0, arg1);
 		return 0;
+
 	case CG_EVENT_HANDLING:
 		CG_EventHandling(arg0);
 		return 0;
+
 	default:
 		CG_Error( "vmMain: unknown command %i", command );
 		break;
 	}
+
 	return -1;
 }
 

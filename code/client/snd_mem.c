@@ -186,7 +186,7 @@ resample / decimate to the current source rate
 ================
 */
 
-#if defined(AMIGA) && defined(__VBCC__)
+#if defined(__amiga__) && defined(__VBCC__)
 
 #undef LittleShort
 
@@ -203,6 +203,12 @@ short __LittleShort(__reg("d0") short ) =
 #endif
 
 #define LittleShort(x) __LittleShort(x)
+
+#else // (__GNUC__)
+
+#undef LittleShort
+
+#define LittleShort(x) ((((uint16_t)(x) & 0xff) << 8 ) | ((uint16_t)(x) >> 8))
 
 #endif
 

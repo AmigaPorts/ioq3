@@ -232,6 +232,18 @@ static vec3_t MOVEDIR_UP		= {0,  0,  1};
 static vec3_t VEC_DOWN		= {0, -2,  0};
 static vec3_t MOVEDIR_DOWN	= {0,  0, -1};
 
+#if 0
+static ID_INLINE int VectorCompare2( const vec3_t v1, const vec3_t v2 )
+{
+	if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
+	{
+		return 0;
+	}
+		
+	return 1;
+}
+#endif
+
 void AAS_SetMovedir(vec3_t angles, vec3_t movedir)
 {
 	if (VectorCompare(angles, VEC_UP))

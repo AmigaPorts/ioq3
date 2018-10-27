@@ -2,22 +2,18 @@
 B = oa_objs_wos
 
 CC = vc +warpos
-CC68K = vc +aos68k
+#CC68K = vc +aos68k
 INCLUDES = -ISystem:PosixLib/include
 
-CFLAGS = -c99 -O2 -cpu=603 -speed -merge-constants -maxoptpasses=20 $(INCLUDES) -DAMIGA -DBOTLIB -DSTANDALONE
-CFLAGS68K = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -DAMIGA
+CFLAGS = -c99 -O2 -cpu=603 -speed -merge-constants -maxoptpasses=20 $(INCLUDES) -D__amiga__ -DBOTLIB -DUSE_LOCAL_HEADERS -DSTANDALONE
+#CFLAGS68K = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -D__amiga__
 
 DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
-DO_CC68K = $(CC68K) $(CFLAGS68K) -o $@ -c $<
+#DO_CC68K = $(CC68K) $(CFLAGS68K) -o $@ -c $<
 
 LIBS  = -lppcmath -lm -lmglQ3 -lposix -lamiga
 
-#VM_JIT = vm_ppc.o
-
 OBJS = \
-	$(B)/amiga_snd.o \
-	$(B)/amiga_ahi68k.o \
 	$(B)/snd_adpcm.o \
 	$(B)/snd_dma.o \
 	$(B)/snd_mem.o \
@@ -67,6 +63,13 @@ OBJS = \
 	  $(B)/sv_snapshot.o \
 	  $(B)/sv_world.o \
 	  $(B)/unzip.o \
+	  $(B)/ioapi.o \
+	  $(B)/adler32.o \
+	  $(B)/crc32.o \
+	  $(B)/inffast.o \
+	  $(B)/inflate.o \
+	  $(B)/inftrees.o \
+	  $(B)/zutil.o \
 	  $(B)/vm.o \
 	  $(B)/vm_interpreted.o \
 	  $(B)/vm_ppc_new.o \
@@ -168,15 +171,16 @@ OBJS = \
 	  $(B)/jutils.o \
 	  $(B)/jcapistd.o \
 	  \
-	  $(B)/amiga_input.o \
 	  $(B)/amiga_main.o \
+	  $(B)/amiga_input.o \
+	  $(B)/amiga_snd.o \
 	  $(B)/amiga_glimp.o \
 	  $(B)/amiga_qgl.o \
 	  $(B)/amiga_shared.o \
 	  $(B)/wos_asm.o
 ##
 
-QUAKE3 = $(B)/openarena-r3
+QUAKE3 = $(B)/openarena-r3-r4
 
 all: $(QUAKE3)
 
@@ -266,6 +270,22 @@ $(B)/sv_world.o:  code/server/sv_world.c
 	$(DO_CC)
 
 $(B)/unzip.o:  code/qcommon/unzip.c
+	$(DO_CC)
+$(B)/ioapi.o:  code/qcommon/ioapi.c
+	$(DO_CC)
+
+$(B)/adler32.o:  code/zlib/adler32.c
+	$(DO_CC)
+
+$(B)/crc32.o:  code/zlib/crc32.c
+	$(DO_CC)
+$(B)/inffast.o:  code/zlib/inffast.c
+	$(DO_CC)
+$(B)/inflate.o:  code/zlib/inflate.c
+	$(DO_CC)
+$(B)/inftrees.o:  code/zlib/inftrees.c
+	$(DO_CC)
+$(B)/zutil.o:  code/zlib/zutil.c
 	$(DO_CC)
 
 $(B)/vm.o:  code/qcommon/vm.c

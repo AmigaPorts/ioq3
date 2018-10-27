@@ -38,13 +38,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define id386 0
 #endif
 
-#if (defined(powerc) || defined(powerpc) || defined(ppc) || \
-	defined(__ppc) || defined(__ppc__)) && !defined(C_ONLY)
+#if ( defined(powerc) || defined(powerpc) || defined(ppc) || \
+	defined(__ppc) || defined(__ppc__) || defined(__PPC__) ) && !defined(C_ONLY) // added __PPC__ - Cowcat
 
 #define idppc 1
 
-#if defined(__VEC__)
+#if defined(__VECTOR__) // was VEC - Cowcat
+
 #define idppc_altivec 1
+
 #ifdef MACOS_X  // Apple's GCC does this differently than the FSF.
 #define VECCONST_UINT8(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) \
 	(vector unsigned char) (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p)
@@ -52,9 +54,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define VECCONST_UINT8(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) \
 	(vector unsigned char) {a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p}
 #endif
+
 #else
 #define idppc_altivec 0
 #endif
+
 #else
 #define idppc 0
 #define idppc_altivec 0
@@ -110,7 +114,7 @@ static inline float __fctiw(register float f) {
 
 #endif
 
-#if defined(AMIGA)
+#if defined(__amiga__)
 
 #define	MAC_STATIC
 #define __cdecl
@@ -123,16 +127,17 @@ static inline float __fctiw(register float f) {
 #define OS_STRING "amigaos"
 
 #if defined(__PPC__)
-#define ARCH_STRING "wos"
+#define ARCH_STRING "ppc"
 #else
-#define ARCH_STRING "m68k"
+#define ARCH_STRING "68k"
 #endif
 
 #define Q3_BIG_ENDIAN
 
 #endif
 
-#if defined(MORPHOS)
+#if 0
+#if defined(__morphos__)
 
 #define	MAC_STATIC
 #define __cdecl
@@ -147,6 +152,8 @@ static inline float __fctiw(register float f) {
 #define Q3_BIG_ENDIAN
 
 #endif
+#endif
+
 // for windows fastcall option
 #define QDECL
 

@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_local.h" 
 
-#ifdef AMIGA
+#ifdef __amiga__
 #include <mgl/mglmacros.h>
 #endif
 
@@ -44,11 +44,6 @@ R_ArrayElementDiscrete
 This is just for OpenGL conformance testing, it should never be the fastest
 ================
 */
-
-static void APIENTRY R_ArrayElement( GLint index ) // Cowcat
-{
-	qglArrayElement(index);
-}
 
 #if 0
 static void APIENTRY R_ArrayElementDiscrete( GLint index )
@@ -79,10 +74,109 @@ R_DrawStripElements
 ===================
 */
 
+#ifdef __amiga__
+
+extern UWORD *ElementIndex; // amiga_glimp.c
+
+static void R_DrawStripElementsAmiga( int numIndexes, const glIndex_t *indexes )
+{
+	int		i;
+	int 	 	last0, last1, last2;
+	qboolean	even;
+
+	if ( numIndexes <= 0 )
+		return;
+
+	unsigned int VertexPointer = 0;
+
+	int indexes0 = (UWORD)indexes[0];
+	int indexes1 = (UWORD)indexes[1];
+	int indexes2 = (UWORD)indexes[2];
+
+	// prime the strip
+
+	ElementIndex[VertexPointer++] = indexes0;
+	ElementIndex[VertexPointer++] = indexes1;
+	ElementIndex[VertexPointer++] = indexes2;
+
+	last0 = indexes0;
+	last1 = indexes1;
+	last2 = indexes2;
+	
+	even = qfalse;
+
+	for ( i = 3; i < numIndexes; i += 3 )
+	{
+		indexes0 = (UWORD)indexes[i+0];
+		indexes1 = (UWORD)indexes[i+1];
+		indexes2 = (UWORD)indexes[i+2];
+
+		// odd numbered triangle in potential strip
+		if ( !even )
+		{
+			// check previous triangle to see if we're continuing a strip
+			if ( ( indexes0 == last2 ) && ( indexes1 == last1 ) )
+			{
+				ElementIndex[VertexPointer++] = indexes2;
+				even = qtrue;
+			}
+
+			else
+				goto startnewstrip;
+		}
+
+		else
+		{
+			// check previous triangle to see if we're continuing a strip
+			if ( ( last2 == indexes1 ) && ( last0 == indexes0 ) )
+			{
+				ElementIndex[VertexPointer++] = indexes2;
+			}
+
+			// otherwise we're done with this strip so finish it and start
+			// a new one
+			else
+			{
+		startnewstrip:
+				//qglEnd();
+				//qglBegin( GL_TRIANGLE_STRIP );
+
+				qglDrawElements( GL_TRIANGLE_STRIP, VertexPointer, GL_INDEX_TYPE, ElementIndex  );
+				
+				VertexPointer = 0;
+
+				ElementIndex[VertexPointer++] = indexes0;
+				ElementIndex[VertexPointer++] = indexes1;
+				ElementIndex[VertexPointer++] = indexes2;
+				
+			}
+
+			even = qfalse;
+		}
+
+		// cache the last three vertices
+		last0 = indexes0;
+		last1 = indexes1;
+		last2 = indexes2;
+		
+	}
+
+	//qglEnd();
+	qglDrawElements( GL_TRIANGLE_STRIP, VertexPointer, GL_INDEX_TYPE, ElementIndex  );
+
+}
+
+#else // old way - Cowcat
+
+static void APIENTRY R_ArrayElement( GLint index ) 
+{
+	qglArrayElement(index);
+}
+
 static void R_DrawStripElements( int numIndexes, const glIndex_t *indexes, void ( APIENTRY *element )(GLint) )
 {
 	int		i;
-	int 		last0, last1, last2;
+	int 	 	last0, last1, last2;
 	qboolean	even;
 
 	if ( numIndexes <= 0 )
@@ -159,6 +253,7 @@ static void R_DrawStripElements( int numIndexes, const glIndex_t *indexes, void 
 	qglEnd();
 }
 
+#endif
 
 /*
 ==================
@@ -172,7 +267,7 @@ without compiled vertex arrays.
 
 static void R_DrawElements( int numIndexes, const glIndex_t *indexes )
 {
-	#if 0 // Cowcat
+	#if 0
 
 	int	primitives;
 
@@ -212,14 +307,28 @@ static void R_DrawElements( int numIndexes, const glIndex_t *indexes )
 
 	// anything else will cause no drawing
 
-	#else
+	#else // Cowcat
 
-	//if( backEnd.currentEntity == &backEnd.entity2D )
 	//if( backEnd.projection2D == qtrue)
 		//qglDrawElements( MGL_FLATFAN, numIndexes, GL_INDEX_TYPE, indexes );
 	//else
 
-	R_DrawStripElements( numIndexes, indexes, R_ArrayElement );
+	int primitives = r_primitives->integer;
+
+	if ( primitives == 0 )
+	{
+		qglDrawElements( GL_TRIANGLES, numIndexes, GL_INDEX_TYPE, indexes );
+		return;
+	}
+
+	if ( primitives == 1 )
+	{
+		//R_DrawStripElements( numIndexes, indexes, R_ArrayElement );
+		R_DrawStripElementsAmiga( numIndexes, indexes );
+		return;
+	}
+
+	// anything else will cause no drawing
 
 	#endif
 }
@@ -303,26 +412,27 @@ static void DrawTris (shaderCommands_t *input)
 		qglLockArraysEXT(0, input->numVertexes);
 		//GLimp_LogComment( "glLockArraysEXT\n" );
 	}
-	#endif
 
-	//R_DrawElements( input->numIndexes, input->indexes );
+	R_DrawElements( input->numIndexes, input->indexes );
+
+	#endif
 
 	glDisable(GL_TEXTURE_2D); // Cowcat
 	qglBegin( GL_LINES );
 
-	for ( i = 0 ; i < input->numVertexes ; i++)
+	for ( i = 1 ; i < input->numVertexes ; i+=2)
 	{
-		qglVertex3fv( input->xyz[i] );
+		//qglVertex3fv( input->xyz[i-1] );
 		//qglVertex3fv( input->xyz[i+3] );
 		//qglVertex3fv( input->xyz[i+SHADER_MAX_VERTEXES]);
-		//qglVertex3f( input->xyz[i], input->xyz[i], input->xyz[i] );
+		qglVertex3f( input->xyz[i-1][0], input->xyz[i-1][1], input->xyz[i][0] );
 		//qglVertex3fv( input->xyz[i+1] );
 		//VectorCopy( input->xyz[i], verts[i*2] );
 		//qglVertex3fv(verts);
 	}
 
 	//qglVertex3fv( input->xyz[i] );
-	qglVertex3fv( input->xyz[0] );
+	//qglVertex3fv( input->xyz[0] );
 
 	qglEnd();
 	glEnable(GL_TEXTURE_2D); // Cowcat
@@ -415,6 +525,8 @@ t1 = most downstream according to spec
 */
 static void DrawMultitextured( shaderCommands_t *input, int stage )
 {
+#if 0 // Cowcat
+
 	shaderStage_t	*pStage;
 
 	pStage = tess.xstages[stage];
@@ -435,7 +547,7 @@ static void DrawMultitextured( shaderCommands_t *input, int stage )
 	//
 	GL_SelectTexture( 0 );
 
-	//qglTexCoordPointer( 2, GL_FLOAT, 0, input->svars.texcoords[0] ); // Cowcat
+	qglTexCoordPointer( 2, GL_FLOAT, 0, input->svars.texcoords[0] ); // Cowcat
 
 	R_BindAnimatedImage( &pStage->bundle[0] );
 
@@ -445,7 +557,7 @@ static void DrawMultitextured( shaderCommands_t *input, int stage )
 	GL_SelectTexture( 1 );
 	qglEnable( GL_TEXTURE_2D );
 
-	//qglEnableClientState( GL_TEXTURE_COORD_ARRAY ); // Cowcat
+	qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
 	if ( r_lightmap->integer )
 	{
@@ -457,7 +569,7 @@ static void DrawMultitextured( shaderCommands_t *input, int stage )
 		GL_TexEnv( tess.shader->multitextureEnv );
 	}
 
-	//qglTexCoordPointer( 2, GL_FLOAT, 0, input->svars.texcoords[1] ); // Cowcat
+	qglTexCoordPointer( 2, GL_FLOAT, 0, input->svars.texcoords[1] );
 
 	R_BindAnimatedImage( &pStage->bundle[1] );
 
@@ -470,6 +582,7 @@ static void DrawMultitextured( shaderCommands_t *input, int stage )
 	qglDisable( GL_TEXTURE_2D );
 
 	GL_SelectTexture( 0 );
+#endif
 }
 
 
@@ -499,7 +612,7 @@ static void ProjectDlightTexture_altivec( void )
 	byte		clipBits[SHADER_MAX_VERTEXES];
 	float		texCoordsArray[SHADER_MAX_VERTEXES][2];
 	byte		colorArray[SHADER_MAX_VERTEXES][4];
-	unsigned	hitIndexes[SHADER_MAX_INDEXES];
+	glIndex_t	hitIndexes[SHADER_MAX_INDEXES];
 	int		numIndexes;
 	float		scale;
 	float		radius;
@@ -585,6 +698,7 @@ static void ProjectDlightTexture_altivec( void )
 				} else if ( texCoords0 > 1.0f ) {
 					clip |= 2;
 				}
+
 				if ( texCoords1 < 0.0f ) {
 					clip |= 4;
 				} else if ( texCoords1 > 1.0f ) {
@@ -718,9 +832,6 @@ static void ProjectDlightTexture_scalar( void )
 			continue;	// this surface definately doesn't have any of this light
 		}
 
-		// clear colors
-		//Com_Memset ( colorArray, 0, sizeof( colorArray ) ); // spearmint test - Cowcat
-
 		texCoords = texCoordsArray[0];
 		colors = colorArray[0];
 
@@ -802,9 +913,9 @@ static void ProjectDlightTexture_scalar( void )
 
 				else
 				{
-					dist[2] = Q_fabs(dist[2]);
+					//dist[2] = Q_fabs(dist[2]);
 					//*((int*)&dist[2]) &= 0x7FFFFFFF; // test - Cowcat
-					//dist[2] = fabs(dist[2]); // Cowcat
+					dist[2] = fabs(dist[2]); // Cowcat
 
 					if ( dist[2] < radius * 0.5f )
 					{
@@ -1253,7 +1364,6 @@ static void ComputeTexCoords( shaderStage_t *pStage )
 
 			case TCGEN_ENVIRONMENT_MAPPED:
 				RB_CalcEnvironmentTexCoords( ( float * ) tess.svars.texcoords[b] );
-				//Com_Memset( tess.svars.texcoords[b], 0, sizeof(float) * 2 * tess.numVertexes );
 				break;
 
 			case TCGEN_BAD:
@@ -1322,7 +1432,7 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 {
 	int stage;
 
-	glLockArrays(0, input->numVertexes);
+	//glLockArrays(0, input->numVertexes); // Cowcat
 
 	for ( stage = 0; stage < MAX_SHADER_STAGES; stage++ )
 	{
@@ -1336,7 +1446,6 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 		ComputeColors( pStage );
 		ComputeTexCoords( pStage );
 
-		#if 1
 		if ( !setArraysOnce )
 		{
 			qglEnableClientState( GL_COLOR_ARRAY );
@@ -1352,28 +1461,18 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 		}
 
 		else
-		#endif
 		{
-			#if 1
 			if ( !setArraysOnce )
 			{
-				//qglEnableClientState( GL_TEXTURE_COORD_ARRAY ); // test - Cowcat
 				qglTexCoordPointer( 2, GL_FLOAT, 0, input->svars.texcoords[0] ); 
 			}
-			#endif
 
 			//
 			// set state
 			//
 			R_BindAnimatedImage( &pStage->bundle[0] );
 
-			/*
-			if( backEnd.currentEntity == &backEnd.entity2D ) // spearmint test - Cowcat - see shader/SetImplicitShaderStages
-				GL_State( pStage->stateBits | GLS_DEPTHTEST_DISABLE ); //
-
-			else
-			*/
-				GL_State( pStage->stateBits );
+			GL_State( pStage->stateBits );
 
 			//
 			// draw
@@ -1388,8 +1487,6 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 			break;
 		}
 	}
-
-	//glUnlockArrays(); // Cowcat
 }
 
 
@@ -1479,9 +1576,11 @@ void RB_StageIteratorGeneric( void )
 	}
 	#endif
 
+	glLockArrays(0, input->numVertexes); // better in IterateStagesGeneric ? Cowcat
 	//
 	// enable color and texcoord arrays after the lock if necessary
 	//
+
 	if ( !setArraysOnce )
 	{
 		qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
@@ -1631,6 +1730,8 @@ void RB_StageIteratorVertexLitTexture( void )
 
 void RB_StageIteratorLightmappedMultitexture( void )
 {
+#if 0 // Cowcat
+
 	shaderCommands_t	*input;
 	shader_t		*shader;
 
@@ -1678,11 +1779,11 @@ void RB_StageIteratorLightmappedMultitexture( void )
 	//
 	GL_SelectTexture( 0 );
 
-	//qglEnableClientState( GL_TEXTURE_COORD_ARRAY ); // Cowcat
+	qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
 	R_BindAnimatedImage( &tess.xstages[0]->bundle[0] );
 
-	//qglTexCoordPointer( 2, GL_FLOAT, 16, tess.texCoords[0][0] ); // Cowcat
+	qglTexCoordPointer( 2, GL_FLOAT, 16, tess.texCoords[0][0] );
 
 	//
 	// configure second stage
@@ -1702,21 +1803,18 @@ void RB_StageIteratorLightmappedMultitexture( void )
 
 	R_BindAnimatedImage( &tess.xstages[0]->bundle[1] );
 
-	#if 0 // Cowcat
-
 	qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
 	qglTexCoordPointer( 2, GL_FLOAT, 16, tess.texCoords[0][1] );
 
 	//
 	// lock arrays
 	//
-	if ( qglLockArraysEXT )
+	//if ( qglLockArraysEXT )
 	{
-		qglLockArraysEXT(0, input->numVertexes);
+		//qglLockArraysEXT(0, input->numVertexes);
+		glLockArrays(0, input->numVertexes);
 		//GLimp_LogComment( "glLockArraysEXT\n" );
 	}
-
-	#endif
 
 	R_DrawElements( input->numIndexes, input->indexes );
 
@@ -1725,7 +1823,7 @@ void RB_StageIteratorLightmappedMultitexture( void )
 	//
 	qglDisable( GL_TEXTURE_2D );
 
-	//qglDisableClientState( GL_TEXTURE_COORD_ARRAY ); // Cowcat
+	qglDisableClientState( GL_TEXTURE_COORD_ARRAY ); // Cowcat
 
 	GL_SelectTexture( 0 );
 
@@ -1760,6 +1858,10 @@ void RB_StageIteratorLightmappedMultitexture( void )
 		//GLimp_LogComment( "glUnlockArraysEXT\n" );
 	}
 	#endif
+
+	glUnlockArrays(); // Cowcat
+#endif
+
 }
 
 /*

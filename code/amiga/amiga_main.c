@@ -29,7 +29,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define __USE_BASETYPE__
 
+#ifdef __VBCC__
 #pragma amiga-align
+#elif defined(WARPUP)
+#pragma pack(2)
+#endif
 
 #include <exec/exec.h>
 #include <exec/ports.h>
@@ -41,9 +45,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <proto/timer.h>
 #include <proto/intuition.h>
 
+#ifdef __VBCC__
 #pragma default align
+#elif defined (WARPUP)
+#pragma pack()
+#endif
 
+#ifdef DLL
 #include "dll.h"
+#endif
 
 //#include <devices/timer.h>
 //#include <inline/timer_protos.h>
@@ -57,6 +67,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 
 struct MsgPort *Sys_EventPort = 0;
+
+//#if !defined(__GNUC__)
+struct Library *SocketBase; // = 0;
+//#endif
 
 int	totalMsec, countMsec;
 
@@ -85,12 +99,80 @@ qboolean Sys_LowPhysicalMemory() // It is always true - Cowcat
 	//return (avail <= MEM_THRESHOLD) ? qtrue : qfalse;
 }
 
+#if 1
+
 extern char *FS_BuildOSPath( const char *base, const char *game, const char *qpath );
 
 //void *Sys_LoadDll( const char *name, char *fqpath, intptr_t(**entryPoint)(int, ...), intptr_t(*systemcalls)(intptr_t, ...) ) 
 void *Sys_LoadDll( const char *name, char *fqpath, intptr_t(**entryPoint)(int, int, int, int ), intptr_t(*systemcalls)(intptr_t, ...) ) // Cowcat
 //void *Sys_LoadDll( const char *name, char *fqpath, 
 	//intptr_t(**entryPoint)(int, int, int, int, int, int, int, int, int, int, int, int, int ), intptr_t(*systemcalls)(intptr_t*) ) // Cowcat
+{
+#ifdef DLL
+
+	char	fname[MAX_OSPATH];
+	char	curpath[MAX_OSPATH];
+	char	*basepath;
+	char	*pwdpath;
+	char	*gamedir;
+	char	*cdpath;
+	char	*fn;
+	void	*libHandle;
+	void	(*dllEntry)( intptr_t (*syscallptr)(intptr_t, ...) );
+	//void	(*dllEntry)( intptr_t (*syscallptr)(intptr_t*) ); // new
+
+	fname[0] = 0;
+	
+	getcwd(curpath, sizeof(curpath));
+	
+	#if 0 // Cowcat
+
+	#ifdef __PPC__
+	snprintf(fname, sizeof(fname), "%sppc.so", name);
+	#else
+	snprintf(fname, sizeof(fname), "%s68k.so", name);
+	#endif
+
+	#endif
+
+	pwdpath = Sys_Cwd();
+	basepath = Cvar_VariableString( "fs_basepath" );
+	gamedir = Cvar_VariableString( "fs_game" );
+	cdpath = Cvar_VariableString( "fs_cdpath" );
+
+	fn = FS_BuildOSPath( pwdpath, gamedir, name ); // was fname - Cowcat
+	Com_Printf( "Sys_LoadDll(%s)... \n", fn );
+	libHandle = dllLoadLibrary(fn, name); // was fname - Cowcat
+
+	if (!libHandle)
+		return NULL;
+
+	dllEntry = dllGetProcAddress(libHandle, "dllEntry");
+	*entryPoint = dllGetProcAddress(libHandle, "vmMain");
+
+	if (!*entryPoint || !dllEntry)
+	{
+		dllFreeLibrary(libHandle);
+		return NULL;
+	}
+	
+	dllEntry(systemcalls);
+
+	if (libHandle)
+		Q_strncpyz(fqpath, fn, MAX_QPATH);
+
+	return libHandle;
+
+#else
+
+	return NULL;
+
+#endif
+}
+
+#else
+
+void *Sys_LoadDll( const char *name, char *fqpath, intptr_t(**entryPoint)(int, int, int, int ), intptr_t(*systemcalls)(intptr_t, ...) ) // Cowcat
 {
 #ifdef DLL
 
@@ -150,6 +232,7 @@ void *Sys_LoadDll( const char *name, char *fqpath, intptr_t(**entryPoint)(int, i
 #endif
 }
 
+#endif
 
 void Sys_UnloadDll(void *dllHandle)
 {
@@ -272,8 +355,6 @@ void Sys_Quit( void )
 
 	Sys_Exit(0);
 }
-
-
 
 
 /*
@@ -497,8 +578,6 @@ sysEvent_t Sys_GetEvent(void)
 //static char __attribute__((used)) stackcookie[] = "$STACK:2000000";
 unsigned long __stack = 0x2000000; // auto stack Cowcat
 
-struct Library *SocketBase = 0;
-
 int main(int argc, char **argv)
 {
 	char 	*cmdline;
@@ -507,8 +586,10 @@ int main(int argc, char **argv)
 
 	//Timer_Init(); // not used now - Cowcat
 	
+	//#if !defined(__GNUC__)
 	if(SocketBase == NULL)
 		SocketBase = OpenLibrary("bsdsocket.library",0L);
+	//#endif
 
 	//Sys_CreateConsole();
 

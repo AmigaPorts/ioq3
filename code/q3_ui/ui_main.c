@@ -40,13 +40,15 @@ This is the only way control passes into the module.
 This must be the very first function compiled into the .qvm file
 ================
 */
-//Q_EXPORT __saveds intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11 )
+Q_EXPORT
+// warpos saveds - Cowcat
 #ifndef Q3_VM
 __saveds 
 #endif
-intptr_t vmMain( int command, int arg0, int arg1 ) // Cowcat
+intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11 )
 {
-	switch ( command ) {
+	switch ( command )
+	{
 	case UI_GETAPIVERSION:
 		return UI_API_VERSION;
 
@@ -83,8 +85,9 @@ intptr_t vmMain( int command, int arg0, int arg1 ) // Cowcat
 	case UI_DRAW_CONNECT_SCREEN:
 		UI_DrawConnectScreen( arg0 );
 		return 0;
-	case UI_HASUNIQUECDKEY:				// mod authors need to observe this
-		return qtrue;  // change this to qfalse for mods!
+
+	case UI_HASUNIQUECDKEY:	// mod authors need to observe this
+		return qtrue;	// change this to qfalse for mods!
 	}
 
 	return -1;

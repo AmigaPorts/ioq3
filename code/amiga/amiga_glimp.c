@@ -24,7 +24,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../client/client.h"
 #include "amiga_local.h"
 
+#ifdef __VBCC__
 #pragma amiga-align
+#elif defined(WARPUP)
+#pragma pack(2)
+#endif
 
 #include <exec/exec.h>
 #include <exec/memory.h>
@@ -35,13 +39,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <proto/exec.h>
 #include <proto/intuition.h>
 #include <proto/cybergraphics.h>
+//#include <dos/dos.h>
+//#include <proto/dos.h> // for Delay - new Cowcat
 
 #ifdef __PPC__
+#if defined(__GNUC__)
+#include <powerpc/powerpc_protos.h>
+#else
 #include <powerpc/powerpc.h>
 #include <proto/powerpc.h>
 #endif
+#endif
 
+#ifdef __VBCC__
 #pragma default-align
+#elif defined (WARPUP)
+#pragma pack()
+#endif
 
 #include <mgl/gl.h>
 
@@ -56,8 +70,8 @@ cvar_t *r_closeworkbench;
 cvar_t *r_guardband; //
 cvar_t *r_vertexbuffersize; //
 cvar_t *r_glbuffers; //
+//cvar_t *gl_mtexbuffersize;
 cvar_t *r_perspective_fast; //
-//cvar_t *r_lockmode; //
 
 extern cvar_t *in_nograb;
 
@@ -71,7 +85,7 @@ void (APIENTRYP qglActiveTextureARB) (GLenum texture);
 void (APIENTRYP qglClientActiveTextureARB) (GLenum texture);
 void (APIENTRYP qglMultiTexCoord2fARB) (GLenum target, GLfloat s, GLfloat t);
 
-void (APIENTRYP qglLockArraysEXT) (GLint first, GLsizei count); //
+void (APIENTRYP qglLockArraysEXT) (GLint first, GLsizei count);
 void (APIENTRYP qglUnlockArraysEXT) (void);
 
 void GLimp_RenderThreadWrapper( void *stub ) {}
@@ -79,40 +93,12 @@ void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned 
 void GLW_InitGamma(void) {}
 void GLW_RestoreGamma(void) {}
 
-#if 0
-void GL_SetLockMode(char *mode)
-{
-	#ifdef AUTOMATIC_LOCKING_ENABLE // surgeon: see mgl/config.h
-
-	if (0 == strcmp(mode, "SMART"))
-	{
-		ri.Printf(PRINT_ALL,"MiniGL Lock Mode: Smart\n");
-		mglLockMode(MGL_LOCK_SMART);
-	}
-
-	else if (0 == strcmp(mode, "AUTO"))
-	{
-		ri.Printf(PRINT_ALL,"MiniGL Lock Mode: Automatic\n");
-		mglLockMode(MGL_LOCK_AUTOMATIC);
-	}
-
-	else
-	{
-		ri.Printf(PRINT_ALL,"MiniGL Lock Mode: Manual (per Frame)\n");
-		mglLockMode(MGL_LOCK_MANUAL);
-	}
-
-	#else
-
-	ri.Printf("MiniGL Lock Mode: Manual (per Frame)\n");
-	
-	#endif
-}
-#endif
+UWORD *ElementIndex; // new Cowcat
 
 static qboolean GLW_StartDriverAndSetMode( const char *drivername, int mode, int colorbits, qboolean fullscreen )
 {
 	BOOL useStencil = /*TRUE*/ FALSE;
+	int depth;
 
 	ri.Printf(PRINT_ALL, "...setting mode %d:", mode);
 	
@@ -128,7 +114,12 @@ static qboolean GLW_StartDriverAndSetMode( const char *drivername, int mode, int
 	//if (colorbits != 16)
 		//colorbits = 24;
 
-	colorbits = 16; // Cowcat
+	//colorbits = 16; // Cowcat
+
+	depth = r_colorbits->integer;
+
+	if(depth != 15 && depth != 16 && depth != 24 && depth != 32)
+		depth = 16;
 	
 	ri.Printf( PRINT_ALL, " %d %d %s\n", glConfig.vidWidth, glConfig.vidHeight, fullscreen ? "fullscreen" : "windowed" );
 
@@ -169,10 +160,21 @@ static qboolean GLW_StartDriverAndSetMode( const char *drivername, int mode, int
 	r_vertexbuffersize  = Cvar_Get("r_vertexbuffersize", "4096", CVAR_ARCHIVE);
 	r_glbuffers  = Cvar_Get("r_glbuffers", "3", CVAR_ARCHIVE);
 	r_perspective_fast = Cvar_Get("r_perspective_fast", "0", CVAR_ARCHIVE);
-	//r_lockmode = Cvar_Get("r_lockmode", "SMART", CVAR_ARCHIVE);
 
-	mglChoosePixelDepth(16); //glConfig.depthBits); 
-	mglChooseVertexBufferSize( (int)r_vertexbuffersize->value ); // 4096 - 16384 //
+	#if 0 // no multitexture in this version - Cowcat
+
+	//base the size on #of polygons to store
+	gl_mtexbuffersize = ri.Cvar_Get("gl_mtexbuffersize", "4096", CVAR_ARCHIVE);
+
+	if((int)gl_mtexbuffersize <= 1024)
+		mglChooseMtexBufferSize( 4096 ); 
+
+	else
+		mglChooseMtexBufferSize( (int)gl_mtexbuffersize->value * 4);
+	#endif
+	
+	mglChoosePixelDepth(depth); // default 16
+	mglChooseVertexBufferSize( (int)r_vertexbuffersize->value ); // 2048 - 4096 - 16384 //
 
 	if(!fullscreen)
 	{
@@ -202,17 +204,8 @@ static qboolean GLW_StartDriverAndSetMode( const char *drivername, int mode, int
 		ri.Printf(PRINT_ALL, "guardband off\n");
 	}
 
-	#if 0 // no multitexture in this version - Cowcat
-	//base the size on #of polygons to store
-	gl_mtexbuffersize = ri.Cvar_Get("gl_mtexbuffersize", "1024", CVAR_ARCHIVE);
+	ElementIndex = malloc( sizeof(UWORD)*(int)r_vertexbuffersize->value ); // new Cowcat
 
-	if((int)gl_mtexbuffersize <= 1024)
-		mglChooseMtexBufferSize( 4096 ); 
-
-	else
-		mglChooseMtexBufferSize( (int)gl_mtexbuffersize->value * 4);
-	#endif
-	
 	//old_context = (NULL == mglCreateContext(0, 0, glConfig.vidWidth, glConfig.vidHeight) ? GL_FALSE : GL_TRUE);
 
 	if(!mglCreateContext(0, 0, glConfig.vidWidth, glConfig.vidHeight))
@@ -223,7 +216,6 @@ static qboolean GLW_StartDriverAndSetMode( const char *drivername, int mode, int
 
 	mglGetWindowHandle(); // update buffers;
 
-	//
 	if (fullscreen && r_glbuffers->value == 3)
 	{
 	    	mglEnableSync(GL_FALSE);
@@ -237,8 +229,6 @@ static qboolean GLW_StartDriverAndSetMode( const char *drivername, int mode, int
 	}
 
 	mglLockMode(MGL_LOCK_SMART);
-
-	//GL_SetLockMode(r_lockmode->string);
 
 	/*
 	if (r_finish)
@@ -261,8 +251,7 @@ static qboolean GLW_StartDriverAndSetMode( const char *drivername, int mode, int
 
 	ri.Printf(PRINT_ALL, "... Sys_EventPort at %p\n", Sys_EventPort);
 	
-	#if 1 // keep this here - Cowcat
-	glConfig.colorBits = colorbits;
+	glConfig.colorBits = depth; // colorbits;
 	glConfig.depthBits = 16;
 	glConfig.stencilBits = 0;
 
@@ -281,7 +270,6 @@ static qboolean GLW_StartDriverAndSetMode( const char *drivername, int mode, int
 	*/
 
 	glConfig.isFullscreen = fullscreen;
-	#endif
 	
 	// test - Cowcat
 	if(r_perspective_fast->value)
@@ -308,6 +296,10 @@ static qboolean GLW_StartDriverAndSetMode( const char *drivername, int mode, int
 static void GLW_Shutdown(void)
 {
 	//if(old_context == GL_TRUE)
+
+	//mglSwitchDisplay(); // new - Cowcat
+	//Delay(50); // new Cowcat
+
 	mglDeleteContext();
 
 	//old_context = GL_FALSE;
@@ -351,6 +343,31 @@ void GLW_StartOpenGL(void)
 {
 	GLW_LoadOpenGL("minigl.library");
 }
+
+#if 0 // Cowcat
+
+static void stub_glMultiTexCoord2fARB(GLenum target, GLfloat s, GLfloat t)
+{
+	glMultiTexCoord2fARB(target, s, t);
+}
+
+static void stub_glActiveTextureARB(GLenum texture)
+{
+	glActiveTextureARB(texture);
+}
+
+static void stub_glLockArraysEXT(GLint first, GLsizei count)
+{
+	glLockArrays(first, count);
+}
+
+static void stub_glUnlockArraysEXT()
+{
+	glUnlockArrays();
+}
+
+
+#endif
 
 static void GLW_InitExtensions( void )
 {
@@ -409,7 +426,10 @@ static void GLW_InitExtensions( void )
 	}
 
 	// GL_ARB_multitexture
-	if ( strstr( glConfig.extensions_string, "GL_ARB_multitexture" )  )
+
+	#if 0  // no multitexture working in this version - Cowcat
+
+	if ( strstr( glConfig.extensions_string, "GL_MGL_ARB_multitexture" )  ) // Cowcat _mgl_
 	{
 		if ( r_ext_multitexture->integer )
 		{
@@ -422,9 +442,9 @@ static void GLW_InitExtensions( void )
 				
 				if ( glConfig.numTextureUnits > 1 )
 				{
-					//qglMultiTexCoord2fARB = &glMultiTexCoord2f; // Cowcat
-					//qglActiveTextureARB = &glActiveTexture;
-					//qglClientActiveTextureARB = glClientActiveTexture;
+					qglMultiTexCoord2fARB = stub_glMultiTexCoord2fARB; 
+					qglActiveTextureARB = stub_glActiveTextureARB;
+					//qglClientActiveTextureARB = stub_glClientActiveTextureARB; // Cowcat
 					
 					ri.Printf( PRINT_ALL, "...using GL_ARB_multitexture\n" );
 				}
@@ -447,22 +467,22 @@ static void GLW_InitExtensions( void )
 	}
 
 	else
+	#endif
 	{
-		ri.Printf( PRINT_ALL, "...GL_ARB_multitexture not found\n" );
+		//ri.Printf( PRINT_ALL, "...GL_ARB_multitexture not found\n" );
+		ri.Printf( PRINT_ALL, "...not using GL_ARB_multitexture\n" );
 	}
 
 	// GL_EXT_compiled_vertex_array
-	//if ( strstr( glConfig.extensions_string, "GL_EXT_compiled_vertex_array" ) && ( glConfig.hardwareType != GLHW_RIVA128 ) )
+
+	#if 0 // hardcoded in tr_shade.c - Cowcat
+
+	if ( strstr( glConfig.extensions_string, "GL_EXT_compiled_vertex_array" ) && ( glConfig.hardwareType != GLHW_RIVA128 ) )
 	{
 		if ( r_ext_compiled_vertex_array->integer )
 		{
-			//qglLockArraysEXT = &glLockArrays; 
-			//qglUnlockArraysEXT = glUnlockArrays;
-			//qglLockArraysEXT = &GLLockArrays; 
-			//qglUnlockArraysEXT = GLUnlockArrays;
-
-			//LockArrays = TRUE;
-			//varrayenabled = TRUE;
+			qglLockArraysEXT = stub_glLockArraysEXT; 
+			qglUnlockArraysEXT = stub_glUnlockArraysEXT;
  
 			ri.Printf( PRINT_ALL, "...using GL_EXT_compiled_vertex_array\n" );
 		}
@@ -473,12 +493,12 @@ static void GLW_InitExtensions( void )
 		}
 	}
 
-	/*
 	else
+	#endif
 	{
-		ri.Printf( PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n" );
+		//ri.Printf( PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n" );	
+		ri.Printf( PRINT_ALL, "...using GL_EXT_compiled_vertex_array\n" ); 
 	}
-	*/
 }
 
 void GLimp_Init(void)
@@ -553,6 +573,7 @@ void GLimp_Shutdown(void)
 
 	GLW_RestoreGamma();
 	GLW_Shutdown();
+	free(ElementIndex); // new Cowcat
 	QGL_Shutdown();
 	
 	//memset( &glConfig, 0, sizeof( glConfig ) ); // now done in r_init/RE_Shutdown

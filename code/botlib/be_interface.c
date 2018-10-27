@@ -144,6 +144,8 @@ int Export_BotLibSetup(void)
 
 	if(botDeveloper)
 	{
+		#if 0 
+
 		char *homedir, *gamedir, *basegame;
 		char logfilename[MAX_OSPATH];
 
@@ -162,8 +164,14 @@ int Export_BotLibSetup(void)
 		}
 		else
 			Com_sprintf(logfilename, sizeof(logfilename), "botlib.log");
-	
+
 		Log_Open(logfilename);
+
+		#else // new ioq3 - Cowcat
+
+		Log_Open("botlib.log");
+
+		#endif
 	}
 
 	botimport.Print(PRT_MESSAGE, "------- BotLib Initialization -------\n");

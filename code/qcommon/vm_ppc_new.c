@@ -24,11 +24,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "vm_local.h"
 
-// AMIGA
-
-#ifdef __PPC__
+#if defined(__amiga__)
+#if defined(__GNUC__)
+#include <powerpc/powerpc.h>
+#include <powerpc/powerpc_protos.h>
+#else
 #include <powerpc/powerpc.h>
 #include <proto/powerpc.h>
+#endif
 #endif
 
 #pragma opt_pointer_analysys off // do not touch - Cowcat
@@ -146,7 +149,7 @@ typedef enum {
 	R_TOP = 11,
 	R_SECOND = 12,
 	R_EA = 14		// effective address calculation - crash if 2 !!! - warpos/morphos = 14 Cowcat
-	 
+
 } regNums_t;
 
 #define RG_REAL_STACK		r1
@@ -2009,7 +2012,6 @@ int VM_CallCompiled( vm_t *vm, int *args )
 	int	stackOnEntry;
 	byte	*image;
 	int	arg; // Cowcat
-	//int	*argPointer; // Cowcat
 	currentVM = vm;
 
 		
@@ -2041,9 +2043,11 @@ int VM_CallCompiled( vm_t *vm, int *args )
 
 	//programStack -= ( 8 + 4 * MAX_VMMAIN_ARGS );
 	programStack -= ( 8 + 4 * 4 ); //  We only need 4 args - Cowcat
+	//programStack -= ( 8 + 4 * 10 ); //  - Cowcat
 	
 	//for ( arg = 0; arg < MAX_VMMAIN_ARGS ; arg++ )
 	for ( arg = 0; arg < 4 ; arg++ ) // We only need 4 args - Cowcat
+	//for ( arg = 0; arg < 10 ; arg++ ) // - Cowcat
 		*(int *)&image[ programStack + 8 + arg * 4 ] = args[ arg ];
 
 	#endif
@@ -2058,9 +2062,7 @@ int VM_CallCompiled( vm_t *vm, int *args )
 
 	((void(*)(int, int, int, int, int, int, int, int))(vm->codeBase)) ( 
 		programStack, (int)&stack, 
-		//(int)image, vm->dataMask, *(int *)&AsmCall /* skip function pointer header */, 
-		(int)image, vm->dataMask, (int)&AsmCall, // working ! - Cowcat
-		//argPointer, vm->dataMask, (int)&AsmCall, // working ! - Cowcat
+		(int)image, vm->dataMask, (int)&AsmCall,
 		(int)vm->instructionPointers, vm->instructionPointersLength,
 		(int)vm );
 
@@ -2070,4 +2072,5 @@ int VM_CallCompiled( vm_t *vm, int *args )
 
 	return stack[1];
 }
+
 

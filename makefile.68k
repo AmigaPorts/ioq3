@@ -1,20 +1,19 @@
 #
 B = ioquake3_objs
+BUI = ioquake3_objs/q3_ui
+BCG = ioquake3_objs/cgame
+BQAG = ioquake3_objs/qagame
 
 CC = vc +aos68k
 INCLUDES = -ISystem:PosixLib/include
 
-CFLAGS = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -DAMIGA -DBOTLIB -DUSE_LOCAL_HEADERS -DNO_VM_COMPILED
+CFLAGS = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -D__amiga__ -DBOTLIB -DUSE_LOCAL_HEADERS -DDLL -DNO_VM_COMPILED
 
 DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
 
-LIBS  = -lm060 -lmglQ3 -lposix -lamiga
-
-#VM_JIT = vm_ppc.o
+LIBS  = -lm060 -lmglQ3 -lposix -ldll -lamiga
 
 OBJS = \
-	$(B)/amiga_snd.o \
-	$(B)/amiga_ahi68k.o \
 	$(B)/snd_adpcm.o \
 	$(B)/snd_dma.o \
 	$(B)/snd_mem.o \
@@ -170,19 +169,151 @@ OBJS = \
 	  $(B)/jutils.o \
 	  $(B)/jcapistd.o \
 	  \
-	  $(B)/amiga_input.o \
 	  $(B)/amiga_main.o \
+	  $(B)/amiga_input.o \
+   	  $(B)/amiga_snd.o \
 	  $(B)/amiga_glimp.o \
 	  $(B)/amiga_qgl.o \
 	  $(B)/amiga_shared.o
 ##
 
-QUAKE3 = $(B)/quake3-68k-6
+OBJSUI  = \
+        $(BUI)/ui_addbots.o \
+        $(BUI)/ui_atoms.o \
+        $(BUI)/ui_cdkey.o \
+        $(BUI)/ui_cinematics.o \
+        $(BUI)/ui_confirm.o \
+        $(BUI)/ui_connect.o \
+        $(BUI)/ui_controls2.o \
+        $(BUI)/ui_credits.o \
+        $(BUI)/ui_demo2.o \
+        $(BUI)/ui_display.o \
+        $(BUI)/ui_gameinfo.o \
+        $(BUI)/ui_ingame.o \
+        $(BUI)/ui_loadconfig.o \
+        $(BUI)/ui_main.o \
+        $(BUI)/ui_menu.o \
+        $(BUI)/ui_mfield.o \
+        $(BUI)/ui_mods.o \
+        $(BUI)/ui_network.o \
+        $(BUI)/ui_options.o \
+        $(BUI)/ui_playermodel.o \
+        $(BUI)/ui_players.o \
+        $(BUI)/ui_playersettings.o \
+        $(BUI)/ui_preferences.o \
+        $(BUI)/ui_qmenu.o \
+        $(BUI)/ui_removebots.o \
+        $(BUI)/ui_saveconfig.o \
+        $(BUI)/ui_serverinfo.o \
+        $(BUI)/ui_servers2.o \
+        $(BUI)/ui_setup.o \
+        $(BUI)/ui_sound.o \
+        $(BUI)/ui_sparena.o \
+        $(BUI)/ui_specifyserver.o \
+        $(BUI)/ui_splevel.o \
+        $(BUI)/ui_sppostgame.o \
+        $(BUI)/ui_spskill.o \
+        $(BUI)/ui_startserver.o \
+        $(BUI)/ui_team.o \
+        $(BUI)/ui_teamorders.o \
+        $(BUI)/ui_video.o \
+	$(BUI)/ui_syscalls.o \
+	$(BUI)/q_math.o \
+	$(BUI)/q_shared.o \
+	$(BUI)/bg_misc.o \
+        \
+        $(BUI)/amiga_ui.o \
 
-all: $(QUAKE3)
+OBJCGAME = \
+	$(BCG)/cg_main.o \
+	$(BCG)/bg_lib.o \
+	$(BCG)/bg_misc.o \
+	$(BCG)/bg_pmove.o \
+	$(BCG)/bg_slidemove.o \
+	\
+	$(BCG)/cg_consolecmds.o \
+	$(BCG)/cg_draw.o \
+	$(BCG)/cg_drawtools.o \
+	$(BCG)/cg_effects.o \
+	$(BCG)/cg_ents.o \
+	$(BCG)/cg_event.o \
+	$(BCG)/cg_info.o \
+	$(BCG)/cg_localents.o \
+	$(BCG)/cg_marks.o \
+	$(BCG)/cg_players.o \
+	$(BCG)/cg_playerstate.o \
+	$(BCG)/cg_predict.o \
+	$(BCG)/cg_scoreboard.o \
+	$(BCG)/cg_servercmds.o \
+	$(BCG)/cg_snapshot.o \
+	$(BCG)/cg_syscalls.o \
+	$(BCG)/cg_view.o \
+	$(BCG)/cg_weapons.o \
+	$(BCG)/cg_particles.o \
+	\
+	$(BCG)/q_math.o \
+	$(BCG)/q_shared.o \
+	\
+	$(BCG)/amiga_cgame.o \
+
+OBJQAGAME = \
+	$(BQAG)/g_main.o \
+	$(BQAG)/ai_chat.o \
+	$(BQAG)/ai_cmd.o \
+	$(BQAG)/ai_dmnet.o \
+	$(BQAG)/ai_dmq3.o \
+	$(BQAG)/ai_main.o \
+	$(BQAG)/ai_team.o \
+	$(BQAG)/ai_vcmd.o \
+	$(BQAG)/bg_misc.o \
+	$(BQAG)/bg_pmove.o \
+	$(BQAG)/bg_slidemove.o \
+	$(BQAG)/g_active.o \
+	$(BQAG)/g_arenas.o \
+	$(BQAG)/g_bot.o \
+	$(BQAG)/g_client.o \
+	$(BQAG)/g_cmds.o \
+	$(BQAG)/g_combat.o \
+	$(BQAG)/g_items.o \
+	$(BQAG)/g_mem.o \
+	$(BQAG)/g_misc.o \
+	$(BQAG)/g_missile.o \
+	$(BQAG)/g_mover.o \
+	$(BQAG)/g_session.o \
+	$(BQAG)/g_spawn.o \
+	$(BQAG)/g_svcmds.o \
+	$(BQAG)/g_syscalls.o \
+	$(BQAG)/g_target.o \
+	$(BQAG)/g_team.o \
+	$(BQAG)/g_trigger.o \
+	$(BQAG)/g_utils.o \
+	$(BQAG)/g_weapon.o \
+	\
+	$(BQAG)/q_math.o \
+	$(BQAG)/q_shared.o \
+	\
+	$(BQAG)/amiga_game.o
+
+##
+
+QUAKE3 = $(B)/quake3-68k-6r3
+Q3UI = $(BUI)/ui68k.dll
+CGAME = $(BCG)/cgame68k.dll
+QAGAME = $(BQAG)/qagame68k.dll
+
+all: $(QUAKE3) $(Q3UI) $(CGAME) $(QAGAME)
 
 $(QUAKE3): $(OBJS)
 	$(CC) -o $@ $(B)/#?.o $(LIBS)
+
+$(Q3UI): $(OBJSUI)
+	$(CC) -o $@ $(BUI)/#?.o $(LIBS)
+
+$(CGAME): $(OBJCGAME)
+	$(CC) -o $@ $(BCG)/#?.o $(LIBS)
+
+$(QAGAME): $(OBJQAGAME)
+	$(CC) -o $@ $(BQAG)/#?.o $(LIBS)
 
 #
 
@@ -515,6 +646,236 @@ $(B)/snd_main.o:  code/client/snd_main.c
 $(B)/snd_codec.o:  code/client/snd_codec.c
 	$(DO_CC)
 $(B)/snd_codec_wav.o:  code/client/snd_codec_wav.c
+	$(DO_CC)
+
+
+##
+
+$(BUI)/ui_addbots.o:  code/q3_ui/ui_addbots.c
+	$(DO_CC)
+$(BUI)/ui_atoms.o:  code/q3_ui/ui_atoms.c
+	$(DO_CC)
+$(BUI)/ui_cdkey.o:  code/q3_ui/ui_cdkey.c
+	$(DO_CC)
+$(BUI)/ui_cinematics.o:  code/q3_ui/ui_cinematics.c
+	$(DO_CC)
+$(BUI)/ui_confirm.o:  code/q3_ui/ui_confirm.c
+	$(DO_CC)
+$(BUI)/ui_connect.o:  code/q3_ui/ui_connect.c
+	$(DO_CC)
+$(BUI)/ui_controls2.o:  code/q3_ui/ui_controls2.c
+	$(DO_CC)
+$(BUI)/ui_credits.o:  code/q3_ui/ui_credits.c
+	$(DO_CC)
+$(BUI)/ui_demo2.o:  code/q3_ui/ui_demo2.c
+	$(DO_CC)
+$(BUI)/ui_display.o:  code/q3_ui/ui_display.c
+	$(DO_CC)
+$(BUI)/ui_gameinfo.o:  code/q3_ui/ui_gameinfo.c
+	$(DO_CC)
+$(BUI)/ui_ingame.o:  code/q3_ui/ui_ingame.c
+	$(DO_CC)
+$(BUI)/ui_loadconfig.o:  code/q3_ui/ui_loadconfig.c
+	$(DO_CC)
+$(BUI)/ui_main.o:  code/q3_ui/ui_main.c
+	$(DO_CC)
+$(BUI)/ui_menu.o:  code/q3_ui/ui_menu.c
+	$(DO_CC)
+$(BUI)/ui_mfield.o:  code/q3_ui/ui_mfield.c
+	$(DO_CC)
+$(BUI)/ui_mods.o:  code/q3_ui/ui_mods.c
+	$(DO_CC)
+$(BUI)/ui_network.o:  code/q3_ui/ui_network.c
+	$(DO_CC)
+$(BUI)/ui_options.o:  code/q3_ui/ui_options.c
+	$(DO_CC)
+$(BUI)/ui_playermodel.o:  code/q3_ui/ui_playermodel.c
+	$(DO_CC)
+$(BUI)/ui_players.o:  code/q3_ui/ui_players.c
+	$(DO_CC)
+$(BUI)/ui_playersettings.o:  code/q3_ui/ui_playersettings.c
+	$(DO_CC)
+$(BUI)/ui_preferences.o:  code/q3_ui/ui_preferences.c
+	$(DO_CC)
+$(BUI)/ui_qmenu.o:  code/q3_ui/ui_qmenu.c
+	$(DO_CC)
+$(BUI)/ui_removebots.o:  code/q3_ui/ui_removebots.c
+	$(DO_CC)
+$(BUI)/ui_saveconfig.o:  code/q3_ui/ui_saveconfig.c
+	$(DO_CC)
+$(BUI)/ui_serverinfo.o:  code/q3_ui/ui_serverinfo.c
+	$(DO_CC)
+$(BUI)/ui_servers2.o:  code/q3_ui/ui_servers2.c
+	$(DO_CC)
+$(BUI)/ui_setup.o:  code/q3_ui/ui_setup.c
+	$(DO_CC)
+$(BUI)/ui_sound.o:  code/q3_ui/ui_sound.c
+	$(DO_CC)
+$(BUI)/ui_sparena.o:  code/q3_ui/ui_sparena.c
+	$(DO_CC)
+$(BUI)/ui_specifyserver.o:  code/q3_ui/ui_specifyserver.c
+	$(DO_CC)
+$(BUI)/ui_specifyleague.o:  code/q3_ui/ui_specifyleague.c
+	$(DO_CC)
+$(BUI)/ui_splevel.o:  code/q3_ui/ui_splevel.c
+	$(DO_CC)
+$(BUI)/ui_sppostgame.o:  code/q3_ui/ui_sppostgame.c
+	$(DO_CC)
+$(BUI)/ui_spskill.o:  code/q3_ui/ui_spskill.c
+	$(DO_CC)
+$(BUI)/ui_startserver.o:  code/q3_ui/ui_startserver.c
+	$(DO_CC)
+$(BUI)/ui_syscalls.o:  code/ui/ui_syscalls.c
+	$(DO_CC)
+$(BUI)/ui_team.o:  code/q3_ui/ui_team.c
+	$(DO_CC)
+$(BUI)/ui_teamorders.o:  code/q3_ui/ui_teamorders.c
+	$(DO_CC)
+$(BUI)/ui_video.o:  code/q3_ui/ui_video.c
+	$(DO_CC)
+$(BUI)/ui_login.o:  code/q3_ui/ui_login.c
+	$(DO_CC)
+$(BUI)/ui_rankings.o:  code/q3_ui/ui_rankings.c
+	$(DO_CC)
+$(BUI)/ui_spreset.o:  code/q3_ui/ui_spreset.c
+	$(DO_CC)
+$(BUI)/ui_rankstatus.o:  code/q3_ui/ui_rankstatus.c
+	$(DO_CC)
+$(BUI)/ui_signup.o:  code/q3_ui/ui_signup.c
+	$(DO_CC)
+$(BUI)/q_math.o:  code/qcommon/q_math.c
+	$(DO_CC)
+$(BUI)/q_shared.o:  code/qcommon/q_shared.c
+	$(DO_CC)
+$(BUI)/bg_misc.o:  code/game/bg_misc.c
+	$(DO_CC)
+$(BUI)/amiga_ui.o:  code/amiga/amiga_ui.c
+	$(DO_CC)
+
+$(BCG)/cg_main.o:  code/cgame/cg_main.c
+	$(DO_CC)
+$(BCG)/bg_lib.o:  code/game/bg_lib.c
+	$(DO_CC)
+$(BCG)/bg_misc.o:  code/game/bg_misc.c
+	$(DO_CC)
+$(BCG)/bg_pmove.o:  code/game/bg_pmove.c
+	$(DO_CC)
+$(BCG)/bg_slidemove.o:  code/game/bg_slidemove.c
+	$(DO_CC)
+$(BCG)/cg_consolecmds.o:  code/cgame/cg_consolecmds.c
+	$(DO_CC)
+$(BCG)/cg_draw.o:  code/cgame/cg_draw.c
+	$(DO_CC)
+$(BCG)/cg_drawtools.o:  code/cgame/cg_drawtools.c
+	$(DO_CC)
+$(BCG)/cg_effects.o:  code/cgame/cg_effects.c
+	$(DO_CC)
+$(BCG)/cg_ents.o:  code/cgame/cg_ents.c
+	$(DO_CC)
+$(BCG)/cg_event.o:  code/cgame/cg_event.c
+	$(DO_CC)
+$(BCG)/cg_info.o:  code/cgame/cg_info.c
+	$(DO_CC)
+$(BCG)/cg_localents.o:  code/cgame/cg_localents.c
+	$(DO_CC)
+$(BCG)/cg_marks.o:  code/cgame/cg_marks.c
+	$(DO_CC)
+$(BCG)/cg_players.o:  code/cgame/cg_players.c
+	$(DO_CC)
+$(BCG)/cg_playerstate.o:  code/cgame/cg_playerstate.c
+	$(DO_CC)
+$(BCG)/cg_predict.o:  code/cgame/cg_predict.c
+	$(DO_CC)
+$(BCG)/cg_scoreboard.o:  code/cgame/cg_scoreboard.c
+	$(DO_CC)
+$(BCG)/cg_servercmds.o:  code/cgame/cg_servercmds.c
+	$(DO_CC)
+$(BCG)/cg_snapshot.o:  code/cgame/cg_snapshot.c
+	$(DO_CC)
+$(BCG)/cg_syscalls.o:  code/cgame/cg_syscalls.c
+	$(DO_CC)
+$(BCG)/cg_view.o:  code/cgame/cg_view.c
+	$(DO_CC)
+$(BCG)/cg_weapons.o:  code/cgame/cg_weapons.c
+	$(DO_CC)
+$(BCG)/cg_particles.o:  code/cgame/cg_particles.c
+	$(DO_CC)
+$(BCG)/q_math.o:  code/qcommon/q_math.c
+	$(DO_CC)
+$(BCG)/q_shared.o:  code/qcommon/q_shared.c
+	$(DO_CC)
+$(BCG)/ui_shared.o:  code/ui/ui_shared.c
+	$(DO_CC)
+$(BCG)/amiga_cgame.o:  code/amiga/amiga_cgame.c
+	$(DO_CC)
+
+$(BQAG)/amiga_game.o:  code/amiga/amiga_game.c
+	$(DO_CC)
+$(BQAG)/g_main.o:  code/game/g_main.c
+	$(DO_CC)
+$(BQAG)/ai_chat.o:  code/game/ai_chat.c
+	$(DO_CC)
+$(BQAG)/ai_cmd.o:  code/game/ai_cmd.c
+	$(DO_CC)
+$(BQAG)/ai_dmnet.o:  code/game/ai_dmnet.c
+	$(DO_CC)
+$(BQAG)/ai_dmq3.o:  code/game/ai_dmq3.c
+	$(DO_CC)
+$(BQAG)/ai_main.o:  code/game/ai_main.c
+	$(DO_CC)
+$(BQAG)/ai_team.o:  code/game/ai_team.c
+	$(DO_CC)
+$(BQAG)/ai_vcmd.o:  code/game/ai_vcmd.c
+	$(DO_CC)
+$(BQAG)/bg_misc.o:  code/game/bg_misc.c
+	$(DO_CC)
+$(BQAG)/bg_pmove.o:  code/game/bg_pmove.c
+	$(DO_CC)
+$(BQAG)/bg_slidemove.o:  code/game/bg_slidemove.c
+	$(DO_CC)
+$(BQAG)/g_active.o:  code/game/g_active.c
+	$(DO_CC)
+$(BQAG)/g_arenas.o:  code/game/g_arenas.c
+	$(DO_CC)
+$(BQAG)/g_bot.o:  code/game/g_bot.c
+	$(DO_CC)
+$(BQAG)/g_client.o:  code/game/g_client.c
+	$(DO_CC)
+$(BQAG)/g_cmds.o:  code/game/g_cmds.c
+	$(DO_CC)
+$(BQAG)/g_combat.o:  code/game/g_combat.c
+	$(DO_CC)
+$(BQAG)/g_items.o:  code/game/g_items.c
+	$(DO_CC)
+$(BQAG)/g_mem.o:  code/game/g_mem.c
+	$(DO_CC)
+$(BQAG)/g_misc.o:  code/game/g_misc.c
+	$(DO_CC)
+$(BQAG)/g_missile.o:  code/game/g_missile.c
+	$(DO_CC)
+$(BQAG)/g_mover.o:  code/game/g_mover.c
+	$(DO_CC)
+$(BQAG)/g_session.o:  code/game/g_session.c
+	$(DO_CC)
+$(BQAG)/g_spawn.o:  code/game/g_spawn.c
+	$(DO_CC)
+$(BQAG)/g_svcmds.o:  code/game/g_svcmds.c
+	$(DO_CC)
+$(BQAG)/g_syscalls.o:  code/game/g_syscalls.c
+	$(DO_CC)
+$(BQAG)/g_target.o:  code/game/g_target.c
+	$(DO_CC)
+$(BQAG)/g_team.o:  code/game/g_team.c
+	$(DO_CC)
+$(BQAG)/g_trigger.o:  code/game/g_trigger.c
+	$(DO_CC)
+$(BQAG)/g_utils.o:  code/game/g_utils.c
+	$(DO_CC)
+$(BQAG)/g_weapon.o:  code/game/g_weapon.c
+	$(DO_CC)
+$(BQAG)/q_math.o:  code/qcommon/q_math.c
+	$(DO_CC)
+$(BQAG)/q_shared.o:  code/qcommon/q_shared.c
 	$(DO_CC)
 
 

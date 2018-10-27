@@ -1638,9 +1638,11 @@ void CL_LoadConsoleHistory( void )
 		return;
 	}
 
-	if( consoleSaveBufferSize <= MAX_CONSOLE_SAVE_BUFFER &&
+	//if( consoleSaveBufferSize <= MAX_CONSOLE_SAVE_BUFFER &&
+	if( consoleSaveBufferSize < MAX_CONSOLE_SAVE_BUFFER && // test Cowcat
 		FS_Read( consoleSaveBuffer, consoleSaveBufferSize, f ) == consoleSaveBufferSize )
 	{
+		consoleSaveBuffer[consoleSaveBufferSize] = '\0'; // test Cowcat
 		text_p = consoleSaveBuffer;
 
 		for( i = COMMAND_HISTORY - 1; i >= 0; i-- )

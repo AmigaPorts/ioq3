@@ -4,17 +4,14 @@ B = oa_objs
 CC = vc +aos68k
 INCLUDES = -ISystem:PosixLib/include
 
-CFLAGS = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -DAMIGA -DBOTLIB -DNO_VM_COMPILED -DSTANDALONE
+CFLAGS = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -D__amiga__ -DBOTLIB -DUSE_LOCAL_HEADERS -DNO_VM_COMPILED -DSTANDALONE
 
 DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
 
 LIBS  = -lm060 -lmglQ3 -lposix -lamiga
 
-#VM_JIT = vm_ppc.o
-
 OBJS = \
 	$(B)/amiga_snd.o \
-	$(B)/amiga_ahi68k.o \
 	$(B)/snd_adpcm.o \
 	$(B)/snd_dma.o \
 	$(B)/snd_mem.o \
@@ -64,6 +61,13 @@ OBJS = \
 	  $(B)/sv_snapshot.o \
 	  $(B)/sv_world.o \
 	  $(B)/unzip.o \
+	  $(B)/ioapi.o \
+	  $(B)/adler32.o \
+	  $(B)/crc32.o \
+	  $(B)/inffast.o \
+	  $(B)/inflate.o \
+	  $(B)/inftrees.o \
+	  $(B)/zutil.o \
 	  $(B)/vm.o \
 	  $(B)/vm_interpreted.o \
 	\
@@ -170,7 +174,7 @@ OBJS = \
 	  $(B)/amiga_shared.o
 ##
 
-QUAKE3 = $(B)/openarena-68k
+QUAKE3 = $(B)/openarena-68k-r4
 
 all: $(QUAKE3)
 
@@ -260,6 +264,22 @@ $(B)/sv_world.o:  code/server/sv_world.c
 	$(DO_CC)
 
 $(B)/unzip.o:  code/qcommon/unzip.c
+	$(DO_CC)
+$(B)/ioapi.o:  code/qcommon/ioapi.c
+	$(DO_CC)
+
+$(B)/adler32.o:  code/zlib/adler32.c
+	$(DO_CC)
+
+$(B)/crc32.o:  code/zlib/crc32.c
+	$(DO_CC)
+$(B)/inffast.o:  code/zlib/inffast.c
+	$(DO_CC)
+$(B)/inflate.o:  code/zlib/inflate.c
+	$(DO_CC)
+$(B)/inftrees.o:  code/zlib/inftrees.c
+	$(DO_CC)
+$(B)/zutil.o:  code/zlib/zutil.c
 	$(DO_CC)
 
 $(B)/vm.o:  code/qcommon/vm.c

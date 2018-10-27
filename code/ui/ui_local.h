@@ -24,16 +24,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define __UI_LOCAL_H__
 
 #include "../qcommon/q_shared.h"
-#include "../renderer/tr_types.h"
+//#include "../renderercommon/tr_types.h"
+#include "../renderer/tr_types.h" // Cowcat
 #include "ui_public.h"
 #include "../client/keycodes.h"
 #include "../game/bg_public.h"
 #include "ui_shared.h"
-
-// Cowcat
-
-#define DLLFUNC
-#define DLLFUNCB
 
 // global display context
 
@@ -66,7 +62,6 @@ extern vmCvar_t	ui_spSelection;
 
 extern vmCvar_t	ui_browserMaster;
 extern vmCvar_t	ui_browserGameType;
-extern vmCvar_t	ui_browserSortKey;
 extern vmCvar_t	ui_browserShowFull;
 extern vmCvar_t	ui_browserShowEmpty;
 
@@ -151,42 +146,42 @@ extern vmCvar_t ui_serverStatusTimeOut;
 #define MAX_MENUDEPTH			8
 #define MAX_MENUITEMS			96
 
-#define MTYPE_NULL			0
+#define MTYPE_NULL				0
 #define MTYPE_SLIDER			1	
 #define MTYPE_ACTION			2
 #define MTYPE_SPINCONTROL		3
-#define MTYPE_FIELD			4
+#define MTYPE_FIELD				4
 #define MTYPE_RADIOBUTTON		5
 #define MTYPE_BITMAP			6	
-#define MTYPE_TEXT			7
+#define MTYPE_TEXT				7
 #define MTYPE_SCROLLLIST		8
-#define MTYPE_PTEXT			9
-#define MTYPE_BTEXT			10
+#define MTYPE_PTEXT				9
+#define MTYPE_BTEXT				10
 
-#define QMF_BLINK			0x00000001
+#define QMF_BLINK				0x00000001
 #define QMF_SMALLFONT			0x00000002
 #define QMF_LEFT_JUSTIFY		0x00000004
 #define QMF_CENTER_JUSTIFY		0x00000008
 #define QMF_RIGHT_JUSTIFY		0x00000010
 #define QMF_NUMBERSONLY			0x00000020	// edit field is only numbers
 #define QMF_HIGHLIGHT			0x00000040
-#define QMF_HIGHLIGHT_IF_FOCUS		0x00000080	// steady focus
+#define QMF_HIGHLIGHT_IF_FOCUS	0x00000080	// steady focus
 #define QMF_PULSEIFFOCUS		0x00000100	// pulse if focus
 #define QMF_HASMOUSEFOCUS		0x00000200
 #define QMF_NOONOFFTEXT			0x00000400
 #define QMF_MOUSEONLY			0x00000800	// only mouse input allowed
-#define QMF_HIDDEN			0x00001000	// skips drawing
-#define QMF_GRAYED			0x00002000	// grays and disables
+#define QMF_HIDDEN				0x00001000	// skips drawing
+#define QMF_GRAYED				0x00002000	// grays and disables
 #define QMF_INACTIVE			0x00004000	// disables any input
 #define QMF_NODEFAULTINIT		0x00008000	// skip default initialization
 #define QMF_OWNERDRAW			0x00010000
-#define QMF_PULSE			0x00020000
+#define QMF_PULSE				0x00020000
 #define QMF_LOWERCASE			0x00040000	// edit field is all lower case
 #define QMF_UPPERCASE			0x00080000	// edit field is all upper case
-#define QMF_SILENT			0x00100000
+#define QMF_SILENT				0x00100000
 
 // callback notifications
-#define QM_GOTFOCUS			1
+#define QM_GOTFOCUS				1
 #define QM_LOSTFOCUS			2
 #define QM_ACTIVATED			3
 
@@ -264,7 +259,7 @@ typedef struct
 	int width;
 	int height;
 	int	columns;
-	int	seperation;
+	int	separation;
 } menulist_s;
 
 typedef struct
@@ -346,12 +341,12 @@ extern char	*ui_medalSounds[];
 //
 // ui_mfield.c
 //
-extern void		MField_Clear( mfield_t *edit );
-extern void		MField_KeyDownEvent( mfield_t *edit, int key );
-extern void		MField_CharEvent( mfield_t *edit, int ch );
-extern void		MField_Draw( mfield_t *edit, int x, int y, int style, vec4_t color );
-extern void		MenuField_Init( menufield_s* m );
-extern void		MenuField_Draw( menufield_s *f );
+extern void			MField_Clear( mfield_t *edit );
+extern void			MField_KeyDownEvent( mfield_t *edit, int key );
+extern void			MField_CharEvent( mfield_t *edit, int ch );
+extern void			MField_Draw( mfield_t *edit, int x, int y, int style, vec4_t color );
+extern void			MenuField_Init( menufield_s* m );
+extern void			MenuField_Draw( menufield_s *f );
 extern sfxHandle_t	MenuField_Key( menufield_s* m, int* key );
 
 //
@@ -369,10 +364,10 @@ void UI_LoadArenas(void);
 //
 // ui_menu.c
 //
- extern void MainMenu_Cache( void );
- extern UI_MainMenu(void);
- extern void UI_RegisterCvars( void );
- extern void UI_UpdateCvars( void );
+extern void MainMenu_Cache( void );
+extern void UI_MainMenu(void);
+extern void UI_RegisterCvars( void );
+extern void UI_UpdateCvars( void );
 
 //
 // ui_credits.c
@@ -539,6 +534,9 @@ typedef struct {
 
 	animation_t		animations[MAX_TOTALANIMATIONS];
 
+	qboolean		fixedlegs;		// true if legs yaw is always the same as torso yaw
+	qboolean		fixedtorso;		// true if torso never changes yaw
+
 	qhandle_t		weaponModel;
 	qhandle_t		barrelModel;
 	qhandle_t		flashModel;
@@ -581,7 +579,7 @@ qboolean UI_RegisterClientModelname( playerInfo_t *pi, const char *modelSkinName
 //
 // ui_atoms.c
 //
-// this is only used in the old ui, the new ui has it's own version
+// this is only used in the old ui, the new ui has its own version
 typedef struct {
 	int					frametime;
 	int					realtime;
@@ -591,7 +589,6 @@ typedef struct {
 	qboolean		debug;
 	qhandle_t		whiteShader;
 	qhandle_t		menuBackShader;
-	qhandle_t		menuBackShader2;
 	qhandle_t		menuBackNoLogoShader;
 	qhandle_t		charset;
 	qhandle_t		charsetProp;
@@ -637,7 +634,7 @@ typedef struct {
 #define MAPS_PER_TIER 3
 #define MAX_TIERS 16
 #define MAX_MODS 64
-#define MAX_DEMOS 256
+#define MAX_DEMOS 512
 #define MAX_MOVIES 256
 #define MAX_PLAYERMODELS 256
 
@@ -920,89 +917,89 @@ void UI_SPSkillMenu_Cache( void );
 //
 // ui_syscalls.c
 //
-DLLFUNCB void			trap_Print( const char *string );
-DLLFUNCB void			trap_Error( const char *string );
-DLLFUNCB int			trap_Milliseconds( void );
-DLLFUNCB void			trap_Cvar_Register( vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags );
-DLLFUNCB void			trap_Cvar_Update( vmCvar_t *vmCvar );
-DLLFUNCB void			trap_Cvar_Set( const char *var_name, const char *value );
-DLLFUNCB float			trap_Cvar_VariableValue( const char *var_name );
-DLLFUNCB void			trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize );
-DLLFUNCB void			trap_Cvar_SetValue( const char *var_name, float value );
-DLLFUNCB void			trap_Cvar_Reset( const char *name );
-DLLFUNCB void			trap_Cvar_Create( const char *var_name, const char *var_value, int flags );
-DLLFUNCB void			trap_Cvar_InfoStringBuffer( int bit, char *buffer, int bufsize );
-DLLFUNCB int			trap_Argc( void );
-DLLFUNCB void			trap_Argv( int n, char *buffer, int bufferLength );
-DLLFUNCB void			trap_Cmd_ExecuteText( int exec_when, const char *text );	// don't use EXEC_NOW!
-DLLFUNCB int			trap_FS_FOpenFile( const char *qpath, fileHandle_t *f, fsMode_t mode );
-DLLFUNCB void			trap_FS_Read( void *buffer, int len, fileHandle_t f );
-DLLFUNCB void			trap_FS_Write( const void *buffer, int len, fileHandle_t f );
-DLLFUNCB void			trap_FS_FCloseFile( fileHandle_t f );
-DLLFUNCB int			trap_FS_GetFileList(  const char *path, const char *extension, char *listbuf, int bufsize );
-DLLFUNCB int			trap_FS_Seek( fileHandle_t f, long offset, int origin ); // fsOrigin_t
-DLLFUNCB qhandle_t		trap_R_RegisterModel( const char *name );
-DLLFUNCB qhandle_t		trap_R_RegisterSkin( const char *name );
-DLLFUNCB qhandle_t		trap_R_RegisterShaderNoMip( const char *name );
-DLLFUNCB void			trap_R_ClearScene( void );
-DLLFUNCB void			trap_R_AddRefEntityToScene( const refEntity_t *re );
-DLLFUNCB void			trap_R_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts );
-DLLFUNCB void			trap_R_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b );
-DLLFUNCB void			trap_R_RenderScene( const refdef_t *fd );
-DLLFUNCB void			trap_R_SetColor( const float *rgba );
-DLLFUNCB void			trap_R_DrawStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader );
-DLLFUNCB void			trap_R_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs );
-DLLFUNCB void			trap_UpdateScreen( void );
-DLLFUNCB int			trap_CM_LerpTag( orientation_t *tag, clipHandle_t mod, int startFrame, int endFrame, float frac, const char *tagName );
-DLLFUNCB void			trap_S_StartLocalSound( sfxHandle_t sfx, int channelNum );
-DLLFUNCB sfxHandle_t		trap_S_RegisterSound( const char *sample, qboolean compressed );
-DLLFUNCB void			trap_Key_KeynumToStringBuf( int keynum, char *buf, int buflen );
-DLLFUNCB void			trap_Key_GetBindingBuf( int keynum, char *buf, int buflen );
-DLLFUNCB void			trap_Key_SetBinding( int keynum, const char *binding );
-DLLFUNCB qboolean		trap_Key_IsDown( int keynum );
-DLLFUNCB qboolean		trap_Key_GetOverstrikeMode( void );
-DLLFUNCB void			trap_Key_SetOverstrikeMode( qboolean state );
-DLLFUNCB void			trap_Key_ClearStates( void );
-DLLFUNCB int			trap_Key_GetCatcher( void );
-DLLFUNCB void			trap_Key_SetCatcher( int catcher );
-DLLFUNCB void			trap_GetClipboardData( char *buf, int bufsize );
-DLLFUNCB void			trap_GetClientState( uiClientState_t *state );
-DLLFUNCB void			trap_GetGlconfig( glconfig_t *glconfig );
-DLLFUNCB int			trap_GetConfigString( int index, char* buff, int buffsize );
-DLLFUNCB int			trap_LAN_GetServerCount( int source );
-DLLFUNCB void			trap_LAN_GetServerAddressString( int source, int n, char *buf, int buflen );
-DLLFUNCB void			trap_LAN_GetServerInfo( int source, int n, char *buf, int buflen );
-DLLFUNCB int			trap_LAN_GetServerPing( int source, int n );
-DLLFUNCB int			trap_LAN_GetPingQueueCount( void );
-DLLFUNCB void			trap_LAN_ClearPing( int n );
-DLLFUNCB void			trap_LAN_GetPing( int n, char *buf, int buflen, int *pingtime );
-DLLFUNCB void			trap_LAN_GetPingInfo( int n, char *buf, int buflen );
-DLLFUNCB void			trap_LAN_LoadCachedServers( void );
-DLLFUNCB void			trap_LAN_SaveCachedServers( void );
-DLLFUNCB void			trap_LAN_MarkServerVisible(int source, int n, qboolean visible);
-DLLFUNCB int			trap_LAN_ServerIsVisible( int source, int n);
-DLLFUNCB qboolean		trap_LAN_UpdateVisiblePings( int source );
-DLLFUNCB int			trap_LAN_AddServer(int source, const char *name, const char *addr);
-DLLFUNCB void			trap_LAN_RemoveServer(int source, const char *addr);
-DLLFUNCB void			trap_LAN_ResetPings(int n);
-DLLFUNCB int			trap_LAN_ServerStatus( const char *serverAddress, char *serverStatus, int maxLen );
-DLLFUNCB int			trap_LAN_CompareServers( int source, int sortKey, int sortDir, int s1, int s2 );
-DLLFUNCB int			trap_MemoryRemaining( void );
-DLLFUNCB void			trap_GetCDKey( char *buf, int buflen );
-DLLFUNCB void			trap_SetCDKey( char *buf );
-DLLFUNCB void			trap_R_RegisterFont(const char *pFontname, int pointSize, fontInfo_t *font);
-DLLFUNCB void			trap_S_StopBackgroundTrack( void );
-DLLFUNCB void			trap_S_StartBackgroundTrack( const char *intro, const char *loop);
-DLLFUNCB int			trap_CIN_PlayCinematic( const char *arg0, int xpos, int ypos, int width, int height, int bits);
-DLLFUNCB e_status		trap_CIN_StopCinematic(int handle);
-DLLFUNCB e_status		trap_CIN_RunCinematic (int handle);
-DLLFUNCB void			trap_CIN_DrawCinematic (int handle);
-DLLFUNCB void			trap_CIN_SetExtents (int handle, int x, int y, int w, int h);
-DLLFUNCB int			trap_RealTime(qtime_t *qtime);
-DLLFUNCB void			trap_R_RemapShader( const char *oldShader, const char *newShader, const char *timeOffset );
-DLLFUNCB qboolean		trap_VerifyCDKey( const char *key, const char *chksum);
+void			trap_Print( const char *string );
+void			trap_Error(const char *string) __attribute__((noreturn));
+int				trap_Milliseconds( void );
+void			trap_Cvar_Register( vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags );
+void			trap_Cvar_Update( vmCvar_t *vmCvar );
+void			trap_Cvar_Set( const char *var_name, const char *value );
+float			trap_Cvar_VariableValue( const char *var_name );
+void			trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize );
+void			trap_Cvar_SetValue( const char *var_name, float value );
+void			trap_Cvar_Reset( const char *name );
+void			trap_Cvar_Create( const char *var_name, const char *var_value, int flags );
+void			trap_Cvar_InfoStringBuffer( int bit, char *buffer, int bufsize );
+int				trap_Argc( void );
+void			trap_Argv( int n, char *buffer, int bufferLength );
+void			trap_Cmd_ExecuteText( int exec_when, const char *text );	// don't use EXEC_NOW!
+int				trap_FS_FOpenFile( const char *qpath, fileHandle_t *f, fsMode_t mode );
+void			trap_FS_Read( void *buffer, int len, fileHandle_t f );
+void			trap_FS_Write( const void *buffer, int len, fileHandle_t f );
+void			trap_FS_FCloseFile( fileHandle_t f );
+int				trap_FS_GetFileList(  const char *path, const char *extension, char *listbuf, int bufsize );
+int				trap_FS_Seek( fileHandle_t f, long offset, int origin ); // fsOrigin_t
+qhandle_t		trap_R_RegisterModel( const char *name );
+qhandle_t		trap_R_RegisterSkin( const char *name );
+qhandle_t		trap_R_RegisterShaderNoMip( const char *name );
+void			trap_R_ClearScene( void );
+void			trap_R_AddRefEntityToScene( const refEntity_t *re );
+void			trap_R_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts );
+void			trap_R_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b );
+void			trap_R_RenderScene( const refdef_t *fd );
+void			trap_R_SetColor( const float *rgba );
+void			trap_R_DrawStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader );
+void			trap_R_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs );
+void			trap_UpdateScreen( void );
+int				trap_CM_LerpTag( orientation_t *tag, clipHandle_t mod, int startFrame, int endFrame, float frac, const char *tagName );
+void			trap_S_StartLocalSound( sfxHandle_t sfx, int channelNum );
+sfxHandle_t		trap_S_RegisterSound( const char *sample, qboolean compressed );
+void			trap_Key_KeynumToStringBuf( int keynum, char *buf, int buflen );
+void			trap_Key_GetBindingBuf( int keynum, char *buf, int buflen );
+void			trap_Key_SetBinding( int keynum, const char *binding );
+qboolean		trap_Key_IsDown( int keynum );
+qboolean		trap_Key_GetOverstrikeMode( void );
+void			trap_Key_SetOverstrikeMode( qboolean state );
+void			trap_Key_ClearStates( void );
+int				trap_Key_GetCatcher( void );
+void			trap_Key_SetCatcher( int catcher );
+void			trap_GetClipboardData( char *buf, int bufsize );
+void			trap_GetClientState( uiClientState_t *state );
+void			trap_GetGlconfig( glconfig_t *glconfig );
+int				trap_GetConfigString( int index, char* buff, int buffsize );
+int				trap_LAN_GetServerCount( int source );
+void			trap_LAN_GetServerAddressString( int source, int n, char *buf, int buflen );
+void			trap_LAN_GetServerInfo( int source, int n, char *buf, int buflen );
+int				trap_LAN_GetServerPing( int source, int n );
+int				trap_LAN_GetPingQueueCount( void );
+void			trap_LAN_ClearPing( int n );
+void			trap_LAN_GetPing( int n, char *buf, int buflen, int *pingtime );
+void			trap_LAN_GetPingInfo( int n, char *buf, int buflen );
+void			trap_LAN_LoadCachedServers( void );
+void			trap_LAN_SaveCachedServers( void );
+void			trap_LAN_MarkServerVisible(int source, int n, qboolean visible);
+int				trap_LAN_ServerIsVisible( int source, int n);
+qboolean		trap_LAN_UpdateVisiblePings( int source );
+int				trap_LAN_AddServer(int source, const char *name, const char *addr);
+void			trap_LAN_RemoveServer(int source, const char *addr);
+void			trap_LAN_ResetPings(int n);
+int				trap_LAN_ServerStatus( const char *serverAddress, char *serverStatus, int maxLen );
+int				trap_LAN_CompareServers( int source, int sortKey, int sortDir, int s1, int s2 );
+int				trap_MemoryRemaining( void );
+void			trap_GetCDKey( char *buf, int buflen );
+void			trap_SetCDKey( char *buf );
+void			trap_R_RegisterFont(const char *pFontname, int pointSize, fontInfo_t *font);
+void			trap_S_StopBackgroundTrack( void );
+void			trap_S_StartBackgroundTrack( const char *intro, const char *loop);
+int				trap_CIN_PlayCinematic( const char *arg0, int xpos, int ypos, int width, int height, int bits);
+e_status		trap_CIN_StopCinematic(int handle);
+e_status		trap_CIN_RunCinematic (int handle);
+void			trap_CIN_DrawCinematic (int handle);
+void			trap_CIN_SetExtents (int handle, int x, int y, int w, int h);
+int				trap_RealTime(qtime_t *qtime);
+void			trap_R_RemapShader( const char *oldShader, const char *newShader, const char *timeOffset );
+qboolean		trap_VerifyCDKey( const char *key, const char *chksum);
 
-DLLFUNCB void			trap_SetPbClStatus( int status );
+void			trap_SetPbClStatus( int status );
 
 //
 // ui_addbots.c

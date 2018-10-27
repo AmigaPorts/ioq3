@@ -30,8 +30,8 @@ _AsmCall:
 
 	# save all our registers, including the current link register
 	mflr	r13		# RG_SECOND	  copy off our link register
-	addi	r1,r1,-96	# required 24 bytes of linkage
-				# , 32 bytes of parameter, plus our saves - was 92 - +4 Cowcat byte alignment
+	addi	r1,r1,-92	# required 24 bytes of linkage
+				# , 32 bytes of parameter, plus our saves
 	stw	r3,56(r1)	# RG_STACK, -36(REAL_STACK)
 	stw	r4,60(r1)	# RG_OPSTACK, 4(RG_REAL_STACK)
 	stw	r5,64(r1)	# RG_MEMBASE, 8(RG_REAL_STACK)
@@ -54,7 +54,8 @@ _AsmCall:
 	# vm->systemCalls( &parms )
 	lwz	r12,4(r10)	# RG_TOP, VM_OFFSET_SYSTEM_CALL(RG_VM)
 	mtctr	r12		# RG_TOP
-	bcctrl	20,0	
+	bcctrl	20,0
+
 	mr	r12,r3		# RG_TOP, r3
 
 	# pop our saved registers
@@ -67,7 +68,7 @@ _AsmCall:
 	lwz	r9,80(r1)	# RG_NUM_INSTRUCTIONS, 24(RG_REAL_STACK)
 	lwz	r10,84(r1)	# RG_VM, 28(RG_REAL_STACK)
 	lwz	r13,88(r1)	# RG_SECOND, 32(RG_REAL_STACK)
-	addi	r1,r1,96	# RG_REAL_STACK, RG_REAL_STACK, 36 - was 92 - +4 Cowcat byte alignment
+	addi	r1,r1,92	# RG_REAL_STACK, RG_REAL_STACK, 36
 
 	# restore the old link register
 	mtlr	r13		# RG_SECOND

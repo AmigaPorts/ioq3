@@ -417,11 +417,11 @@ void AAS_InitAreaContentsTravelFlags(void)
 //===========================================================================
 void AAS_CreateReversedReachability(void)
 {
-	int i, n;
+	int		i, n;
 	aas_reversedlink_t *revlink;
 	aas_reachability_t *reach;
 	aas_areasettings_t *settings;
-	char *ptr;
+	char		*ptr;
 
 #ifdef DEBUG
 	int starttime;
@@ -429,7 +429,8 @@ void AAS_CreateReversedReachability(void)
 	starttime = Sys_MilliSeconds();
 #endif
 	//free reversed links that have already been created
-	if (aasworld.reversedreachability) FreeMemory(aasworld.reversedreachability);
+	if (aasworld.reversedreachability)
+		FreeMemory(aasworld.reversedreachability);
 
 	//allocate memory for the reversed reachability links
 	ptr = (char *) GetClearedMemory(aasworld.numareas * sizeof(aas_reversedreachability_t) +
@@ -441,6 +442,7 @@ void AAS_CreateReversedReachability(void)
 	ptr += aasworld.numareas * sizeof(aas_reversedreachability_t);
 
 	#if 1 // 68k problems here - memory issues ?? - Cowcat
+
 	//check all reachabilities of all areas
 	for (i = 1; i < aasworld.numareas; i++)
 	{
@@ -467,6 +469,7 @@ void AAS_CreateReversedReachability(void)
 			aasworld.reversedreachability[reach->areanum].first = revlink;
 			aasworld.reversedreachability[reach->areanum].numlinks++;
 		} //end for
+
 	} //end for
 
 	#endif

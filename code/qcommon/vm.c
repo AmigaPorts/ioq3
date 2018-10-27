@@ -398,7 +398,7 @@ __saveds
 intptr_t QDECL VM_DllSyscall( intptr_t arg, ... )
 {
 	//#if !id386
-	#if 1
+	#if 0
 
   	// rcg010206 - see commentary above
   	intptr_t	args[14]; // MAX_VMSYSCALL_ARGS
@@ -958,7 +958,7 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
 	if ( vm->entryPoint )
 	{
 		//rcg010207 -  see dissertation at top of VM_DllSyscall() in this file.
-		//int args[MAX_VMMAIN_ARGS - 1]; // 
+		//int args[MAX_VMMAIN_ARGS - 1]; //
 		int args[3]; // Cowcat
 		va_list ap;
 		va_start(ap, callnum);
@@ -971,7 +971,7 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
 		va_end(ap);
 
 		//r = vm->entryPoint( callnum, args[0], args[1], args[2], args[3], args[4], args[5], args[6], 
-			//args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14], args[15] );
+			//args[7], args[8], args[9], args[10], args[11] );
 
 		r = vm->entryPoint(callnum, args[0], args[1], args[2]); // Cowcat
 
@@ -994,34 +994,46 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
 
 #else // no i386
 
-		#if 0 // Cowcat
-		struct
-		{
-			int callnum;
-			//int args[MAX_VMMAIN_ARGS-1];
-			int args[10];
-			
-		} a;
-
-		va_list ap;
-
-		a.callnum = callnum;
-		va_start(ap, callnum);
-
-		for (i = 0; i < sizeof (a.args) / sizeof (a.args[i]); i++)
-		{
-			a.args[i] = va_arg(ap, int);
-		}
-
-		va_end(ap);
-		#endif
 
 #ifndef NO_VM_COMPILED
-		if ( vm->compiled ) // seems that not conversion is needed - Cowcat
+
+		#if defined (__VBCC__)
+
+		if ( vm->compiled ) // seems that no conversion is needed - Cowcat
 		{
 			//r = VM_CallCompiled( vm, &a.callnum );
 			r = VM_CallCompiled( vm, &callnum );
 		}
+
+		#else
+
+		if ( vm->compiled ) // gcc
+		{
+			struct
+			{
+				int callnum;
+				//int args[MAX_VMMAIN_ARGS-1];
+				int args[3];
+			
+			} a;
+
+			va_list ap;
+
+			a.callnum = callnum;
+			va_start(ap, callnum);
+
+			for (i = 0; i < sizeof (a.args) / sizeof (a.args[i]); i++)
+			{
+				a.args[i] = va_arg(ap, int);
+			}
+
+			va_end(ap);
+
+			r = VM_CallCompiled( vm, &a.callnum );
+			
+		}
+
+		#endif
 
 		else
 #endif
@@ -1030,8 +1042,7 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
 			{
 				int callnum;
 				//int args[MAX_VMMAIN_ARGS-1];
-				int args[4]; // Cowcat
-				
+				int args[3]; // Cowcat
 			} a;
 
 			va_list ap;

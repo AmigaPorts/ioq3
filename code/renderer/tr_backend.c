@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "tr_local.h"
 
-#ifdef AMIGA
+#ifdef __amiga__
 //#include <mgl/mglmacros.h>
 #endif
 
@@ -208,6 +208,11 @@ void GL_TexEnv( GLint env ) // Quake3e cleanup
 ** This routine is responsible for setting the most commonly changed state
 ** in Q3.
 */
+
+#ifdef __VBCC__
+qboolean smoothshade = qfalse; // Cowcat
+#endif
+
 void GL_State( unsigned long stateBits )
 {
 	unsigned long diff = stateBits ^ glState.glStateBits;
@@ -240,6 +245,19 @@ void GL_State( unsigned long stateBits )
 	{
 		GLenum srcFactor = GL_ONE, dstFactor = GL_ONE;
 
+		#ifdef __VBCC__ // minigl vbcc blending workaround - Cowcat
+
+		qboolean flat = qfalse;
+
+		qboolean smoothcheck = smoothshade;
+		
+		if(!smoothcheck) // already done (rb_surfacerailcore/rb_renderflares)
+		{
+			qglShadeModel(GL_SMOOTH);
+		}
+
+		#endif
+	
 		if ( stateBits & ( GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS ) )
 		{
 			switch ( stateBits & GLS_SRCBLEND_BITS )
@@ -250,6 +268,9 @@ void GL_State( unsigned long stateBits )
 
 				case GLS_SRCBLEND_ONE:
 					srcFactor = GL_ONE;
+				#ifdef __VBCC__
+					flat = qtrue;
+				#endif
 					break;
 
 				case GLS_SRCBLEND_DST_COLOR:
@@ -323,6 +344,18 @@ void GL_State( unsigned long stateBits )
 					ri.Error( ERR_DROP, "GL_State: invalid dst blend state bits\n" );
 					break;
 			}
+
+			#ifdef __VBCC__ // minigl vbcc blending workaround - Cowcat
+
+			// railgun sync - Cowcat
+			if ( flat != smoothcheck && dstFactor == GL_ONE )
+			{
+				qglShadeModel(GL_FLAT);
+			}
+
+			smoothshade = qfalse;
+
+			#endif
 
 			qglEnable( GL_BLEND );
 			qglBlendFunc( srcFactor, dstFactor );
@@ -484,7 +517,6 @@ void RB_BeginDrawingView (void)
 	// we will need to change the projection matrix before drawing
 	// 2D images again
 	backEnd.projection2D = qfalse;
-	//qglEnable(MGL_PERSPECTIVE_MAPPING); // TEST for minigl - Cowcat
 
 	//
 	// set the modelview matrix for the viewer
@@ -568,7 +600,6 @@ void RB_BeginDrawingView (void)
 	}
 
 	#endif
-	
 }
 
 
@@ -811,7 +842,6 @@ void RB_SetGL2D (void)
 	GL_Cull(CT_TWO_SIDED);
 
 	//qglDisable( GL_CLIP_PLANE0 ); // Cowcat
-	//qglDisable(MGL_PERSPECTIVE_MAPPING); // TEST for minigl - Cowcat
 
 	// set time for 2D shaders
 	backEnd.refdef.time = ri.Milliseconds();
@@ -844,9 +874,7 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 		RB_EndSurface();
 
 	// we definately want to sync every frame for the cinematics
-
-	//if( r_finish->integer == 1) // Cowcat
-		qglFinish();
+	qglFinish();
 
 	start = 0;
 
@@ -902,8 +930,8 @@ void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int
 	{
 		image->width = image->uploadWidth = cols;
 		image->height = image->uploadHeight = rows;
-		//qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		qglTexImage2D( GL_TEXTURE_2D, 0, image->internalFormat, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+		//qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
 		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat
@@ -1064,7 +1092,7 @@ const void *RB_DrawBuffer( const void *data )
 
 	cmd = (const drawBufferCommand_t *)data;
 
-	#if !defined(AMIGA)
+	#if !defined(__amiga__)
 	qglDrawBuffer( cmd->buffer );
 	#endif
 

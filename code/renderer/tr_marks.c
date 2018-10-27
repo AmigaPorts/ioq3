@@ -310,13 +310,13 @@ int R_MarkFragments( int numPoints, const vec3_t *points, const vec3_t projectio
 	vec3_t		clipPoints[2][MAX_VERTS_ON_POLY];
 	int		numClipPoints;
 	float		*v;
-	srfSurfaceFace_t *surf;
 	srfGridMesh_t	*cv;
 	drawVert_t	*dv;
 	vec3_t		normal;
 	vec3_t		projectionDir;
 	vec3_t		v1, v2;
 	int		*indexes;
+	//glIndex_t	*indexes; // Cowcat
 
 	if(numPoints <= 0)
 		return 0;
@@ -475,6 +475,7 @@ int R_MarkFragments( int numPoints, const vec3_t *points, const vec3_t projectio
 			}
 
 			indexes = (int *)( (byte *)surf + surf->ofsIndices );
+			//indexes = (glIndex_t *)( (byte *)surf + surf->ofsIndices ); // Cowcat
 
 			for ( k = 0 ; k < surf->numIndices ; k += 3 )
 			{

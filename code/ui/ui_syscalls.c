@@ -28,463 +28,379 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #error "Do not use in VM build"
 #endif
 
-#define DLLFUNCB
-
 static intptr_t (QDECL *syscall)( intptr_t arg, ... ) = (intptr_t (QDECL *)( intptr_t, ...))-1;
 
-DLLFUNCB 
-__saveds void dllEntry( intptr_t (QDECL *syscallptr)( intptr_t arg, ... ) )
+Q_EXPORT
+__saveds void dllEntry( intptr_t (QDECL *syscallptr)( intptr_t arg,... ) )
 {
 	syscall = syscallptr;
 }
 
-DLLFUNCB int PASSFLOAT( float x )
-{
+int PASSFLOAT( float x ) {
 	floatint_t fi;
 	fi.f = x;
 	return fi.i;
 }
 
-DLLFUNCB void trap_Print( const char *string )
-{
+void trap_Print( const char *string ) {
 	syscall( UI_PRINT, string );
 }
 
-DLLFUNCB void trap_Error( const char *string )
+void trap_Error(const char *string)
 {
-	syscall( UI_ERROR, string );
+	syscall(UI_ERROR, string);
+	// shut up GCC warning about returning functions, because we know better
+	exit(1);
 }
 
-DLLFUNCB int trap_Milliseconds( void )
-{
+int trap_Milliseconds( void ) {
 	return syscall( UI_MILLISECONDS ); 
 }
 
-DLLFUNCB void trap_Cvar_Register( vmCvar_t *cvar, const char *var_name, const char *value, int flags )
-{
+void trap_Cvar_Register( vmCvar_t *cvar, const char *var_name, const char *value, int flags ) {
 	syscall( UI_CVAR_REGISTER, cvar, var_name, value, flags );
 }
 
-DLLFUNCB void trap_Cvar_Update( vmCvar_t *cvar )
-{
+void trap_Cvar_Update( vmCvar_t *cvar ) {
 	syscall( UI_CVAR_UPDATE, cvar );
 }
 
-DLLFUNCB void trap_Cvar_Set( const char *var_name, const char *value )
-{
+void trap_Cvar_Set( const char *var_name, const char *value ) {
 	syscall( UI_CVAR_SET, var_name, value );
 }
 
-DLLFUNCB float trap_Cvar_VariableValue( const char *var_name )
-{
+float trap_Cvar_VariableValue( const char *var_name ) {
 	floatint_t fi;
 	fi.i = syscall( UI_CVAR_VARIABLEVALUE, var_name );
 	return fi.f;
 }
 
-DLLFUNCB void trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize )
-{
+void trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize ) {
 	syscall( UI_CVAR_VARIABLESTRINGBUFFER, var_name, buffer, bufsize );
 }
 
-DLLFUNCB void trap_Cvar_SetValue( const char *var_name, float value )
-{
+void trap_Cvar_SetValue( const char *var_name, float value ) {
 	syscall( UI_CVAR_SETVALUE, var_name, PASSFLOAT( value ) );
 }
 
-DLLFUNCB void trap_Cvar_Reset( const char *name )
-{
+void trap_Cvar_Reset( const char *name ) {
 	syscall( UI_CVAR_RESET, name ); 
 }
 
-DLLFUNCB void trap_Cvar_Create( const char *var_name, const char *var_value, int flags )
-{
+void trap_Cvar_Create( const char *var_name, const char *var_value, int flags ) {
 	syscall( UI_CVAR_CREATE, var_name, var_value, flags );
 }
 
-DLLFUNCB void trap_Cvar_InfoStringBuffer( int bit, char *buffer, int bufsize )
-{
+void trap_Cvar_InfoStringBuffer( int bit, char *buffer, int bufsize ) {
 	syscall( UI_CVAR_INFOSTRINGBUFFER, bit, buffer, bufsize );
 }
 
-DLLFUNCB int trap_Argc( void )
-{
+int trap_Argc( void ) {
 	return syscall( UI_ARGC );
 }
 
-DLLFUNCB void trap_Argv( int n, char *buffer, int bufferLength )
-{
+void trap_Argv( int n, char *buffer, int bufferLength ) {
 	syscall( UI_ARGV, n, buffer, bufferLength );
 }
 
-DLLFUNCB void trap_Cmd_ExecuteText( int exec_when, const char *text )
-{
+void trap_Cmd_ExecuteText( int exec_when, const char *text ) {
 	syscall( UI_CMD_EXECUTETEXT, exec_when, text );
 }
 
-DLLFUNCB int trap_FS_FOpenFile( const char *qpath, fileHandle_t *f, fsMode_t mode )
-{
+int trap_FS_FOpenFile( const char *qpath, fileHandle_t *f, fsMode_t mode ) {
 	return syscall( UI_FS_FOPENFILE, qpath, f, mode );
 }
 
-DLLFUNCB void trap_FS_Read( void *buffer, int len, fileHandle_t f )
-{
+void trap_FS_Read( void *buffer, int len, fileHandle_t f ) {
 	syscall( UI_FS_READ, buffer, len, f );
 }
 
-DLLFUNCB void trap_FS_Write( const void *buffer, int len, fileHandle_t f )
-{
+void trap_FS_Write( const void *buffer, int len, fileHandle_t f ) {
 	syscall( UI_FS_WRITE, buffer, len, f );
 }
 
-DLLFUNCB void trap_FS_FCloseFile( fileHandle_t f )
-{
+void trap_FS_FCloseFile( fileHandle_t f ) {
 	syscall( UI_FS_FCLOSEFILE, f );
 }
 
-DLLFUNCB int trap_FS_GetFileList(  const char *path, const char *extension, char *listbuf, int bufsize )
-{
+int trap_FS_GetFileList(  const char *path, const char *extension, char *listbuf, int bufsize ) {
 	return syscall( UI_FS_GETFILELIST, path, extension, listbuf, bufsize );
 }
 
-DLLFUNCB int trap_FS_Seek( fileHandle_t f, long offset, int origin )
-{
+int trap_FS_Seek( fileHandle_t f, long offset, int origin ) {
 	return syscall( UI_FS_SEEK, f, offset, origin );
 }
 
-DLLFUNCB qhandle_t trap_R_RegisterModel( const char *name )
-{
+qhandle_t trap_R_RegisterModel( const char *name ) {
 	return syscall( UI_R_REGISTERMODEL, name );
 }
 
-DLLFUNCB qhandle_t trap_R_RegisterSkin( const char *name )
-{
+qhandle_t trap_R_RegisterSkin( const char *name ) {
 	return syscall( UI_R_REGISTERSKIN, name );
 }
 
-DLLFUNCB void trap_R_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font)
-{
+void trap_R_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font) {
 	syscall( UI_R_REGISTERFONT, fontName, pointSize, font );
 }
 
-DLLFUNCB qhandle_t trap_R_RegisterShaderNoMip( const char *name )
-{
+qhandle_t trap_R_RegisterShaderNoMip( const char *name ) {
 	return syscall( UI_R_REGISTERSHADERNOMIP, name );
 }
 
-DLLFUNCB void trap_R_ClearScene( void )
-{
+void trap_R_ClearScene( void ) {
 	syscall( UI_R_CLEARSCENE );
 }
 
-DLLFUNCB void trap_R_AddRefEntityToScene( const refEntity_t *re )
-{
+void trap_R_AddRefEntityToScene( const refEntity_t *re ) {
 	syscall( UI_R_ADDREFENTITYTOSCENE, re );
 }
 
-DLLFUNCB void trap_R_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts )
-{
+void trap_R_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts ) {
 	syscall( UI_R_ADDPOLYTOSCENE, hShader, numVerts, verts );
 }
 
-DLLFUNCB void trap_R_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b )
-{
+void trap_R_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b ) {
 	syscall( UI_R_ADDLIGHTTOSCENE, org, PASSFLOAT(intensity), PASSFLOAT(r), PASSFLOAT(g), PASSFLOAT(b) );
 }
 
-DLLFUNCB void trap_R_RenderScene( const refdef_t *fd )
-{
+void trap_R_RenderScene( const refdef_t *fd ) {
 	syscall( UI_R_RENDERSCENE, fd );
 }
 
-DLLFUNCB void trap_R_SetColor( const float *rgba )
-{
+void trap_R_SetColor( const float *rgba ) {
 	syscall( UI_R_SETCOLOR, rgba );
 }
 
-DLLFUNCB void trap_R_DrawStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader )
-{
-	syscall( UI_R_DRAWSTRETCHPIC, PASSFLOAT(x), PASSFLOAT(y), PASSFLOAT(w), PASSFLOAT(h), PASSFLOAT(s1), 
-		PASSFLOAT(t1), PASSFLOAT(s2), PASSFLOAT(t2), hShader );
+void trap_R_DrawStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader ) {
+	syscall( UI_R_DRAWSTRETCHPIC, PASSFLOAT(x), PASSFLOAT(y), PASSFLOAT(w), PASSFLOAT(h), PASSFLOAT(s1), PASSFLOAT(t1), PASSFLOAT(s2), PASSFLOAT(t2), hShader );
 }
 
-DLLFUNCB void trap_R_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs )
-{
+void	trap_R_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs ) {
 	syscall( UI_R_MODELBOUNDS, model, mins, maxs );
 }
 
-DLLFUNCB void trap_UpdateScreen( void )
-{
+void trap_UpdateScreen( void ) {
 	syscall( UI_UPDATESCREEN );
 }
 
-DLLFUNCB int trap_CM_LerpTag( orientation_t *tag, clipHandle_t mod, int startFrame, int endFrame, float frac, const char *tagName )
-{
+int trap_CM_LerpTag( orientation_t *tag, clipHandle_t mod, int startFrame, int endFrame, float frac, const char *tagName ) {
 	return syscall( UI_CM_LERPTAG, tag, mod, startFrame, endFrame, PASSFLOAT(frac), tagName );
 }
 
-DLLFUNCB void trap_S_StartLocalSound( sfxHandle_t sfx, int channelNum ) 
-{
+void trap_S_StartLocalSound( sfxHandle_t sfx, int channelNum ) {
 	syscall( UI_S_STARTLOCALSOUND, sfx, channelNum );
 }
 
-DLLFUNCB sfxHandle_t trap_S_RegisterSound( const char *sample, qboolean compressed )
-{
+sfxHandle_t	trap_S_RegisterSound( const char *sample, qboolean compressed ) {
 	return syscall( UI_S_REGISTERSOUND, sample, compressed );
 }
 
-DLLFUNCB void trap_Key_KeynumToStringBuf( int keynum, char *buf, int buflen )
-{
+void trap_Key_KeynumToStringBuf( int keynum, char *buf, int buflen ) {
 	syscall( UI_KEY_KEYNUMTOSTRINGBUF, keynum, buf, buflen );
 }
 
-DLLFUNCB void trap_Key_GetBindingBuf( int keynum, char *buf, int buflen )
-{
+void trap_Key_GetBindingBuf( int keynum, char *buf, int buflen ) {
 	syscall( UI_KEY_GETBINDINGBUF, keynum, buf, buflen );
 }
 
-DLLFUNCB void trap_Key_SetBinding( int keynum, const char *binding )
-{
+void trap_Key_SetBinding( int keynum, const char *binding ) {
 	syscall( UI_KEY_SETBINDING, keynum, binding );
 }
 
-DLLFUNCB qboolean trap_Key_IsDown( int keynum )
-{
+qboolean trap_Key_IsDown( int keynum ) {
 	return syscall( UI_KEY_ISDOWN, keynum );
 }
 
-DLLFUNCB qboolean trap_Key_GetOverstrikeMode( void )
-{
+qboolean trap_Key_GetOverstrikeMode( void ) {
 	return syscall( UI_KEY_GETOVERSTRIKEMODE );
 }
 
-DLLFUNCB void trap_Key_SetOverstrikeMode( qboolean state )
-{
+void trap_Key_SetOverstrikeMode( qboolean state ) {
 	syscall( UI_KEY_SETOVERSTRIKEMODE, state );
 }
 
-DLLFUNCB void trap_Key_ClearStates( void )
-{
+void trap_Key_ClearStates( void ) {
 	syscall( UI_KEY_CLEARSTATES );
 }
 
-DLLFUNCB int trap_Key_GetCatcher( void )
-{
+int trap_Key_GetCatcher( void ) {
 	return syscall( UI_KEY_GETCATCHER );
 }
 
-DLLFUNCB void trap_Key_SetCatcher( int catcher )
-{
+void trap_Key_SetCatcher( int catcher ) {
 	syscall( UI_KEY_SETCATCHER, catcher );
 }
 
-DLLFUNCB void trap_GetClipboardData( char *buf, int bufsize )
-{
+void trap_GetClipboardData( char *buf, int bufsize ) {
 	syscall( UI_GETCLIPBOARDDATA, buf, bufsize );
 }
 
-DLLFUNCB void trap_GetClientState( uiClientState_t *state )
-{
+void trap_GetClientState( uiClientState_t *state ) {
 	syscall( UI_GETCLIENTSTATE, state );
 }
 
-DLLFUNCB void trap_GetGlconfig( glconfig_t *glconfig )
-{
+void trap_GetGlconfig( glconfig_t *glconfig ) {
 	syscall( UI_GETGLCONFIG, glconfig );
 }
 
-DLLFUNCB int trap_GetConfigString( int index, char* buff, int buffsize )
-{
+int trap_GetConfigString( int index, char* buff, int buffsize ) {
 	return syscall( UI_GETCONFIGSTRING, index, buff, buffsize );
 }
 
-DLLFUNCB int trap_LAN_GetServerCount( int source )
-{
+int	trap_LAN_GetServerCount( int source ) {
 	return syscall( UI_LAN_GETSERVERCOUNT, source );
 }
 
-DLLFUNCB void trap_LAN_GetServerAddressString( int source, int n, char *buf, int buflen )
-{
+void trap_LAN_GetServerAddressString( int source, int n, char *buf, int buflen ) {
 	syscall( UI_LAN_GETSERVERADDRESSSTRING, source, n, buf, buflen );
 }
 
-DLLFUNCB void trap_LAN_GetServerInfo( int source, int n, char *buf, int buflen )
-{
+void trap_LAN_GetServerInfo( int source, int n, char *buf, int buflen ) {
 	syscall( UI_LAN_GETSERVERINFO, source, n, buf, buflen );
 }
 
-DLLFUNCB int trap_LAN_GetServerPing( int source, int n )
-{
+int trap_LAN_GetServerPing( int source, int n ) {
 	return syscall( UI_LAN_GETSERVERPING, source, n );
 }
 
-DLLFUNCB int trap_LAN_GetPingQueueCount( void )
-{
+int trap_LAN_GetPingQueueCount( void ) {
 	return syscall( UI_LAN_GETPINGQUEUECOUNT );
 }
 
-DLLFUNCB int trap_LAN_ServerStatus( const char *serverAddress, char *serverStatus, int maxLen )
-{
+int trap_LAN_ServerStatus( const char *serverAddress, char *serverStatus, int maxLen ) {
 	return syscall( UI_LAN_SERVERSTATUS, serverAddress, serverStatus, maxLen );
 }
 
-DLLFUNCB void trap_LAN_SaveCachedServers( void )
-{
+void trap_LAN_SaveCachedServers( void ) {
 	syscall( UI_LAN_SAVECACHEDSERVERS );
 }
 
-DLLFUNCB void trap_LAN_LoadCachedServers( void )
-{
+void trap_LAN_LoadCachedServers( void ) {
 	syscall( UI_LAN_LOADCACHEDSERVERS );
 }
 
-DLLFUNCB void trap_LAN_ResetPings(int n)
-{
+void trap_LAN_ResetPings(int n) {
 	syscall( UI_LAN_RESETPINGS, n );
 }
 
-DLLFUNCB void trap_LAN_ClearPing( int n )
-{
+void trap_LAN_ClearPing( int n ) {
 	syscall( UI_LAN_CLEARPING, n );
 }
 
-DLLFUNCB void trap_LAN_GetPing( int n, char *buf, int buflen, int *pingtime )
-{
+void trap_LAN_GetPing( int n, char *buf, int buflen, int *pingtime ) {
 	syscall( UI_LAN_GETPING, n, buf, buflen, pingtime );
 }
 
-DLLFUNCB void trap_LAN_GetPingInfo( int n, char *buf, int buflen )
-{
+void trap_LAN_GetPingInfo( int n, char *buf, int buflen ) {
 	syscall( UI_LAN_GETPINGINFO, n, buf, buflen );
 }
 
-DLLFUNCB void trap_LAN_MarkServerVisible( int source, int n, qboolean visible )
-{
+void trap_LAN_MarkServerVisible( int source, int n, qboolean visible ) {
 	syscall( UI_LAN_MARKSERVERVISIBLE, source, n, visible );
 }
 
-DLLFUNCB int trap_LAN_ServerIsVisible( int source, int n)
-{
+int trap_LAN_ServerIsVisible( int source, int n) {
 	return syscall( UI_LAN_SERVERISVISIBLE, source, n );
 }
 
-DLLFUNCB qboolean trap_LAN_UpdateVisiblePings( int source )
-{
+qboolean trap_LAN_UpdateVisiblePings( int source ) {
 	return syscall( UI_LAN_UPDATEVISIBLEPINGS, source );
 }
 
-DLLFUNCB int trap_LAN_AddServer(int source, const char *name, const char *addr)
-{
+int trap_LAN_AddServer(int source, const char *name, const char *addr) {
 	return syscall( UI_LAN_ADDSERVER, source, name, addr );
 }
 
-DLLFUNCB void trap_LAN_RemoveServer(int source, const char *addr)
-{
+void trap_LAN_RemoveServer(int source, const char *addr) {
 	syscall( UI_LAN_REMOVESERVER, source, addr );
 }
 
-DLLFUNCB int trap_LAN_CompareServers( int source, int sortKey, int sortDir, int s1, int s2 )
-{
+int trap_LAN_CompareServers( int source, int sortKey, int sortDir, int s1, int s2 ) {
 	return syscall( UI_LAN_COMPARESERVERS, source, sortKey, sortDir, s1, s2 );
 }
 
-DLLFUNCB int trap_MemoryRemaining( void )
-{
+int trap_MemoryRemaining( void ) {
 	return syscall( UI_MEMORY_REMAINING );
 }
 
-DLLFUNCB void trap_GetCDKey( char *buf, int buflen )
-{
+void trap_GetCDKey( char *buf, int buflen ) {
 	syscall( UI_GET_CDKEY, buf, buflen );
 }
 
-DLLFUNCB void trap_SetCDKey( char *buf )
-{
+void trap_SetCDKey( char *buf ) {
 	syscall( UI_SET_CDKEY, buf );
 }
 
-DLLFUNCB int trap_PC_AddGlobalDefine( char *define )
-{
+int trap_PC_AddGlobalDefine( char *define ) {
 	return syscall( UI_PC_ADD_GLOBAL_DEFINE, define );
 }
 
-DLLFUNCB int trap_PC_LoadSource( const char *filename )
-{
+int trap_PC_LoadSource( const char *filename ) {
 	return syscall( UI_PC_LOAD_SOURCE, filename );
 }
 
-DLLFUNCB int trap_PC_FreeSource( int handle )
-{
+int trap_PC_FreeSource( int handle ) {
 	return syscall( UI_PC_FREE_SOURCE, handle );
 }
 
-DLLFUNCB int trap_PC_ReadToken( int handle, pc_token_t *pc_token )
-{
+int trap_PC_ReadToken( int handle, pc_token_t *pc_token ) {
 	return syscall( UI_PC_READ_TOKEN, handle, pc_token );
 }
 
-DLLFUNCB int trap_PC_SourceFileAndLine( int handle, char *filename, int *line )
-{
+int trap_PC_SourceFileAndLine( int handle, char *filename, int *line ) {
 	return syscall( UI_PC_SOURCE_FILE_AND_LINE, handle, filename, line );
 }
 
-DLLFUNCB void trap_S_StopBackgroundTrack( void )
-{
+void trap_S_StopBackgroundTrack( void ) {
 	syscall( UI_S_STOPBACKGROUNDTRACK );
 }
 
-DLLFUNCB void trap_S_StartBackgroundTrack( const char *intro, const char *loop)
-{
+void trap_S_StartBackgroundTrack( const char *intro, const char *loop) {
 	syscall( UI_S_STARTBACKGROUNDTRACK, intro, loop );
 }
 
-DLLFUNCB int trap_RealTime(qtime_t *qtime)
-{
+int trap_RealTime(qtime_t *qtime) {
 	return syscall( UI_REAL_TIME, qtime );
 }
 
 // this returns a handle.  arg0 is the name in the format "idlogo.roq", set arg1 to NULL, alteredstates to qfalse (do not alter gamestate)
-DLLFUNCB int trap_CIN_PlayCinematic( const char *arg0, int xpos, int ypos, int width, int height, int bits)
-{
-	return syscall(UI_CIN_PLAYCINEMATIC, arg0, xpos, ypos, width, height, bits);
+int trap_CIN_PlayCinematic( const char *arg0, int xpos, int ypos, int width, int height, int bits) {
+  return syscall(UI_CIN_PLAYCINEMATIC, arg0, xpos, ypos, width, height, bits);
 }
  
 // stops playing the cinematic and ends it.  should always return FMV_EOF
 // cinematics must be stopped in reverse order of when they are started
-DLLFUNCB e_status trap_CIN_StopCinematic(int handle)
-{
-	return syscall(UI_CIN_STOPCINEMATIC, handle);
+e_status trap_CIN_StopCinematic(int handle) {
+  return syscall(UI_CIN_STOPCINEMATIC, handle);
 }
+
 
 // will run a frame of the cinematic but will not draw it.  Will return FMV_EOF if the end of the cinematic has been reached.
-DLLFUNCB e_status trap_CIN_RunCinematic (int handle)
-{
-	return syscall(UI_CIN_RUNCINEMATIC, handle);
+e_status trap_CIN_RunCinematic (int handle) {
+  return syscall(UI_CIN_RUNCINEMATIC, handle);
 }
  
+
 // draws the current frame
-DLLFUNCB void trap_CIN_DrawCinematic (int handle)
-{
-	syscall(UI_CIN_DRAWCINEMATIC, handle);
+void trap_CIN_DrawCinematic (int handle) {
+  syscall(UI_CIN_DRAWCINEMATIC, handle);
 }
  
+
 // allows you to resize the animation dynamically
-DLLFUNCB void trap_CIN_SetExtents (int handle, int x, int y, int w, int h)
-{
-	syscall(UI_CIN_SETEXTENTS, handle, x, y, w, h);
+void trap_CIN_SetExtents (int handle, int x, int y, int w, int h) {
+  syscall(UI_CIN_SETEXTENTS, handle, x, y, w, h);
 }
 
-DLLFUNCB void trap_R_RemapShader( const char *oldShader, const char *newShader, const char *timeOffset ) 
-{
+
+void	trap_R_RemapShader( const char *oldShader, const char *newShader, const char *timeOffset ) {
 	syscall( UI_R_REMAP_SHADER, oldShader, newShader, timeOffset );
 }
 
-DLLFUNCB qboolean trap_VerifyCDKey( const char *key, const char *chksum)
-{
+qboolean trap_VerifyCDKey( const char *key, const char *chksum) {
 	return syscall( UI_VERIFY_CDKEY, key, chksum);
 }
 
-DLLFUNCB void trap_SetPbClStatus( int status )
-{
+void trap_SetPbClStatus( int status ) {
 	syscall( UI_SET_PBCLSTATUS, status );
 }

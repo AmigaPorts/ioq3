@@ -341,6 +341,7 @@ ParseFace
 ===============
 */
 static void ParseFace( dsurface_t *ds, drawVert_t *verts, msurface_t *surf, int *indexes )
+//static void ParseFace( dsurface_t *ds, drawVert_t *verts, msurface_t *surf, glIndex_t *indexes ) // 16 bit indices test - Cowcat
 {
 	int			i, j;
 	srfSurfaceFace_t	*cv;
@@ -376,6 +377,7 @@ static void ParseFace( dsurface_t *ds, drawVert_t *verts, msurface_t *surf, int 
 	sfaceSize = offsetof( srfSurfaceFace_t, points ) + sizeof(*cv->points) * numPoints;
 	ofsIndexes = sfaceSize;
 	sfaceSize += sizeof( int ) * numIndexes;
+	//sfaceSize += sizeof( glIndex_t ) * numIndexes; // Cowcat
 
 	cv = ri.Hunk_Alloc( sfaceSize, h_low );
 
@@ -407,6 +409,7 @@ static void ParseFace( dsurface_t *ds, drawVert_t *verts, msurface_t *surf, int 
 	for ( i = 0 ; i < numIndexes ; i++ )
 	{
 		((int *)((byte *)cv + cv->ofsIndices ))[i] = LittleLong( indexes[ i ] );
+		//((glIndex_t *)((byte *)cv + cv->ofsIndices ))[i] = LittleShort( indexes[ i ] ); // Cowcat
 	}
 
 	// take the plane information from the lightmap vector
@@ -508,6 +511,7 @@ ParseTriSurf
 ===============
 */
 static void ParseTriSurf( dsurface_t *ds, drawVert_t *verts, msurface_t *surf, int *indexes )
+//static void ParseTriSurf( dsurface_t *ds, drawVert_t *verts, msurface_t *surf, glIndex_t *indexes ) // 16 bit indices test - Cowcat
 {
 	srfTriangles_t	*tri;
 	int		i, j;
@@ -534,6 +538,7 @@ static void ParseTriSurf( dsurface_t *ds, drawVert_t *verts, msurface_t *surf, i
 	tri->numIndexes = numIndexes;
 	tri->verts = (drawVert_t *)(tri + 1);
 	tri->indexes = (int *)(tri->verts + tri->numVerts );
+	//tri->indexes = (glIndex_t *)(tri->verts + tri->numVerts ); // Cowcat
 	surf->data = (surfaceType_t *)tri;
 
 	// copy vertexes
@@ -565,8 +570,10 @@ static void ParseTriSurf( dsurface_t *ds, drawVert_t *verts, msurface_t *surf, i
 	for ( i = 0 ; i < numIndexes ; i++ )
 	{
 		tri->indexes[i] = LittleLong( indexes[i] );
+		//tri->indexes[i] = LittleShort( indexes[i] ); // Cowcat
 
 		if ( tri->indexes[i] < 0 || tri->indexes[i] >= numVerts )
+		//if ( tri->indexes[i] >= numVerts ) // Cowcat
 		{
 			ri.Error( ERR_DROP, "Bad index in triangle surface" );
 		}
@@ -579,6 +586,7 @@ ParseFlare
 ===============
 */
 static void ParseFlare( dsurface_t *ds, drawVert_t *verts, msurface_t *surf, int *indexes )
+//static void ParseFlare( dsurface_t *ds, drawVert_t *verts, msurface_t *surf, glIndex_t *indexes ) // 16 bit indices test - Cowcat
 {
 	srfFlare_t	*flare;
 	int		i;
@@ -1567,7 +1575,11 @@ static void R_LoadSurfaces( lump_t *surfs, lump_t *verts, lump_t *indexLump )
 	dsurface_t	*in;
 	msurface_t	*out;
 	drawVert_t	*dv;
+
 	int		*indexes;
+	//int		*indexes32; // Cowcat
+	//glIndex_t	*indexes16; // Cowcat
+
 	int		count;
 	int		numFaces, numMeshes, numTriSurfs, numFlares;
 	int		i;
@@ -1589,10 +1601,24 @@ static void R_LoadSurfaces( lump_t *surfs, lump_t *verts, lump_t *indexLump )
 	if (verts->filelen % sizeof(*dv))
 		ri.Error (ERR_DROP, "LoadMap: funny lump size in %s",s_worldData.name);
 
+	
 	indexes = (void *)(fileBase + indexLump->fileofs);
 
 	if ( indexLump->filelen % sizeof(*indexes))
+	
+	//indexes32 = (void *)(fileBase + indexLump->fileofs); // Cowcat
+
+	//if ( indexLump->filelen % sizeof(*indexes32)) // Cowcat
 		ri.Error (ERR_DROP, "LoadMap: funny lump size in %s",s_worldData.name);
+
+	#if 0
+	// Cowcat
+	indexes16 = (glIndex_t *)indexes32;
+
+	for (i = 0; i < indexLump->filelen / sizeof(*indexes32); ++i)
+		indexes16[i] = (glIndex_t) indexes32[i];
+	//
+	#endif
 
 	out = ri.Hunk_Alloc ( count * sizeof(*out), h_low );	
 
@@ -1610,16 +1636,19 @@ static void R_LoadSurfaces( lump_t *surfs, lump_t *verts, lump_t *indexLump )
 
 			case MST_TRIANGLE_SOUP:
 				ParseTriSurf( in, dv, out, indexes );
+				//ParseTriSurf( in, dv, out, indexes16 ); // Cowcat
 				numTriSurfs++;
 				break;
 
 			case MST_PLANAR:
 				ParseFace( in, dv, out, indexes );
+				//ParseFace( in, dv, out, indexes16 ); // Cowcat
 				numFaces++;
 				break;
 
 			case MST_FLARE:
 				ParseFlare( in, dv, out, indexes );
+				//ParseFlare( in, dv, out, indexes16 ); // Cowcat
 				numFlares++;
 				break;
 

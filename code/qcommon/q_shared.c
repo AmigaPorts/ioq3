@@ -138,6 +138,7 @@ void COM_DefaultExtension( char *path, int maxSize, const char *extension )
 	else
 		Q_strcat(path, maxSize, extension);
 }
+
 /*
 ============================================================================
 
@@ -225,7 +226,7 @@ qint64 Long64NoSwap (qint64 ll)
 	return ll;
 }
 
-#if defined(AMIGA) && defined(__VBCC__) && defined (__PPC__)
+#if defined(__amiga__) && defined(__VBCC__) && defined (__PPC__)
 
 int __LittleLong(__reg("r4") int) =
 	"\trlwinm\t3,4,24,0,31\n"
@@ -1162,7 +1163,8 @@ int Q_CountChar(const char *string, char tocount)
 	return count;
 }
 
-#if 0
+#if 0 // old Cowcat
+
 void QDECL Com_sprintf( char *dest, int size, const char *fmt, ...)
 {
 	int		len;

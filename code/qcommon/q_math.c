@@ -602,7 +602,8 @@ void VectorRotate( vec3_t in, vec3_t matrix[3], vec3_t out )
 
 
 
-#if !idppc
+#if !idppc // fix q_shared.h !!! - Cowcat
+//#if !defined (__GNUC__) && !defined (__PPC__)
 
 /*
 ** float q_rsqrt( float number )
@@ -1147,9 +1148,8 @@ int Q_isnan( float x )
 	return (int)( (unsigned int)fi.ui >> 31 );
 }
 
-#ifndef Q3_VM
-#if defined(AMIGA) && defined (__VBCC__)
-
+//#if !defined ( Q3_VM ) || !defined(VBCC)
+#if !defined ( __GNUC__ )
 int VectorCompare( const vec3_t v1, const vec3_t v2 )
 {
 	if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
@@ -1214,5 +1214,4 @@ void CrossProduct( const vec3_t v1, const vec3_t v2, vec3_t cross )
 	cross[2] = v1[0]*v2[1] - v1[1]*v2[0];
 }
 
-#endif // AMIGA
-#endif // no Q3_VM
+#endif

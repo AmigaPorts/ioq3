@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/qcommon.h"
 #include "tr_public.h"
 
-#if defined(AMIGA) && defined(__VBCC__)
+#if defined(__amiga__) && defined(__VBCC__)
 
 #undef LittleShort
 #undef LittleLong
@@ -704,6 +704,7 @@ typedef struct {
 	// triangle definitions
 	int			numIndexes;
 	int			*indexes;
+	//glIndex_t		*indexes; // 16 bit indices test - Cowcat
 
 	int			numVerts;
 	drawVert_t		*verts;
@@ -1382,6 +1383,7 @@ typedef struct shaderCommands_s
 
 	shader_t	*shader;
 	float		shaderTime;
+
 	int		fogNum;
 
 	int		dlightBits;	// or together of all vertexDlightBits

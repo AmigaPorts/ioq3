@@ -136,31 +136,6 @@ void R_RemapShader(const char *shaderName, const char *newShaderName, const char
 	}
 }
 
-#if 0
-// spearmint test - Cowcat
-static ID_INLINE colorGen_t R_DiffuseColorGen( int lightmapIndex )
-{
-	colorGen_t rgbGen;
-
-	if ( lightmapIndex == LIGHTMAP_NONE )
-	{
-		rgbGen = CGEN_LIGHTING_DIFFUSE;
-	}
-
-	else if ( lightmapIndex == LIGHTMAP_2D )
-	{
-		rgbGen = CGEN_VERTEX;
-	}
-
-	else
-	{
-		rgbGen = CGEN_EXACT_VERTEX;
-	}
-
-	return rgbGen;
-}
-#endif
-
 /*
 ===============
 ParseVector
@@ -1096,7 +1071,6 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 			else if ( !Q_stricmp( token, "lightingDiffuse" ) )
 			{
 				stage->rgbGen = CGEN_LIGHTING_DIFFUSE;
-				//stage->rgbGen = R_DiffuseColorGen ( shader.lightmapIndex ); // spearmint test - Cowcat
 			}
 
 			else if ( !Q_stricmp( token, "oneMinusVertex" ) )
@@ -2523,8 +2497,6 @@ static void VertexLightingCollapse( void )
 		stages[0].stateBits &= ~( GLS_DSTBLEND_BITS | GLS_SRCBLEND_BITS );
 		stages[0].stateBits |= GLS_DEPTHMASK_TRUE;
 
-		#if 1
-
 		if ( shader.lightmapIndex == LIGHTMAP_NONE )
 		{
 			stages[0].rgbGen = CGEN_LIGHTING_DIFFUSE;
@@ -2534,12 +2506,6 @@ static void VertexLightingCollapse( void )
 		{
 			stages[0].rgbGen = CGEN_EXACT_VERTEX;
 		}
-
-		#else // spearmint test - Cowcat
-
-		stages[0].rgbGen = R_DiffuseColorGen ( shader.lightmapIndex );
-
-		#endif
 		
 		stages[0].alphaGen = AGEN_SKIP; 
 	
@@ -2974,6 +2940,8 @@ most world construction surfaces.
 ===============
 */
 
+#if 1
+
 static void SetImplicitShaderStages( image_t *image) // spearmint idea - Cowcat
 {
 	//
@@ -3006,7 +2974,6 @@ static void SetImplicitShaderStages( image_t *image) // spearmint idea - Cowcat
 			stages[0].rgbGen = CGEN_VERTEX;
 			stages[0].alphaGen = AGEN_VERTEX;
 			stages[0].stateBits = GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
-			//stages[0].stateBits = GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA; // see shade/IterateStagesGeneric - Cowcat
 			break;
 		
 		case LIGHTMAP_WHITEIMAGE:
@@ -3038,6 +3005,8 @@ static void SetImplicitShaderStages( image_t *image) // spearmint idea - Cowcat
 			break;
 	}
 }
+
+#endif
 
 shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImage )
 {
@@ -3149,7 +3118,68 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 		return FinishShader();
 	}
 
+	//
+	// create the default shading commands
+	//
 	SetImplicitShaderStages (image);
+
+	#if 0
+	
+	if ( shader.lightmapIndex == LIGHTMAP_NONE )
+	{
+		// dynamic colors at vertexes
+		stages[0].bundle[0].image[0] = image;
+		stages[0].active = qtrue;
+		stages[0].rgbGen = CGEN_LIGHTING_DIFFUSE;
+		stages[0].stateBits = GLS_DEFAULT;
+	}
+
+	else if ( shader.lightmapIndex == LIGHTMAP_BY_VERTEX )
+	{
+		// explicit colors at vertexes
+		stages[0].bundle[0].image[0] = image;
+		stages[0].active = qtrue;
+		stages[0].rgbGen = CGEN_EXACT_VERTEX;
+		stages[0].alphaGen = AGEN_SKIP;
+		stages[0].stateBits = GLS_DEFAULT;
+	}
+
+	else if ( shader.lightmapIndex == LIGHTMAP_2D )
+	{
+		// GUI elements
+		stages[0].bundle[0].image[0] = image;
+		stages[0].active = qtrue;
+		stages[0].rgbGen = CGEN_VERTEX;
+		stages[0].alphaGen = AGEN_VERTEX;
+		stages[0].stateBits = GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
+	}
+
+	else if ( shader.lightmapIndex == LIGHTMAP_WHITEIMAGE )
+	{
+		// fullbright level
+		stages[0].bundle[0].image[0] = tr.whiteImage;
+		stages[0].active = qtrue;
+		stages[0].rgbGen = CGEN_IDENTITY_LIGHTING;
+		stages[0].stateBits = GLS_DEFAULT;
+	}
+
+	else
+	{
+		// two pass lightmap
+		stages[0].bundle[0].image[0] = tr.lightmaps[shader.lightmapIndex];
+		stages[0].bundle[0].isLightmap = qtrue;
+		stages[0].active = qtrue;
+		stages[0].rgbGen = CGEN_IDENTITY;	// lightmaps are scaled on creation
+							// for identitylight
+		stages[0].stateBits = GLS_DEFAULT;
+
+		stages[1].bundle[0].image[0] = image;
+		stages[1].active = qtrue;
+		stages[1].rgbGen = CGEN_IDENTITY;
+		stages[1].stateBits |= GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO;
+	}
+
+	#endif
 
 	return FinishShader();
 }
@@ -3196,7 +3226,73 @@ qhandle_t RE_RegisterShaderFromImage(const char *name, int lightmapIndex, image_
 	shader.needsST2 = qtrue;
 	shader.needsColor = qtrue;
 
+	//
+	// create the default shading commands
+	//
 	SetImplicitShaderStages (image);
+
+	#if 0
+	
+	if ( shader.lightmapIndex == LIGHTMAP_NONE )
+	{
+		// dynamic colors at vertexes
+		stages[0].bundle[0].image[0] = image;
+		stages[0].active = qtrue;
+		stages[0].rgbGen = CGEN_LIGHTING_DIFFUSE;
+		stages[0].stateBits = GLS_DEFAULT;
+	}
+
+	else if ( shader.lightmapIndex == LIGHTMAP_BY_VERTEX )
+	{
+		// explicit colors at vertexes
+		stages[0].bundle[0].image[0] = image;
+		stages[0].active = qtrue;
+		stages[0].rgbGen = CGEN_EXACT_VERTEX;
+		stages[0].alphaGen = AGEN_SKIP;
+		stages[0].stateBits = GLS_DEFAULT;
+	}
+
+	else if ( shader.lightmapIndex == LIGHTMAP_2D )
+	{
+		// GUI elements
+		stages[0].bundle[0].image[0] = image;
+		stages[0].active = qtrue;
+		stages[0].rgbGen = CGEN_VERTEX;
+		stages[0].alphaGen = AGEN_VERTEX;
+		stages[0].stateBits = GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
+	}
+
+	else if ( shader.lightmapIndex == LIGHTMAP_WHITEIMAGE )
+	{
+		// fullbright level
+		stages[0].bundle[0].image[0] = tr.whiteImage;
+		stages[0].active = qtrue;
+		stages[0].rgbGen = CGEN_IDENTITY_LIGHTING;
+		stages[0].stateBits = GLS_DEFAULT;
+
+		stages[1].bundle[0].image[0] = image;
+		stages[1].active = qtrue;
+		stages[1].rgbGen = CGEN_IDENTITY;
+		stages[1].stateBits |= GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO;
+	}
+
+	else
+	{
+		// two pass lightmap
+		stages[0].bundle[0].image[0] = tr.lightmaps[shader.lightmapIndex];
+		stages[0].bundle[0].isLightmap = qtrue;
+		stages[0].active = qtrue;
+		stages[0].rgbGen = CGEN_IDENTITY;	// lightmaps are scaled on creation
+							// for identitylight
+		stages[0].stateBits = GLS_DEFAULT;
+
+		stages[1].bundle[0].image[0] = image;
+		stages[1].active = qtrue;
+		stages[1].rgbGen = CGEN_IDENTITY;
+		stages[1].stateBits |= GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO;
+	}
+
+	#endif
 
 	sh = FinishShader();
 	return sh->index; 

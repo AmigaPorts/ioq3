@@ -43,7 +43,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define QKEY_FILE "qkey"
 #define QKEY_SIZE 2048
 
-#define	RETRANSMIT_TIMEOUT	3000	// time between connection packet retransmits
+#define RETRANSMIT_TIMEOUT	3000	// time between connection packet retransmits
 
 // snapshots are a view of the server at a given time
 typedef struct {
@@ -88,8 +88,7 @@ typedef struct {
 // the parseEntities array must be large enough to hold PACKET_BACKUP frames of
 // entities, so that when a delta compressed message arives from the server
 // it can be un-deltad from the original 
-//#define	MAX_PARSE_ENTITIES	2048
-#define	MAX_PARSE_ENTITIES ( PACKET_BACKUP * MAX_SNAPSHOT_ENTITIES ) // new ioq3 - Cowcat
+#define MAX_PARSE_ENTITIES ( PACKET_BACKUP * MAX_SNAPSHOT_ENTITIES )
 
 extern int g_console_field_width;
 
@@ -141,7 +140,7 @@ typedef struct {
 	// big stuff at end of structure so most offsets are 15 bits or less
 	clSnapshot_t	snapshots[PACKET_BACKUP];
 
-	entityState_t	entityBaselines[MAX_GENTITIES];	// for delta compression when not in previous frame
+	entityState_t	entityBaselines[MAX_GENTITIES]; // for delta compression when not in previous frame
 
 	entityState_t	parseEntities[MAX_PARSE_ENTITIES];
 
@@ -199,7 +198,7 @@ typedef struct {
 	char		serverCommands[MAX_RELIABLE_COMMANDS][MAX_STRING_CHARS];
 
 	// file transfer from server
-	fileHandle_t download;
+	fileHandle_t	download;
 	char		downloadTempName[MAX_OSPATH];
 	char		downloadName[MAX_OSPATH];
 
@@ -215,9 +214,9 @@ typedef struct {
 	int		sv_allowDownload;
 	char		sv_dlURL[MAX_CVAR_VALUE_STRING];
 	int		downloadNumber;
-	int		downloadBlock;	// block we are waiting for
-	int		downloadCount;	// how many bytes we got
-	int		downloadSize;	// how many bytes we got
+	int		downloadBlock;		// block we are waiting for
+	int		downloadCount;		// how many bytes we got
+	int		downloadSize;		// how many bytes we got
 	char		downloadList[MAX_INFO_STRING]; // list of paks we need to download
 	qboolean	downloadRestart;	// if true, we need to do another FS_Restart because we downloaded a pak
 
@@ -226,7 +225,7 @@ typedef struct {
 	qboolean	spDemoRecording;
 	qboolean	demorecording;
 	qboolean	demoplaying;
-	qboolean	demowaiting;	// don't record until a non-delta message is received
+	qboolean	demowaiting;		// don't record until a non-delta message is received
 	qboolean	firstDemoFrameSkipped;
 	fileHandle_t	demofile;
 
@@ -239,37 +238,37 @@ typedef struct {
 	unsigned char	timeDemoDurations[ MAX_TIMEDEMO_DURATIONS ];	// log of frame durations
 
 #ifdef USE_VOIP
-	qboolean 	speexInitialized;
-	int 		speexFrameSize;
-	int 		speexSampleRate;
+	qboolean	speexInitialized;
+	int		speexFrameSize;
+	int		speexSampleRate;
 
 	// incoming data...
 	// !!! FIXME: convert from parallel arrays to array of a struct.
-	SpeexBits speexDecoderBits[MAX_CLIENTS];
-	void *speexDecoder[MAX_CLIENTS];
-	byte voipIncomingGeneration[MAX_CLIENTS];
-	int voipIncomingSequence[MAX_CLIENTS];
-	float voipGain[MAX_CLIENTS];
-	qboolean voipIgnore[MAX_CLIENTS];
-	qboolean voipMuteAll;
+	SpeexBits	speexDecoderBits[MAX_CLIENTS];
+	void		*speexDecoder[MAX_CLIENTS];
+	byte		voipIncomingGeneration[MAX_CLIENTS];
+	int		voipIncomingSequence[MAX_CLIENTS];
+	float		voipGain[MAX_CLIENTS];
+	qboolean	voipIgnore[MAX_CLIENTS];
+	qboolean	voipMuteAll;
 
 	// outgoing data...
-	int voipTarget1;  // these three ints make up a bit mask of 92 bits.
-	int voipTarget2;  //  the bits say who a VoIP pack is addressed to:
-	int voipTarget3;  //  (1 << clientnum). See cl_voipSendTarget cvar.
+	int		voipTarget1;  // these three ints make up a bit mask of 92 bits.
+	int		voipTarget2;  //  the bits say who a VoIP pack is addressed to:
+	int		voipTarget3;  //  (1 << clientnum). See cl_voipSendTarget cvar.
 	SpeexPreprocessState *speexPreprocessor;
-	SpeexBits speexEncoderBits;
-	void *speexEncoder;
-	int voipOutgoingDataSize;
-	int voipOutgoingDataFrames;
-	int voipOutgoingSequence;
-	byte voipOutgoingGeneration;
-	byte voipOutgoingData[1024];
-	float voipPower;
+	SpeexBits	speexEncoderBits;
+	void		*speexEncoder;
+	int		voipOutgoingDataSize;
+	int		voipOutgoingDataFrames;
+	int		voipOutgoingSequence;
+	byte		voipOutgoingGeneration;
+	byte		voipOutgoingData[1024];
+	float		voipPower;
 #endif
 
 #ifdef LEGACY_PROTOCOL
-	qboolean compat;
+	qboolean	compat;
 #endif
 
 	// big stuff at end of structure so most offsets are 15 bits or less
@@ -296,9 +295,9 @@ typedef struct {
 
 typedef struct {
 	netadr_t	adr;
-	char	  	hostName[MAX_NAME_LENGTH];
-	char	  	mapName[MAX_NAME_LENGTH];
-	char	  	game[MAX_NAME_LENGTH];
+	char		hostName[MAX_NAME_LENGTH];
+	char		mapName[MAX_NAME_LENGTH];
+	char		game[MAX_NAME_LENGTH];
 	int		netType;
 	int		gameType;
 	int		clients;
@@ -340,7 +339,7 @@ typedef struct {
 	int		numfavoriteservers;
 	serverInfo_t	favoriteServers[MAX_OTHER_SERVERS];
 
-	int 		pingUpdateSource;		// source currently pinging or updating
+	int		pingUpdateSource;		// source currently pinging or updating
 
 	// update server info
 	netadr_t	updateServer;
@@ -348,6 +347,8 @@ typedef struct {
 	char		updateInfoString[MAX_INFO_STRING];
 
 	netadr_t	authorizeServer;
+
+	netadr_t	rconAddress;
 
 	// rendering info
 	glconfig_t	glconfig;
@@ -407,7 +408,7 @@ extern	cvar_t	*cl_aviMotionJpeg;
 extern	cvar_t	*cl_activeAction;
 
 extern	cvar_t	*cl_allowDownload;
-extern  cvar_t  *cl_downloadMethod;
+extern	cvar_t	*cl_downloadMethod;
 extern	cvar_t	*cl_conXOffset;
 extern	cvar_t	*cl_inGameVideo;
 
@@ -607,7 +608,7 @@ void LAN_SaveServersToCache( void );
 //
 // cl_net_chan.c
 //
-void CL_Netchan_Transmit( netchan_t *chan, msg_t* msg);	//int length, const byte *data );
+void CL_Netchan_Transmit( netchan_t *chan, msg_t* msg); //int length, const byte *data );
 qboolean CL_Netchan_Process( netchan_t *chan, msg_t *msg );
 
 //

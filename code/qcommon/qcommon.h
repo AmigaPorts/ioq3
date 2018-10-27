@@ -379,14 +379,13 @@ intptr_t QDECL VM_Call( vm_t *vm, int callNum, ... );
 //#define VM_Call(VM, ...) VM_Call_Impl(VM, &(int[13]){__VA_ARGS__})
 //intptr_t QDECL VM_Call_Impl( vm_t *vm, int (*args)[13] );
 
-
 void	VM_Debug( int level );
 void	*VM_ArgPtr( intptr_t intValue );
 void	*VM_ExplicitArgPtr( vm_t *vm, intptr_t intValue );
 
 #define VMA(x) VM_ArgPtr(args[x])
 
-#if !defined(AMIGA) && !defined(__VBCC__)
+#if !defined(__VBCC__) // with vbcc this gets glued on all objects, needed or not - Cowcat
 static ID_INLINE float _vmf(intptr_t x)
 {
 	floatint_t fi;

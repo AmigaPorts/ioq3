@@ -54,7 +54,7 @@ void SetPlaneSignbits (cplane_t *out)
 #define BOX_LEAFS		2
 #define BOX_PLANES		12
 
-#if defined(AMIGA) && defined(__VBCC__)
+#if defined(__amiga__) && defined(__VBCC__)
 
 #undef LittleShort
 #undef LittleLong
@@ -102,6 +102,14 @@ float __LittleFloat(__reg("fp0") float) =
 #define LittleShort(x) __LittleShort(x)
 #define LittleLong(x) __LittleLong(x)
 #define LittleFloat(x) __LittleFloat(x)
+
+#else // (__GNUC__)
+
+#undef LittleShort
+#undef LittleLong
+
+#define LittleShort(x) ((((uint16_t)(x) & 0xff) << 8 ) | ((uint16_t)(x) >> 8))
+#define LittleLong(x) (((uint32_t)(x) << 24 ) | (((uint32_t)(x) & 0xff00) << 8 ) | (((uint32_t)(x) & 0x00ff0000) >> 8 ) | ((uint32_t)(x) >> 24))
 
 #endif
 

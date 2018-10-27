@@ -219,7 +219,7 @@ void S_TransferPaintBuffer(int endtime)
 
 		else if (dma.samplebits == 8)
 		{
-			#ifdef AMIGA // Cowcat
+			#ifdef __amiga__ // Cowcat
 
 			// Amiga needs signed 8 bit data
 			char *out = (char *) pbuf;
@@ -701,31 +701,45 @@ void S_PaintChannelFromMuLaw( channel_t *ch, sfx_t *sc, int count, int sampleOff
 		}
 	}
 
-	if (!ch->doppler) {
+	if (!ch->doppler)
+	{
 		samples = (byte *)chunk->sndChunk + sampleOffset;
-		for ( i=0 ; i<count ; i++ ) {
+
+		for ( i=0 ; i<count ; i++ )
+		{
 			data  = mulawToShort[*samples];
 			samp[i].left += (data * leftvol)>>8;
 			samp[i].right += (data * rightvol)>>8;
 			samples++;
-			if (samples == (byte *)chunk->sndChunk+(SND_CHUNK_SIZE*2)) {
+
+			if (samples == (byte *)chunk->sndChunk+(SND_CHUNK_SIZE*2))
+			{
 				chunk = chunk->next;
 				samples = (byte *)chunk->sndChunk;
 			}
 		}
-	} else {
+	}
+
+	else
+	{
 		ooff = sampleOffset;
 		samples = (byte *)chunk->sndChunk;
-		for ( i=0 ; i<count ; i++ ) {
+
+		for ( i=0 ; i<count ; i++ )
+		{
 			data  = mulawToShort[samples[(int)(ooff)]];
 			ooff = ooff + ch->dopplerScale;
 			samp[i].left += (data * leftvol)>>8;
 			samp[i].right += (data * rightvol)>>8;
-			if (ooff >= SND_CHUNK_SIZE*2) {
+
+			if (ooff >= SND_CHUNK_SIZE*2)
+			{
 				chunk = chunk->next;
+
 				if (!chunk) {
 					chunk = sc->soundData;
 				}
+
 				samples = (byte *)chunk->sndChunk;
 				ooff = 0.0;
 			}

@@ -213,8 +213,6 @@ static void Demos_MenuInit( void ) {
 	s_demos.list.itemnames			= (const char **)s_demos.demolist;
 	s_demos.list.columns			= 3;
 
-	#if 1
-
 	protocolLegacy = trap_Cvar_VariableValue("com_legacyprotocol");
 	protocol = trap_Cvar_VariableValue("com_protocol");
 
@@ -266,37 +264,6 @@ static void Demos_MenuInit( void ) {
 		//degenerate case, not selectable
 		s_demos.go.generic.flags |= (QMF_INACTIVE|QMF_HIDDEN);
 	}
-
-	#else // Cowcat
-
-	Com_sprintf(extension, sizeof(extension), "dm_%d", (int)trap_Cvar_VariableValue( "protocol" ) );
-	s_demos.list.numitems			= trap_FS_GetFileList( "demos", extension, s_demos.names, NAMEBUFSIZE );
-
-	if (!s_demos.list.numitems) {
-		strcpy( s_demos.names, "No Demos Found." );
-		s_demos.list.numitems = 1;
-
-		//degenerate case, not selectable
-		s_demos.go.generic.flags |= (QMF_INACTIVE|QMF_HIDDEN);
-	}
-	else if (s_demos.list.numitems > MAX_DEMOS)
-		s_demos.list.numitems = MAX_DEMOS;
-
-	demoname = s_demos.names;
-	for ( i = 0; i < s_demos.list.numitems; i++ ) {
-		s_demos.list.itemnames[i] = demoname;
-		
-		// strip extension
-		len = strlen( demoname );
-		if (!Q_stricmp(demoname +  len - 4,".dm3"))
-			demoname[len-4] = '\0';
-
-//		Q_strupr(demoname);
-
-		demoname += len + 1;
-	}
-
-	#endif
 
 	Menu_AddItem( &s_demos.menu, &s_demos.banner );
 	Menu_AddItem( &s_demos.menu, &s_demos.framel );

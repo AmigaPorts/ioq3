@@ -840,7 +840,6 @@ void Svcmd_BotList_f( void ) {
 		trap_Print(va("%-16s %-16s %-20s %-20s\n", name, model, aifile, funname));
 	}
 }
-
 /*
 ===============
 G_SpawnBots

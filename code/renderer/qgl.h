@@ -26,14 +26,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef __QGL_H__
 #define __QGL_H__
 
-#ifdef AMIGA 
-#	include <mgl/gl.h>
+#ifdef __amiga__
+
+#include <mgl/gl.h>
+
 #else
 
 #ifdef USE_LOCAL_HEADERS
-#	include <GL/gl.h> //include "SDL_opengl.h"
+#include <GL/gl.h> //include "SDL_opengl.h"
 #else
-#	include <GL/gl.h> //include <SDL_opengl.h>
+#include <GL/gl.h> //include <SDL_opengl.h>
 #endif
 
 #endif

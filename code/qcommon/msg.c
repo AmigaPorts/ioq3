@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stddef.h>   //added Cowcat
 
-#if defined(AMIGA) && defined(__VBCC__)
+#if defined(__amiga__) && defined(__VBCC__)
 
 #undef LittleShort
 #undef LittleLong
@@ -54,6 +54,14 @@ int __LittleLong(__reg("d0") int) =
 #define LittleShort(x) __LittleShort(x)
 #define LittleLong(x) __LittleLong(x)
 
+#else // (__GNUC__)
+
+#undef LittleShort
+#undef LittleLong
+
+#define LittleShort(x) ((((uint16_t)(x) & 0xff) << 8 ) | ((uint16_t)(x) >> 8))
+#define LittleLong(x) (((uint32_t)(x) << 24 ) | (((uint32_t)(x) & 0xff00) << 8 ) | (((uint32_t)(x) & 0x00ff0000) >> 8 ) | ((uint32_t)(x) >> 24))
+
 #endif
 
 static huffman_t msgHuff;
@@ -70,8 +78,6 @@ int pcount[256];
 Handles byte ordering and avoids alignment errors
 ==============================================================================
 */
-
-//int oldsize = 0; // Cowcat
 
 void MSG_initHuffman( void );
 
@@ -407,8 +413,8 @@ int MSG_ReadBits( msg_t *msg, int bits )
 			for(i=0; i<bits; i+=8)
 			{
 				Huff_offsetReceive (msgHuff.decompressor.tree, &get, msg->data, &msg->bit, msg->cursize << 3);
-				//value |= (get<<(i+nbits));
-				value = (unsigned int)value | ((unsigned int)get<<(i+nbits)); // new ioQ3 - Cowcat
+
+				value = (unsigned int)value | ((unsigned int)get<<(i+nbits));
 				
 				if(msg->bit > msg->cursize << 3)
 				{	
@@ -1098,7 +1104,7 @@ typedef struct {
 } netField_t;
 
 
-#if defined(AMIGA) && defined(__VBCC__)
+#if defined(__amiga__) && defined(__VBCC__)
 
 // old workaround - Cowcat
 #define NETF(x) (size_t)offsetof(entityState_t,x)
@@ -1568,7 +1574,7 @@ plyer_state_t communication
 ============================================================================
 */
 
-#if defined(AMIGA) && defined(__VBCC__)
+#if defined(__amiga__) && defined(__VBCC__)
 
 // old workaround - Cowcat
 #define PSF(x) (size_t)offsetof(playerState_t,x)

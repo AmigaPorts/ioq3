@@ -138,7 +138,7 @@ void CL_ShowIP_f(void);
 void CL_ServerStatus_f(void);
 void CL_ServerStatusResponse( netadr_t from, msg_t *msg );
 
-#if defined(AMIGA) && defined(__VBCC__)
+#if defined(__amiga__) && defined(__VBCC__)
 
 #undef LittleLong
 
@@ -1111,6 +1111,7 @@ void CL_PlayDemo_f( void )
 	{
 		CL_ReadDemoMessage();
 	}
+
 	// don't get the first snapshot this frame, to prevent the long
 	// time from the gamestate load from messing causing a time skip
 	clc.firstDemoFrameSkipped = qfalse;
@@ -1779,7 +1780,7 @@ void CL_Connect_f( void )
 		if(!strcmp(Cmd_Argv(1), "-4"))
 			family = NA_IP;
 
-#ifndef AMIGA //__amigaos4__
+#ifndef __amiga__
 		else if(!strcmp(Cmd_Argv(1), "-6"))
 			family = NA_IP6;
 #endif
@@ -1889,7 +1890,7 @@ CL_Rcon_f
 */
 void CL_Rcon_f( void )
 {
-	char	message[MAX_RCON_MESSAGE];
+	char		message[MAX_RCON_MESSAGE];
 	netadr_t	to;
 
 	if ( !rcon_client_password->string )
@@ -1935,6 +1936,7 @@ void CL_Rcon_f( void )
 	}
 	
 	NET_SendPacket (NS_CLIENT, strlen(message)+1, message, to);
+	cls.rconAddress = to;
 }
 
 /*
@@ -2394,7 +2396,7 @@ void CL_InitDownloads(void)
 			// if autodownloading is not enabled on the server
 			clc.state = CA_CONNECTED;
 
-			*clc.downloadTempName = *clc.downloadName = 0; // Cowcat check
+			*clc.downloadTempName = *clc.downloadName = 0;
 			Cvar_Set( "cl_downloadName", "" );
 
 			CL_NextDownload();
@@ -2487,41 +2489,6 @@ void CL_CheckForResend( void )
 	}
 }
 
-#if 0
-/*
-===================
-CL_DisconnectPacket
-
-Sometimes the server can drop the client and the netchan based
-disconnect can be lost.  If the client continues to send packets
-to the server, the server will send out of band disconnect packets
-to the client so it doesn't have to wait for the full timeout period.
-===================
-*/
-
-void CL_DisconnectPacket( netadr_t from )
-{
-	if ( cls.state < CA_AUTHORIZING ) {
-		return;
-	}
-
-	// if not from our server, ignore it
-	if ( !NET_CompareAdr( from, clc.netchan.remoteAddress ) ) {
-		return;
-	}
-
-	// if we have received packets within three seconds, ignore it
-	// (it might be a malicious spoof)
-	if ( cls.realtime - clc.lastPacketTime < 3000 ) {
-		return;
-	}
-
-	// drop the connection
-	Com_Printf( "Server disconnected for unknown reason\n" );
-	Cvar_Set("com_errorMessage", "Server disconnected for unknown reason\n" );
-	CL_Disconnect( qtrue );
-}
-#endif
 
 /*
 ===================
@@ -2584,7 +2551,7 @@ CL_ServersResponsePacket
 */
 void CL_ServersResponsePacket( const netadr_t* from, msg_t *msg, qboolean extended )
 {
-	int		i, count, total;
+	int		i, j, count, total;
 	netadr_t 	addresses[MAX_SERVERSPERPACKET];
 	int		numservers;
 	byte*		buffptr;
@@ -2629,7 +2596,7 @@ void CL_ServersResponsePacket( const netadr_t* from, msg_t *msg, qboolean extend
 
 			addresses[numservers].type = NA_IP;
 		}
-#ifndef AMIGA //__amigaos4__
+#ifndef __amiga__
 		// IPv6 address, if it's an extended response
 		else if (extended && *buffptr == '/')
 		{
@@ -2670,6 +2637,18 @@ void CL_ServersResponsePacket( const netadr_t* from, msg_t *msg, qboolean extend
 	{
 		// build net address
 		serverInfo_t *server = &cls.globalServers[count];
+
+		// Tequila: It's possible to have sent many master server requests. Then
+		// we may receive many times the same addresses from the master server.
+		// We just avoid to add a server if it is still in the global servers list.
+		for (j = 0; j < count; j++)
+		{
+			if (NET_CompareAdr(cls.globalServers[j].adr, addresses[i]))
+				break;
+		}
+
+		if (j < count)
+			continue;
 
 		CL_InitServerInfo( server, &addresses[i] );
 		// advance to next slot
@@ -2715,7 +2694,7 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg )
 
 	c = Cmd_Argv(0);
 
-	if( com_developer->integer) // new Cowcat
+	if( com_developer->integer) // Quake3e - Cowcat
 		Com_Printf ("CL packet %s: %s\n", NET_AdrToStringwPort(from), c);
 
 	// challenge from the server we are connecting to
@@ -2754,6 +2733,7 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg )
 						   "we have %d. Trying legacy protocol %d.\n",
 						   ver, com_protocol->integer, com_legacyprotocol->integer);
 				}
+
 				else
 #endif
 				{
@@ -2873,20 +2853,13 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg )
 		return;
 	}
 
-	#if 0
-	// a disconnect message from the server, which will happen if the server
-	// dropped the connection but it is still getting packets from us
-	if (!Q_stricmp(c, "disconnect"))
-	{
-		CL_DisconnectPacket( from );
-		return;
-	}
-	#endif
-
 	// echo request from server
 	if ( !Q_stricmp(c, "echo") )
 	{
-		NET_OutOfBandPrint( NS_CLIENT, from, "%s", Cmd_Argv(1) );
+		// NOTE: we may have to add exceptions for auth and update servers
+		if ( NET_CompareAdr( from, clc.serverAddress ) || NET_CompareAdr( from, cls.rconAddress ) )
+			NET_OutOfBandPrint( NS_CLIENT, from, "%s", Cmd_Argv(1) );
+
 		return;
 	}
 
@@ -2907,9 +2880,14 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg )
 	// echo request from server
 	if ( !Q_stricmp(c, "print") )
 	{
-		s = MSG_ReadString( msg );
-		Q_strncpyz( clc.serverMessage, s, sizeof( clc.serverMessage ) );
-		Com_Printf( "%s", s );
+		// NOTE: we may have to add exceptions for auth and update servers
+		if ( NET_CompareAdr( from, clc.serverAddress ) || NET_CompareAdr( from, cls.rconAddress ) )
+		{
+			s = MSG_ReadString( msg );
+			Q_strncpyz( clc.serverMessage, s, sizeof( clc.serverMessage ) );
+			Com_Printf( "%s", s );
+		}
+
 		return;
 	}
 
@@ -2967,7 +2945,7 @@ void CL_PacketEvent( netadr_t from, msg_t *msg )
 	//
 	if ( !NET_CompareAdr( from, clc.netchan.remoteAddress ) )
 	{
-		if( com_developer->integer) // new Cowcat
+		if( com_developer->integer) // Quake3e - Cowcat
 			Com_Printf ("%s:sequenced packet without connection\n", NET_AdrToStringwPort( from ) );
 
 		// FIXME: send a client disconnect?
@@ -3012,10 +2990,11 @@ void CL_CheckTimeout( void )
 	// check timeout
 	//
 	if ( ( !CL_CheckPaused() || !sv_paused->integer ) && clc.state >= CA_CONNECTED && clc.state != CA_CINEMATIC
-		&& cls.realtime - clc.lastPacketTime > cl_timeout->value*1000)
+		&& cls.realtime - clc.lastPacketTime > cl_timeout->value * 1000 )
 	{
 		if (++cl.timeoutcount > 5)
-		{	// timeoutcount saves debugger
+		{
+			// timeoutcount saves debugger
 			Com_Printf ("\nServer connection timed out.\n");
 			CL_Disconnect( qtrue );
 			return;
@@ -3362,7 +3341,7 @@ void *CL_RefMalloc( int size )
 
 int CL_ScaledMilliseconds(void)
 {
-	return Sys_Milliseconds()*com_timescale->value;
+	return Sys_Milliseconds() * com_timescale->value;
 }
 
 /*
@@ -3472,52 +3451,52 @@ video [filename]
 */
 void CL_Video_f( void )
 {
-  char  filename[ MAX_OSPATH ];
-  int   i, last;
+	char  filename[ MAX_OSPATH ];
+	int   i, last;
 
-  if( !clc.demoplaying )
-  {
-	Com_Printf( "The video command can only be used when playing back demos\n" );
-	return;
-  }
-
-  if( Cmd_Argc( ) == 2 )
-  {
-	// explicit filename
-	Com_sprintf( filename, MAX_OSPATH, "videos/%s.avi", Cmd_Argv( 1 ) );
-  }
-  else
-  {
-	// scan for a free filename
-	for( i = 0; i <= 9999; i++ )
+	if( !clc.demoplaying )
 	{
-	  int a, b, c, d;
-
-	  last = i;
-
-	  a = last / 1000;
-	  last -= a * 1000;
-	  b = last / 100;
-	  last -= b * 100;
-	  c = last / 10;
-	  last -= c * 10;
-	  d = last;
-
-	  Com_sprintf( filename, MAX_OSPATH, "videos/video%d%d%d%d.avi",
-		  a, b, c, d );
-
-	  if( !FS_FileExists( filename ) )
-		break; // file doesn't exist
+		Com_Printf( "The video command can only be used when playing back demos\n" );
+		return;
 	}
 
-	if( i > 9999 )
+	if( Cmd_Argc( ) == 2 )
 	{
-	  Com_Printf( S_COLOR_RED "ERROR: no free file names to create video\n" );
-	  return;
+		// explicit filename
+		Com_sprintf( filename, MAX_OSPATH, "videos/%s.avi", Cmd_Argv( 1 ) );
 	}
-  }
 
-  CL_OpenAVIForWriting( filename );
+	else
+	{
+		// scan for a free filename
+		for( i = 0; i <= 9999; i++ )
+		{
+	  		int a, b, c, d;
+
+	  		last = i;
+
+	  		a = last / 1000;
+	  		last -= a * 1000;
+	  		b = last / 100;
+	  		last -= b * 100;
+	  		c = last / 10;
+	  		last -= c * 10;
+	  		d = last;
+
+	  		Com_sprintf( filename, MAX_OSPATH, "videos/video%d%d%d%d.avi", a, b, c, d );
+
+	  		if( !FS_FileExists( filename ) )
+				break; // file doesn't exist
+		}
+
+		if( i > 9999 )
+		{
+	  		Com_Printf( S_COLOR_RED "ERROR: no free file names to create video\n" );
+	  		return;
+		}
+	}
+
+	CL_OpenAVIForWriting( filename );
 }
 
 /*
@@ -3798,7 +3777,7 @@ void CL_Shutdown( char *finalmsg, qboolean disconnect, qboolean quit )
 	if(!(com_cl_running && com_cl_running->integer))
 		return;
 	
-	Com_Printf( "----- Client Shutdown -----\n", finalmsg );
+	Com_Printf( "----- Client Shutdown (%s) -----\n", finalmsg );
 
 	if ( recursive )
 	{
@@ -3924,6 +3903,7 @@ void CL_ServerInfoPacket( netadr_t from, msg_t *msg )
 	// gamename is optional for legacy protocol
 	if (com_legacyprotocol->integer && !*gamename)
 		gameMismatch = qfalse;
+
 	else
 #endif
 		gameMismatch = !*gamename || strcmp(gamename, com_gamename->string) != 0;
@@ -3953,9 +3933,10 @@ void CL_ServerInfoPacket( netadr_t from, msg_t *msg )
 		if ( cl_pinglist[i].adr.port && !cl_pinglist[i].time && NET_CompareAdr( from, cl_pinglist[i].adr ) )
 		{
 			// calc ping time
-			cl_pinglist[i].time = cls.realtime - cl_pinglist[i].start + 1;
+			//cl_pinglist[i].time = cls.realtime - cl_pinglist[i].start + 1;
+			cl_pinglist[i].time = Sys_Milliseconds() - cl_pinglist[i].start; // test new - Cowcat
 			
-			if (com_developer->integer) // new Cowcat
+			if (com_developer->integer) // Quake3e - Cowcat
 				Com_Printf( "ping time %dms from %s\n", cl_pinglist[i].time, NET_AdrToString( from ) );
 
 			// save of info
@@ -3969,11 +3950,11 @@ void CL_ServerInfoPacket( netadr_t from, msg_t *msg )
 				case NA_IP:
 					type = 1;
 					break;
-#ifndef AMIGA //__amigaos4__
+		#ifndef __amiga__
 				case NA_IP6:
 					type = 2;
 					break;
-#endif
+		#endif
 				default:
 					type = 0;
 					break;
@@ -4033,6 +4014,7 @@ void CL_ServerInfoPacket( netadr_t from, msg_t *msg )
 CL_GetServerStatus
 ===================
 */
+#if 0
 serverStatus_t *CL_GetServerStatus( netadr_t from )
 {
 	serverStatus_t	*serverStatus;
@@ -4074,6 +4056,42 @@ serverStatus_t *CL_GetServerStatus( netadr_t from )
 	serverStatusCount++;
 	return &cl_serverStatusList[serverStatusCount & (MAX_SERVERSTATUSREQUESTS-1)];
 }
+
+#else // check Cowcat
+
+serverStatus_t *CL_GetServerStatus( netadr_t from )
+{
+	int i, oldest, oldestTime;
+
+	for (i = 0; i < MAX_SERVERSTATUSREQUESTS; i++)
+	{
+		if ( NET_CompareAdr( from, cl_serverStatusList[i].address ) ) {
+			return &cl_serverStatusList[i];
+		}
+	}
+
+	for (i = 0; i < MAX_SERVERSTATUSREQUESTS; i++)
+	{
+		if ( cl_serverStatusList[i].retrieved ) {
+			return &cl_serverStatusList[i];
+		}
+	}
+
+	oldest = -1;
+	oldestTime = 0;
+
+	for (i = 0; i < MAX_SERVERSTATUSREQUESTS; i++)
+	{
+		if (oldest == -1 || cl_serverStatusList[i].startTime < oldestTime)
+		{
+			oldest = i;
+			oldestTime = cl_serverStatusList[i].startTime;
+		}
+	}
+
+	return &cl_serverStatusList[oldest];
+}
+#endif
 
 /*
 ===================
@@ -4239,7 +4257,6 @@ void CL_ServerStatusResponse( netadr_t from, msg_t *msg )
 
 	for (i = 0, s = MSG_ReadStringLine( msg ); *s; s = MSG_ReadStringLine( msg ), i++)
 	{
-
 		len = strlen(serverStatus->string);
 		Com_sprintf(&serverStatus->string[len], sizeof(serverStatus->string)-len, "\\%s", s);
 
@@ -4317,7 +4334,7 @@ void CL_LocalServers_f( void )
 
 			to.type = NA_BROADCAST;
 			NET_SendPacket( NS_CLIENT, strlen( message ), message, to );
-#ifndef AMIGA //__amigaos4__
+#ifndef __amiga__
 			to.type = NA_MULTICAST6;
 			NET_SendPacket( NS_CLIENT, strlen( message ), message, to );
 #endif
@@ -4372,7 +4389,7 @@ void CL_GlobalServers_f( void )
 	cls.numglobalservers = -1;
 	cls.pingUpdateSource = AS_GLOBAL;
 
-#ifndef AMIGA //__amigaos4__
+#ifndef __amiga__
 	// Use the extended query for IPv6 masters
 	if (to.type == NA_IP6 || to.type == NA_MULTICAST6)
 	{
@@ -4508,7 +4525,8 @@ void CL_GetPing( int n, char *buf, int buflen, int *pingtime )
 	int		time;
 	int		maxPing;
 
-	if (!cl_pinglist[n].adr.port)
+	//if (!cl_pinglist[n].adr.port)
+	if (n < 0 || n >= MAX_PINGREQUESTS || !cl_pinglist[n].adr.port) // check - Cowcat
 	{
 		// empty slot
 		buf[0]    = '\0';
@@ -4524,7 +4542,8 @@ void CL_GetPing( int n, char *buf, int buflen, int *pingtime )
 	if (!time)
 	{
 		// check for timeout
-		time = cls.realtime - cl_pinglist[n].start;
+		//time = cls.realtime - cl_pinglist[n].start;
+		time = Sys_Milliseconds() - cl_pinglist[n].start; // check - Cowcat
 		maxPing = Cvar_VariableIntegerValue( "cl_maxPing" );
 
 		if( maxPing < 100 ) {
@@ -4543,6 +4562,7 @@ void CL_GetPing( int n, char *buf, int buflen, int *pingtime )
 	*pingtime = time;
 }
 
+#if 0 // Cowcat
 /*
 ==================
 CL_UpdateServerInfo
@@ -4557,6 +4577,7 @@ void CL_UpdateServerInfo( int n )
 
 	CL_SetServerInfoByAddress(cl_pinglist[n].adr, cl_pinglist[n].info, cl_pinglist[n].time );
 }
+#endif 
 
 /*
 ==================
@@ -4565,11 +4586,13 @@ CL_GetPingInfo
 */
 void CL_GetPingInfo( int n, char *buf, int buflen )
 {
-	if (!cl_pinglist[n].adr.port)
+	//if (!cl_pinglist[n].adr.port)
+	if (n < 0 || n >= MAX_PINGREQUESTS || !cl_pinglist[n].adr.port) // check - Cowcat
 	{
-		// empty slot
+		// empty or invalid slot
 		if (buflen)
 			buf[0] = '\0';
+
 		return;
 	}
 
@@ -4635,7 +4658,8 @@ ping_t* CL_GetFreePing( void )
 		{
 			if (!pingptr->time)
 			{
-				if (cls.realtime - pingptr->start < 500)
+				//if (cls.realtime - pingptr->start < 500)
+				if (Sys_Milliseconds() - pingptr->start < 500) // Cowcat
 				{
 					// still waiting for response
 					continue;
@@ -4662,7 +4686,8 @@ ping_t* CL_GetFreePing( void )
 	for (i=0; i<MAX_PINGREQUESTS; i++, pingptr++ )
 	{
 		// scan for oldest
-		time = cls.realtime - pingptr->start;
+		//time = cls.realtime - pingptr->start;
+		time = Sys_Milliseconds() - pingptr->start; // Cowcat
 
 		if (time > oldest)
 		{
@@ -4703,7 +4728,7 @@ void CL_Ping_f( void )
 		if(!strcmp(Cmd_Argv(1), "-4"))
 			family = NA_IP;
 
-#ifndef AMIGA //__amigaos4__
+#ifndef __amiga__
 		else if(!strcmp(Cmd_Argv(1), "-6"))
 			family = NA_IP6;
 #endif
@@ -4722,7 +4747,8 @@ void CL_Ping_f( void )
 	pingptr = CL_GetFreePing();
 
 	memcpy( &pingptr->adr, &to, sizeof (netadr_t) );
-	pingptr->start = cls.realtime;
+	//pingptr->start = cls.realtime;
+	pingptr->start = Sys_Milliseconds(); // Cowcat
 	pingptr->time  = 0;
 
 	CL_SetServerInfoByAddress(pingptr->adr, NULL, 0);
@@ -4814,7 +4840,8 @@ qboolean CL_UpdateVisiblePings_f(int source)
 						}
 
 						memcpy(&cl_pinglist[j].adr, &server[i].adr, sizeof(netadr_t));
-						cl_pinglist[j].start = cls.realtime;
+						//cl_pinglist[j].start = cls.realtime;
+						cl_pinglist[j].start = Sys_Milliseconds(); // Cowcat
 						cl_pinglist[j].time = 0;
 						NET_OutOfBandPrint( NS_CLIENT, cl_pinglist[j].adr, "getinfo xxx" );
 						slots++;
@@ -4902,7 +4929,7 @@ void CL_ServerStatus_f(void)
 		{
 			if(!strcmp(Cmd_Argv(1), "-4"))
 				family = NA_IP;
-#ifndef AMIGA //__amigaos4__
+#ifndef __amiga__
 			else if(!strcmp(Cmd_Argv(1), "-6"))
 				family = NA_IP6;
 #endif

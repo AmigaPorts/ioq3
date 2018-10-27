@@ -115,7 +115,7 @@ static void UI_LoadArenasFromFile( char *filename ) {
 		return;
 	}
 	if ( len >= MAX_ARENAS_TEXT ) {
-		trap_Print( va( S_COLOR_RED "file too large: %s is %i, max allowed is %i", filename, len, MAX_ARENAS_TEXT ) );
+		trap_Print( va( S_COLOR_RED "file too large: %s is %i, max allowed is %i\n", filename, len, MAX_ARENAS_TEXT ) );
 		trap_FS_FCloseFile( f );
 		return;
 	}
@@ -164,7 +164,7 @@ void UI_LoadArenas( void ) {
 	}
 	trap_Print( va( "%i arenas parsed\n", ui_numArenas ) );
 	if (UI_OutOfMemory()) {
-		trap_Print(S_COLOR_YELLOW"WARNING: not anough memory in pool to load all arenas\n");
+		trap_Print(S_COLOR_YELLOW"WARNING: not enough memory in pool to load all arenas\n");
 	}
 
 	for( n = 0; n < ui_numArenas; n++ ) {
@@ -226,7 +226,7 @@ static void UI_LoadBotsFromFile( char *filename ) {
 		return;
 	}
 	if ( len >= MAX_BOTS_TEXT ) {
-		trap_Print( va( S_COLOR_RED "file too large: %s is %i, max allowed is %i", filename, len, MAX_BOTS_TEXT ) );
+		trap_Print( va( S_COLOR_RED "file too large: %s is %i, max allowed is %i\n", filename, len, MAX_BOTS_TEXT ) );
 		trap_FS_FCloseFile( f );
 		return;
 	}

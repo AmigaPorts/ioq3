@@ -628,6 +628,7 @@ NET_OutOfBandPrint
 Sends a text message in an out-of-band datagram
 ================
 */
+
 void QDECL NET_OutOfBandPrint( netsrc_t sock, netadr_t adr, const char *format, ... )
 {
 	va_list		argptr;
@@ -649,6 +650,7 @@ void QDECL NET_OutOfBandPrint( netsrc_t sock, netadr_t adr, const char *format, 
 	//NET_SendPacket( sock, strlen( string ), string, adr );
 	NET_SendPacket( sock, len, string, adr ); // Quake3e - Cowcat
 }
+
 
 /*
 ===============

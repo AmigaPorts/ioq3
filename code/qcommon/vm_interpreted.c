@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <proto/exec.h>
 #endif
 
-#if defined(AMIGA) && defined(__VBCC__) && defined (__PPC__)
+#if defined(__amiga__) && defined(__VBCC__) && defined (__PPC__)
 
 #undef LittleLong
 
@@ -429,10 +429,10 @@ int VM_CallInterpreted( vm_t *vm, int *args )
 
 	#else
 
-	programStack -= ( 8 + 4 * 4 ); //  MAX_VMMAIN_ARGS - was 10
+	programStack -= ( 8 + 4 * 4 ); //  MAX_VMMAIN_ARGS - was 10 - Cowcat
 	//programStack -= ( 8 + 4 * MAX_VMMAIN_ARGS );
 
-	for ( arg = 0; arg < 4 ; arg++ ) //  MAX_VMMAIN_ARGS - was 10
+	for ( arg = 0; arg < 4 ; arg++ ) //  MAX_VMMAIN_ARGS - was 10 - Cowcat
 	//for ( arg = 0; arg < MAX_VMMAIN_ARGS; arg++ )
 		*(int *)&image[ programStack + 8 + arg * 4 ] = args[ arg ];
 

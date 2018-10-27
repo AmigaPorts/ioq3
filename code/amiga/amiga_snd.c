@@ -23,7 +23,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../client/client.h"
 #include "../client/snd_local.h"
 
+#ifdef __VBCC__
 #pragma amiga-align
+#elif defined(WARPUP)
+#pragma pack(2)
+#endif
 
 #include <proto/exec.h>
 #include <proto/dos.h>
@@ -31,15 +35,32 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <proto/ahi.h>
 
 #ifdef __PPC__
+#if defined(__GNUC__)
+#include <powerpc/powerpc_protos.h>
+#else
 #include <powerpc/powerpc.h>
 #include <proto/powerpc.h>
+#endif 
 #endif
 
+#ifdef __VBCC__
 #pragma default-align
+#elif defined (WARPUP)
+#pragma pack()
+#endif
 
 /* Implemented 100% on recycled Quake 2 code */
 
 #include "snd_68k.h"
+
+#if 0 // Cowcat - actually snd_68k.h is this callback function manually converted to hexadecimal from a 68k vbcc compiled object...
+ULONG callback(__reg("a0") struct Hook *hook, __reg("a2") struct AHIAudioCtrl *actrl, __reg("a1") struct AHIEffChannelInfo *info)
+{
+  	hook->h_Data = (APTR)(info->ahieci_Offset[0]);
+  	return 0;
+}
+#endif
+
 
 #pragma amiga-align
 
@@ -70,18 +91,13 @@ static int buflen;
 
 #define MINBUFFERSIZE 4*16384
 
-#if 0
-ULONG callback(struct Hook *hook, struct AHIAudioCtrl *actrl, struct AHIEffChannelInfo *info)
-{
-  	hook->h_Data = (APTR)(info->ahieci_Offset[0]);
-  	return 0;
-}
-#endif
+//extern ULONG EffFunc(struct Hook *hook, struct AHIAudioCtrl *actrl, struct AHIEffChannelInfo *info);
 
 struct Hook EffHook = 
 {
   	0, 0,
   	(HOOKFUNC)callback,
+	//(HOOKFUNC)EffFunc,
   	0, 0,
 };
 

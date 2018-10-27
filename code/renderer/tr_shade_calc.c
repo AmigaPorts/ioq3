@@ -229,7 +229,7 @@ void RB_CalcBulgeVertexes( deformStage_t *ds )
 	{
 		const float     *st = ( const float * ) tess.texCoords[0];
 		float           now;
-
+		
         	now = backEnd.refdef.time * ds->bulgeSpeed * 0.001f;
 
         	for ( i = 0; i < tess.numVertexes; i++, xyz += 4, st += 4, normal += 4 )
@@ -1067,17 +1067,6 @@ void RB_CalcFogTexCoords( float *st )
 ** RB_CalcEnvironmentTexCoords
 */
 
-#if 0
-float __rsqrt(__reg("f1") float, __reg("f5") float) =
-	"\tfrsqrte\t0,1\n"
-	"\tfmsubs\t2,5,1,1\n"										
-	"\tfmuls\t4,0,0\n"		
-	"\tfnmsubs\t3,2,4,5\n"	
-	"\tfmuls\t1,3,0";
-
-#define rsqrt(x) __rsqrt(x, 1.5)
-#endif
-
 void RB_CalcEnvironmentTexCoords( float *st ) 
 {
         int     i;
@@ -1133,14 +1122,6 @@ void RB_CalcEnvironmentTexCoords( float *st )
                 VectorSubtract (backEnd.or.viewOrigin, v, viewer);
                 VectorNormalizeFast (viewer);
 
-		/*
-		float ilength = rsqrt( DotProduct( viewer, viewer ) );
-
-		viewer[0] *= ilength;
-		viewer[1] *= ilength;
-		viewer[2] *= ilength;
-		*/
-
 		#if 1
 
                 d = 2 * DotProduct (normal, viewer);
@@ -1172,7 +1153,7 @@ void RB_CalcTurbulentTexCoords( const waveForm_t *wf, float *st )
 {
         int i;
         float now;
-
+	
         now = ( wf->phase + tess.shaderTime * wf->frequency );
 
         for ( i = 0; i < tess.numVertexes; i++, st += 2 )
@@ -1207,7 +1188,7 @@ void RB_CalcScrollTexCoords( const float scrollSpeed[2], float *st )
         int	i;
         float	timeScale = tess.shaderTime;
         float	adjustedScrollS, adjustedScrollT;
-
+	
         adjustedScrollS = scrollSpeed[0] * timeScale;
         adjustedScrollT = scrollSpeed[1] * timeScale;
 

@@ -59,6 +59,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   #define PRODUCT_VERSION "1.36"
 #endif
 
+#ifndef PRODUCT_DATE
+#  define PRODUCT_DATE __DATE__
+#endif
+
 #define Q3_VERSION PRODUCT_NAME " " PRODUCT_VERSION
 
 #define MAX_TEAMNAME 32
@@ -418,7 +422,8 @@ extern	vec3_t	axisDefault[3];
 
 #define	IS_NAN(x) (((*(int *)&x)&nanmask)==nanmask)
 
-#if idppc
+#if idppc // fix that !!! Cowcat
+//#if defined(__GNUC__) && defined (__PPC__)
 
 static ID_INLINE float Q_rsqrt( float number )
 {
@@ -526,9 +531,8 @@ float RadiusFromBounds( const vec3_t mins, const vec3_t maxs );
 void ClearBounds( vec3_t mins, vec3_t maxs );
 void AddPointToBounds( const vec3_t v, vec3_t mins, vec3_t maxs );
 
-
-#if !defined( Q3_VM ) || ( defined( Q3_VM ) && defined( __Q3_VM_MATH ) )
-#if !defined(AMIGA) && !defined(__VBCC__)
+#if !defined(__VBCC__) // with vbcc these get glued on all objects, needed or not - Cowcat
+#if !defined( Q3_VM ) || ( defined( Q3_VM ) && defined( __Q3_VM_MATH ) ) 
 
 static ID_INLINE int VectorCompare( const vec3_t v1, const vec3_t v2 )
 {
@@ -604,12 +608,10 @@ void VectorNormalizeFast( vec3_t v );
 void VectorInverse( vec3_t v );
 void CrossProduct( const vec3_t v1, const vec3_t v2, vec3_t cross );
 
-#endif // no Amiga
-#endif 
+#endif
+#endif
 
-#if 0
-#if !defined(AMIGA) && !defined(__VBCC__)
-
+#if defined(__VBCC__) // Repeated here from above or you end with bad compiled qvms - Cowcat
 int VectorCompare( const vec3_t v1, const vec3_t v2 );
 vec_t VectorLength( const vec3_t v );
 vec_t VectorLengthSquared( const vec3_t v );
@@ -618,10 +620,7 @@ vec_t DistanceSquared( const vec3_t p1, const vec3_t p2 );
 void VectorNormalizeFast( vec3_t v );
 void VectorInverse( vec3_t v );
 void CrossProduct( const vec3_t v1, const vec3_t v2, vec3_t cross );
-
 #endif
-#endif
-
 
 vec_t VectorNormalize (vec3_t v);	// returns vector length
 vec_t VectorNormalize2( const vec3_t v, vec3_t out );

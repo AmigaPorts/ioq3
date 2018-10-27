@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 // Cowcat
 #if 0
-#if defined(AMIGA) && defined(__VBCC__)
+#if defined(__amiga__) && defined(__VBCC__)
 static ID_INLINE float _vmf(intptr_t x)
 {
 	floatint_t fi;
@@ -39,7 +39,9 @@ static ID_INLINE float _vmf(intptr_t x)
 #endif
 
 // Cowcat
+#if defined(__VBCC__)
 #define VMF(x)	((float *)args)[x]
+#endif
 
 botlib_export_t	*botlib_export;
 
@@ -259,7 +261,7 @@ SV_GameAreaEntities
 */
 qboolean SV_EntityContact( vec3_t mins, vec3_t maxs, const sharedEntity_t *gEnt, int capsule )
 {
-	/*const*/ float	*origin, *angles; // Cowcat fix
+	const float	*origin, *angles;
 	clipHandle_t	ch;
 	trace_t		trace;
 
@@ -337,6 +339,9 @@ SV_GameSystemCalls
 The module is making a system call
 ====================
 */
+
+//#undef VMA
+//#define VMA(x) ((void *) args[x])
 
 intptr_t SV_GameSystemCalls( intptr_t *args )
 {

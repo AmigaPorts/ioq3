@@ -102,7 +102,7 @@ static cvarTable_t		gameCvarTable[] = {
 
 	// noset vars
 	{ NULL, "gamename", GAMEVERSION , CVAR_SERVERINFO | CVAR_ROM, 0, qfalse  },
-	{ NULL, "gamedate", __DATE__ , CVAR_ROM, 0, qfalse  }, // PRODUCT_DATE - Cowcat
+	{ NULL, "gamedate", PRODUCT_DATE , CVAR_ROM, 0, qfalse  },
 	{ &g_restarted, "g_restarted", "0", CVAR_ROM, 0, qfalse  },
 
 	// latched vars
@@ -199,42 +199,52 @@ This is the only way control passes into the module.
 This must be the very first function compiled into the .q3vm file
 ================
 */
-//Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11  )
-
-#ifndef Q3_VM
+Q_EXPORT
+#ifndef Q3_VM // Cowcat
 __saveds 
 #endif
-intptr_t vmMain( int command, int arg0, int arg1, int arg2 ) // Cowcat
+intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11 )
 {
-	switch ( command ) {
+	switch ( command )
+	{
 	case GAME_INIT:
 		G_InitGame( arg0, arg1, arg2 );
 		return 0;
+
 	case GAME_SHUTDOWN:
 		G_ShutdownGame( arg0 );
 		return 0;
+
 	case GAME_CLIENT_CONNECT:
 		return (intptr_t)ClientConnect( arg0, arg1, arg2 );
+
 	case GAME_CLIENT_THINK:
 		ClientThink( arg0 );
 		return 0;
+
 	case GAME_CLIENT_USERINFO_CHANGED:
 		ClientUserinfoChanged( arg0 );
 		return 0;
+
 	case GAME_CLIENT_DISCONNECT:
 		ClientDisconnect( arg0 );
 		return 0;
+
 	case GAME_CLIENT_BEGIN:
 		ClientBegin( arg0 );
 		return 0;
+
 	case GAME_CLIENT_COMMAND:
 		ClientCommand( arg0 );
 		return 0;
+
 	case GAME_RUN_FRAME:
 		G_RunFrame( arg0 );
 		return 0;
+
 	case GAME_CONSOLE_COMMAND:
 		return ConsoleCommand();
+
 	case BOTAI_START_FRAME:
 		return BotAIStartFrame( arg0 );
 	}
@@ -416,7 +426,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	G_Printf ("------- Game Initialization -------\n");
 	G_Printf ("gamename: %s\n", GAMEVERSION);
-	G_Printf ("gamedate: %s\n", __DATE__); // PRODUCT_DATE); // Cowcat
+	G_Printf ("gamedate: %s\n", PRODUCT_DATE);
 
 	srand( randomSeed );
 
@@ -729,6 +739,48 @@ SortRanks
 
 =============
 */
+
+#ifndef Q3_VM
+static void ssort(void  *base, size_t nel, size_t width, int (*comp)(const void *, const void *)) // Cowcat
+{
+	size_t wnel, gap, wgap, i, j, k;
+	char *a, *b, tmp;
+
+	wnel = width * nel;
+
+	for (gap = 0; ++gap < nel;)
+		gap *= 3;
+
+	while ((gap /= 3) != 0)
+	{
+		wgap = width * gap;
+
+		for (i = wgap; i < wnel; i += width)
+		{
+			for (j = i - wgap; ;j -= wgap)
+			{
+				a = j + (char *)base;
+				b = a + wgap;
+
+				if ((*comp)(a, b) <= 0)
+					break;
+
+				k = width;
+
+				do {
+					tmp = *a;
+					*a++ = *b;
+					*b++ = tmp;
+				} while (--k);
+
+				if (j < wgap)
+					break;
+			}
+		}
+	}
+}
+#endif
+
 int QDECL SortRanks( const void *a, const void *b ) {
 	gclient_t	*ca, *cb;
 
@@ -835,8 +887,11 @@ void CalculateRanks( void ) {
 		}
 	}
 
-	qsort( level.sortedClients, level.numConnectedClients, 
-		sizeof(level.sortedClients[0]), SortRanks );
+	#ifndef Q3_VM
+	ssort( level.sortedClients, level.numConnectedClients,sizeof(level.sortedClients[0]), SortRanks ); // Cowcat ssort
+	#else
+	qsort( level.sortedClients, level.numConnectedClients, sizeof(level.sortedClients[0]), SortRanks );
+	#endif
 
 	// set the rank value for all clients that are connected and not spectators
 	if ( g_gametype.integer >= GT_TEAM ) {

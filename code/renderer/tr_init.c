@@ -914,11 +914,16 @@ void GfxInfo_f( void )
 
 		#else // Cowcat
 
-		ri.Printf( PRINT_ALL, "rendering primitives: " );
-		//ri.Printf( PRINT_ALL, "single glDrawElements\n" );
-		//ri.Printf( PRINT_ALL, "multiple glColor4ubv + glTexCoord2fv + glVertex3fv\n" );
-		ri.Printf( PRINT_ALL, "multiple glArrayElement\n" );
+		int	primitives;
 
+		ri.Printf( PRINT_ALL, "rendering primitives: " );
+
+		if ( primitives == 0 )
+			ri.Printf( PRINT_ALL, "single glDrawElements\n" );
+
+		else
+			ri.Printf( PRINT_ALL, "multiple glArrayElement\n" );
+		
 		#endif
 	}
 

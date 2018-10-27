@@ -664,7 +664,7 @@ Sets the z-component transformation part in the projection matrix
 ===============
 */
 
-#if defined(AMIGA) && defined(__PPC__) // Cowcat
+#if defined(__amiga__) && defined(__PPC__) // Cowcat
 
 extern float SGN(float a);
 
