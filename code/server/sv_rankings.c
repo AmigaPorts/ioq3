@@ -68,7 +68,7 @@ static void		SV_RankEncodeGameID( uint64_t game_id, char* result,
 static uint64_t	SV_RankDecodePlayerID( const char* string );
 static void		SV_RankDecodePlayerKey( const char* string, GR_PLAYER_TOKEN key );
 static char*	SV_RankStatusString( GR_STATUS status );
-static void		SV_RankError( const char* fmt, ... ) __attribute__ ((format (printf, 1, 2)));
+static void		SV_RankError( const char* fmt, ... );
 static char     SV_RankGameKey[64];
 
 /*
@@ -1004,7 +1004,7 @@ static void SV_RankNewGameCBF( GR_NEWGAME* gr_newgame, void* cbf_arg )
 	}
 	else if( gr_newgame->status == GR_STATUS_BADLEAGUE )
 	{
-		SV_RankError( "SV_RankNewGameCBF: Invalid League name" );
+		SV_RankError( "SV_RankNewGameCBF: Invalid League name\n" );
 	}
 	else
 	{

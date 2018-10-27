@@ -168,7 +168,7 @@ int AAS_AgainstLadder(vec3_t origin)
 		//get the plane the face is in
 		plane = &aasworld.planes[face->planenum ^ side];
 		//if the origin is pretty close to the plane
-		if (fabsf(DotProduct(plane->normal, origin) - plane->dist) < 3)
+		if (fabs(DotProduct(plane->normal, origin) - plane->dist) < 3) // Cowcat
 		{
 			if (AAS_PointInsideFace(abs(facenum), origin, 0.1f)) return qtrue;
 		} //end if
@@ -231,6 +231,18 @@ static vec3_t VEC_UP			= {0, -1,  0};
 static vec3_t MOVEDIR_UP		= {0,  0,  1};
 static vec3_t VEC_DOWN		= {0, -2,  0};
 static vec3_t MOVEDIR_DOWN	= {0,  0, -1};
+
+#if 0
+static ID_INLINE int VectorCompare2( const vec3_t v1, const vec3_t v2 )
+{
+	if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2])
+	{
+		return 0;
+	}
+		
+	return 1;
+}
+#endif
 
 void AAS_SetMovedir(vec3_t angles, vec3_t movedir)
 {
@@ -553,7 +565,7 @@ int AAS_ClientMovementPrediction(struct aas_clientmove_s *move,
 		//if on the ground or swimming
 		if (onground || swimming)
 		{
-			friction = swimming ? phys_friction : phys_waterfriction;
+			friction = swimming ? phys_waterfriction : phys_friction;
 			//apply friction
 			VectorScale(frame_test_vel, 1/frametime, frame_test_vel);
 			AAS_ApplyFriction(frame_test_vel, friction, phys_stopspeed, frametime);

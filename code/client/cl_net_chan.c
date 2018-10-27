@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "client.h"
 
 #ifdef LEGACY_PROTOCOL
+
 /*
 ==============
 CL_Netchan_Encode
@@ -36,12 +37,14 @@ CL_Netchan_Encode
 
 ==============
 */
-static void CL_Netchan_Encode( msg_t *msg ) {
-	int serverId, messageAcknowledge, reliableAcknowledge;
-	int i, index, srdc, sbit, soob;
-	byte key, *string;
+static void CL_Netchan_Encode( msg_t *msg )
+{
+	int	serverId, messageAcknowledge, reliableAcknowledge;
+	int	i, index, srdc, sbit, soob;
+	byte	key, *string;
 
-	if ( msg->cursize <= CL_ENCODE_START ) {
+	if ( msg->cursize <= CL_ENCODE_START )
+	{
 		return;
 	}
 
@@ -65,17 +68,25 @@ static void CL_Netchan_Encode( msg_t *msg ) {
 	index = 0;
 	//
 	key = clc.challenge ^ serverId ^ messageAcknowledge;
-	for (i = CL_ENCODE_START; i < msg->cursize; i++) {
+
+	for (i = CL_ENCODE_START; i < msg->cursize; i++)
+	{
 		// modify the key with the last received now acknowledged server command
 		if (!string[index])
 			index = 0;
-		if (string[index] > 127 || string[index] == '%') {
+
+		if (string[index] > 127 || string[index] == '%')
+		{
 			key ^= '.' << (i & 1);
 		}
-		else {
+
+		else
+		{
 			key ^= string[index] << (i & 1);
 		}
+
 		index++;
+
 		// encode the data with this key
 		*(msg->data + i) = (*(msg->data + i)) ^ key;
 	}
@@ -90,9 +101,35 @@ CL_Netchan_Decode
 
 ==============
 */
-static void CL_Netchan_Decode( msg_t *msg ) {
-	long reliableAcknowledge, i, index;
-	byte key, *string;
+
+#if defined(__amiga__) && defined(__VBCC__)
+
+#undef LittleLong
+
+#if defined (__PPC__)
+
+int __LittleLong(__reg("r4") int) =
+	"\trlwinm\t3,4,24,0,31\n"
+	"\trlwimi\t3,4,8,8,15\n"
+	"\trlwimi\t3,4,8,24,31";
+
+#else // 68k
+
+int __LittleLong(__reg("d0") int) =
+	"\trol.w\t#8,d0\n"
+	"\tswap\td0\n"
+	"\trol.w\t#8,d0";
+
+#endif
+
+#define LittleLong(x) __LittleLong(x)
+
+#endif
+
+static void CL_Netchan_Decode( msg_t *msg )
+{
+	long 	reliableAcknowledge, i, index;
+	byte 	key, *string;
         int	srdc, sbit, soob;
 
         srdc = msg->readcount;
@@ -109,24 +146,34 @@ static void CL_Netchan_Decode( msg_t *msg ) {
 
 	string = (byte *) clc.reliableCommands[ reliableAcknowledge & (MAX_RELIABLE_COMMANDS-1) ];
 	index = 0;
+
 	// xor the client challenge with the netchan sequence number (need something that changes every message)
 	key = clc.challenge ^ LittleLong( *(unsigned *)msg->data );
-	for (i = msg->readcount + CL_DECODE_START; i < msg->cursize; i++) {
+
+	for (i = msg->readcount + CL_DECODE_START; i < msg->cursize; i++)
+	{
 		// modify the key with the last sent and with this message acknowledged client command
 		if (!string[index])
 			index = 0;
-		if (string[index] > 127 || string[index] == '%') {
+
+		if (string[index] > 127 || string[index] == '%')
+		{
 			key ^= '.' << (i & 1);
 		}
-		else {
+
+		else
+		{
 			key ^= string[index] << (i & 1);
 		}
+
 		index++;
 		// decode the data with this key
 		*(msg->data + i) = *(msg->data + i) ^ key;
 	}
 }
+
 #endif
+
 
 /*
 =================
@@ -149,7 +196,8 @@ qboolean CL_Netchan_TransmitNextFragment(netchan_t *chan)
 CL_Netchan_Transmit
 ================
 */
-void CL_Netchan_Transmit( netchan_t *chan, msg_t* msg ) {
+void CL_Netchan_Transmit( netchan_t *chan, msg_t* msg )
+{
 	MSG_WriteByte( msg, clc_EOF );
 
 #ifdef LEGACY_PROTOCOL
@@ -171,10 +219,12 @@ void CL_Netchan_Transmit( netchan_t *chan, msg_t* msg ) {
 CL_Netchan_Process
 =================
 */
-qboolean CL_Netchan_Process( netchan_t *chan, msg_t *msg ) {
+qboolean CL_Netchan_Process( netchan_t *chan, msg_t *msg )
+{
 	int ret;
 
 	ret = Netchan_Process( chan, msg );
+
 	if (!ret)
 		return qfalse;
 
@@ -185,3 +235,4 @@ qboolean CL_Netchan_Process( netchan_t *chan, msg_t *msg ) {
 
 	return qtrue;
 }
+

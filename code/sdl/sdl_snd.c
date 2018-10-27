@@ -99,7 +99,8 @@ static struct
 	{ AUDIO_S16MSB, "AUDIO_S16MSB" }
 };
 
-static int formatToStringTableSize = ARRAY_LEN( formatToStringTable );
+static int formatToStringTableSize =
+  sizeof( formatToStringTable ) / sizeof( formatToStringTable[ 0 ] );
 
 /*
 ===============
@@ -137,6 +138,7 @@ SNDDMA_Init
 */
 qboolean SNDDMA_Init(void)
 {
+	char drivername[128];
 	SDL_AudioSpec desired;
 	SDL_AudioSpec obtained;
 	int tmp;
@@ -156,7 +158,7 @@ qboolean SNDDMA_Init(void)
 
 	if (!SDL_WasInit(SDL_INIT_AUDIO))
 	{
-		if (SDL_Init(SDL_INIT_AUDIO) != 0)
+		if (SDL_Init(SDL_INIT_AUDIO) == -1)
 		{
 			Com_Printf( "FAILED (%s)\n", SDL_GetError( ) );
 			return qfalse;
@@ -165,7 +167,9 @@ qboolean SNDDMA_Init(void)
 
 	Com_Printf( "OK\n" );
 
-	Com_Printf( "SDL audio driver is \"%s\".\n", SDL_GetCurrentAudioDriver( ) );
+	if (SDL_AudioDriverName(drivername, sizeof (drivername)) == NULL)
+		strcpy(drivername, "(UNKNOWN)");
+	Com_Printf("SDL audio driver is \"%s\".\n", drivername);
 
 	memset(&desired, '\0', sizeof (desired));
 	memset(&obtained, '\0', sizeof (obtained));

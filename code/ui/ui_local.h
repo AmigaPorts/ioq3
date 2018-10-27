@@ -24,7 +24,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define __UI_LOCAL_H__
 
 #include "../qcommon/q_shared.h"
-#include "../renderercommon/tr_types.h"
+//#include "../renderercommon/tr_types.h"
+#include "../renderer/tr_types.h" // Cowcat
 #include "ui_public.h"
 #include "../client/keycodes.h"
 #include "../game/bg_public.h"
@@ -258,7 +259,7 @@ typedef struct
 	int width;
 	int height;
 	int	columns;
-	int	seperation;
+	int	separation;
 } menulist_s;
 
 typedef struct
@@ -532,6 +533,9 @@ typedef struct {
 	qhandle_t		headSkin;
 
 	animation_t		animations[MAX_TOTALANIMATIONS];
+
+	qboolean		fixedlegs;		// true if legs yaw is always the same as torso yaw
+	qboolean		fixedtorso;		// true if torso never changes yaw
 
 	qhandle_t		weaponModel;
 	qhandle_t		barrelModel;

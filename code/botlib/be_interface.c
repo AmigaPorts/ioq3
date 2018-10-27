@@ -144,6 +144,8 @@ int Export_BotLibSetup(void)
 
 	if(botDeveloper)
 	{
+		#if 0 
+
 		char *homedir, *gamedir, *basegame;
 		char logfilename[MAX_OSPATH];
 
@@ -162,8 +164,14 @@ int Export_BotLibSetup(void)
 		}
 		else
 			Com_sprintf(logfilename, sizeof(logfilename), "botlib.log");
-	
+
 		Log_Open(logfilename);
+
+		#else // new ioq3 - Cowcat
+
+		Log_Open("botlib.log");
+
+		#endif
 	}
 
 	botimport.Print(PRT_MESSAGE, "------- BotLib Initialization -------\n");
@@ -238,7 +246,7 @@ int Export_BotLibShutdown(void)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-int Export_BotLibVarSet(char *var_name, char *value)
+int Export_BotLibVarSet(const char *var_name, const char *value)
 {
 	LibVarSet(var_name, value);
 	return BLERR_NOERROR;
@@ -249,7 +257,7 @@ int Export_BotLibVarSet(char *var_name, char *value)
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-int Export_BotLibVarGet(char *var_name, char *value, int size)
+int Export_BotLibVarGet(const char *var_name, char *value, int size)
 {
 	char *varvalue;
 

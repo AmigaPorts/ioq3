@@ -21,11 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <sys/types.h> /* needed by sys/mman.h on OSX */
-#ifdef __amigaos4__
-#include <proto/exec.h>
-#else
-#include <sys/mman.h>
-#endif
+//#include <sys/mman.h> // Cowcat
 #include <sys/time.h>
 #include <time.h>
 #include <stddef.h>
@@ -271,6 +267,7 @@ static const unsigned char vm_opInfo[256] =
  * source instruction data
  */
 typedef struct source_instruction_s source_instruction_t;
+
 struct source_instruction_s {
 	// opcode
 	unsigned long int op;
@@ -344,8 +341,7 @@ typedef struct VM_Data {
 /*
  * functions used by generated code
  */
-static long int
-VM_AsmCall( int callSyscallInvNum, int callProgramStack )
+static long int VM_AsmCall( int callSyscallInvNum, int callProgramStack )
 {
 	vm_t *savedVM = currentVM;
 	long int i, ret;
@@ -359,14 +355,18 @@ VM_AsmCall( int callSyscallInvNum, int callProgramStack )
 	currentVM->programStack = callProgramStack - 4;
 
 	// we need to convert ints to longs on 64bit powerpcs
-	if ( sizeof( intptr_t ) == sizeof( int ) ) {
+	if ( sizeof( intptr_t ) == sizeof( int ) )
+	{
 		intptr_t *argPosition = (intptr_t *)((byte *)currentVM->dataBase + callProgramStack + 4);
 
 		// generated code does not invert syscall number
 		argPosition[ 0 ] = -1 - callSyscallInvNum;
 
 		ret = currentVM->systemCall( argPosition );
-	} else {
+	}
+
+	else
+	{
 		intptr_t args[MAX_VMSYSCALL_ARGS];
 
 		// generated code does not invert syscall number
@@ -405,7 +405,7 @@ struct symbolic_jump {
 	// extensions / modifiers (branch-link)
 	unsigned long ext;
 
-	// dest_instruction refering to this jump
+	// dest_instruction referring to this jump
 	dest_instruction_t *parent;
 
 	// next jump
@@ -449,8 +449,7 @@ static dest_instruction_t **di_pointers = NULL;
 /*
  * append specified instructions at the end of instruction chain
  */
-static void
-PPC_Append(
+static void PPC_Append(
 		dest_instruction_t *di_now,
 		unsigned long int i_count
   	  )
@@ -471,8 +470,7 @@ PPC_Append(
 /*
  * make space for instructions and append
  */
-static void
-PPC_AppendInstructions(
+static void PPC_AppendInstructions(
 		unsigned long int i_count,
 		size_t num_instructions,
 		const ppc_instruction_t *is
@@ -496,8 +494,8 @@ PPC_AppendInstructions(
  * create symbolic jump and append
  */
 static symbolic_jump_t *sj_first = NULL, *sj_last = NULL;
-static void
-PPC_PrepareJump(
+
+static void PPC_PrepareJump(
 		unsigned long int i_count,
 		unsigned long int dest,
 		long int bo,
@@ -557,6 +555,7 @@ PPC_PrepareJump(
  */
 #define LOCAL_DATA_CHUNK 50
 typedef struct local_data_s local_data_t;
+
 struct local_data_s {
 	// number of data in this structure
 	long int count;
@@ -576,8 +575,7 @@ static long int data_acc = 0;
 /*
  * append the data and return its offset
  */
-static size_t
-PPC_PushData( unsigned int datum )
+static size_t PPC_PushData( unsigned int datum )
 {
 	local_data_t *d_now = data_first;
 	long int accumulated = 0;
@@ -602,7 +600,8 @@ PPC_PushData( unsigned int datum )
 	accumulated += d_now->count;
 
 	// last chunk is full, create new one
-	if ( d_now->count >= LOCAL_DATA_CHUNK ) {
+	if ( d_now->count >= LOCAL_DATA_CHUNK )
+	{
 		d_now->next = PPC_Malloc( sizeof( local_data_t ) );
 		d_now = d_now->next;
 		d_now->count = 0;
@@ -622,8 +621,7 @@ PPC_PushData( unsigned int datum )
  * "rotate and mask" instruction
  */
 static long int fastMaskHi = 0, fastMaskLo = 31;
-static void
-PPC_MakeFastMask( int mask )
+static void PPC_MakeFastMask( int mask )
 {
 #if defined( __GNUC__ ) && ( __GNUC__ >= 4 || ( __GNUC__ == 3 && __GNUC_MINOR__ >= 4 ) )
 	/* count leading zeros */
@@ -633,10 +631,12 @@ PPC_MakeFastMask( int mask )
 	fastMaskLo = 31 - __builtin_ctz( mask );
 #else
 	fastMaskHi = 0;
+
 	while ( ( mask & ( 0x80000000 >> fastMaskHi ) ) == 0 )
 		fastMaskHi++;
 
 	fastMaskLo = 31;
+
 	while ( ( mask & ( 0x80000000 >> fastMaskLo ) ) == 0 )
 		fastMaskLo--;
 #endif
@@ -660,7 +660,7 @@ PPC_MakeFastMask( int mask )
  * function local registers,
  *
  * normally only volatile registers are used, but if there aren't enough
- * or function has to preserve some value while calling annother one
+ * or function has to preserve some value while calling another one
  * then caller safe registers are used as well
  */
 static const long int gpr_list[] = {
@@ -672,6 +672,7 @@ static const long int gpr_list[] = {
 	r3, r4, r5, r6,
 	r7, r8, r9, r10,
 };
+
 static const long int gpr_vstart = 8; /* position of first volatile register */
 static const long int gpr_total = ARRAY_LEN( gpr_list );
 
@@ -686,14 +687,14 @@ static const long int fpr_list[] = {
 	f8, f9, f10, f11,
 	f12, f13,
 };
+
 static const long int fpr_vstart = 8;
 static const long int fpr_total = ARRAY_LEN( fpr_list );
 
 /*
  * prepare some dummy structures and emit init code
  */
-static void
-PPC_CompileInit( void )
+static void PPC_CompileInit( void )
 {
 	di_first = di_last = PPC_Malloc( sizeof( dest_instruction_t ) );
 	di_first->count = 0;
@@ -769,8 +770,7 @@ PPC_CompileInit( void )
 /*
  * emit OP_CONST, called if nothing has used the const value directly
  */
-static void
-PPC_EmitConst( source_instruction_t * const i_const )
+static void PPC_EmitConst( source_instruction_t * const i_const )
 {
 	emitStart( i_const->i_count );
 
@@ -800,24 +800,24 @@ PPC_EmitConst( source_instruction_t * const i_const )
 
 	emitEnd();
 }
+
 #define MAYBE_EMIT_CONST() if ( i_const ) PPC_EmitConst( i_const )
 
 /*
  * emit empty instruction, just sets the needed pointers
  */
-static inline void
-PPC_EmitNull( source_instruction_t * const i_null )
+static inline void PPC_EmitNull( source_instruction_t * const i_null )
 {
 	PPC_AppendInstructions( i_null->i_count, 0, NULL );
 }
+
 #define EMIT_FALSE_CONST() PPC_EmitNull( i_const )
 
 
 /*
  * analize function for register usage and whether it needs stack (r1) prepared
  */
-static void
-VM_AnalyzeFunction(
+static void VM_AnalyzeFunction(
 		source_instruction_t * const i_first,
 		long int *prepareStack,
 		long int *gpr_start_pos,
@@ -913,40 +913,50 @@ VM_AnalyzeFunction(
 	i_now = i_first;
 	long int needed_reg[4] = {0,0,0,0}, max_reg[4] = {0,0,0,0};
 	opstack_depth = 0;
-	while ( (i_now = i_now->next) ) {
+
+	while ( (i_now = i_now->next) )
+	{
 		unsigned long int op = i_now->op;
 		unsigned long int opi = vm_opInfo[ op ];
 
-		if ( opi & opArgIF ) {
+		if ( opi & opArgIF )
+		{
 			assert( opstack_depth > 0 );
 			opstack_depth--;
 			source_instruction_t *vp = value_provider[ opstack_depth ];
 
 			needed_reg[ ( vp->regR & 2 ) ] -= 1;
+
 			if ( vp->regR & 1 ) // static
 				needed_reg[ ( vp->regR & 3 ) ] -= 1;
 		}
-		if ( opi & opArg2IF ) {
+
+		if ( opi & opArg2IF )
+		{
 			assert( opstack_depth > 0 );
 			opstack_depth--;
 			source_instruction_t *vp = value_provider[ opstack_depth ];
 
 			needed_reg[ ( vp->regR & 2 ) ] -= 1;
+
 			if ( vp->regR & 1 ) // static
 				needed_reg[ ( vp->regR & 3 ) ] -= 1;
 		}
 
-		if ( opi & opRetIF ) {
+		if ( opi & opRetIF )
+		{
 			long int i;
 			value_provider[ opstack_depth ] = i_now;
 			opstack_depth++;
 
 			i = i_now->regR & 2;
 			needed_reg[ i ] += 1;
+
 			if ( max_reg[ i ] < needed_reg[ i ] )
 				max_reg[ i ] = needed_reg[ i ];
 
 			i = i_now->regR & 3;
+
 			if ( i & 1 ) {
 				needed_reg[ i ] += 1;
 				if ( max_reg[ i ] < needed_reg[ i ] )
@@ -957,12 +967,16 @@ VM_AnalyzeFunction(
 
 	long int gpr_start = gpr_vstart;
 	const long int gpr_volatile = gpr_total - gpr_vstart;
-	if ( max_reg[ 1 ] > 0 || max_reg[ 0 ] > gpr_volatile ) {
+
+	if ( max_reg[ 1 ] > 0 || max_reg[ 0 ] > gpr_volatile )
+	{
 		// max_reg[ 0 ] - all gprs needed
 		// max_reg[ 1 ] - static gprs needed
 		long int max = max_reg[ 0 ] - gpr_volatile;
+
 		if ( max_reg[ 1 ] > max )
 			max = max_reg[ 1 ];
+
 		if ( max > gpr_vstart ) {
 			/* error */
 			DIE( "Need more GPRs" );
@@ -973,16 +987,21 @@ VM_AnalyzeFunction(
 		// need stack to save caller safe registers
 		*prepareStack = 1;
 	}
+
 	*gpr_start_pos = gpr_start;
 
 	long int fpr_start = fpr_vstart;
 	const long int fpr_volatile = fpr_total - fpr_vstart;
-	if ( max_reg[ 3 ] > 0 || max_reg[ 2 ] > fpr_volatile ) {
+
+	if ( max_reg[ 3 ] > 0 || max_reg[ 2 ] > fpr_volatile )
+	{
 		// max_reg[ 2 ] - all fprs needed
 		// max_reg[ 3 ] - static fprs needed
 		long int max = max_reg[ 2 ] - fpr_volatile;
+
 		if ( max_reg[ 3 ] > max )
 			max = max_reg[ 3 ];
+
 		if ( max > fpr_vstart ) {
 			/* error */
 			DIE( "Need more FPRs" );
@@ -993,6 +1012,7 @@ VM_AnalyzeFunction(
 		// need stack to save caller safe registers
 		*prepareStack = 1;
 	}
+
 	*fpr_start_pos = fpr_start;
 }
 
@@ -1000,8 +1020,7 @@ VM_AnalyzeFunction(
  * translate opcodes to ppc instructions,
  * it works on functions, not on whole code at once
  */
-static void
-VM_CompileFunction( source_instruction_t * const i_first )
+static void VM_CompileFunction( source_instruction_t * const i_first )
 {
 	long int prepareStack = 0;
 	long int gpr_start_pos, fpr_start_pos;
@@ -1019,16 +1038,19 @@ VM_CompileFunction( source_instruction_t * const i_first )
 	{
 		if ( gpr_start_pos < gpr_vstart )
 			save_space += (gpr_vstart - gpr_start_pos) * GPRLEN;
+
 		save_space = ( save_space + 15 ) & ~0x0f;
 
 		if ( fpr_start_pos < fpr_vstart )
 			save_space += (fpr_vstart - fpr_start_pos) * FPRLEN;
+
 		save_space = ( save_space + 15 ) & ~0x0f;
 	}
 
 	long int stack_temp = prepareStack ? STACK_TEMP : STACK_RTEMP;
 
-	while ( (i_now = i_now->next) ) {
+	while ( (i_now = i_now->next) )
+	{
 		emitStart( i_now->i_count );
 
 		switch ( i_now->op )
@@ -1767,21 +1789,25 @@ VM_CompileFunction( source_instruction_t * const i_first )
 /*
  * check which jumps are short enough to use signed 16bit immediate branch
  */
-static void
-PPC_ShrinkJumps( void )
+static void PPC_ShrinkJumps( void )
 {
 	symbolic_jump_t *sj_now = sj_first;
-	while ( (sj_now = sj_now->nextJump) ) {
+
+	while ( (sj_now = sj_now->nextJump) )
+	{
 		if ( sj_now->bo == branchAlways )
 			// non-conditional branch has 26bit immediate
 			sj_now->parent->length = 1;
 
-		else {
+		else
+		{
 			dest_instruction_t *di = di_pointers[ sj_now->jump_to ];
 			dest_instruction_t *ji = sj_now->parent;
 			long int jump_length = 0;
+
 			if ( ! di )
 				DIE( "No instruction to jump to" );
+
 			if ( ji->count > di->count ) {
 				do {
 					jump_length += di->length;
@@ -1791,6 +1817,7 @@ PPC_ShrinkJumps( void )
 				while ( ( ji = ji->next ) != di )
 					jump_length += ji->length;
 			}
+
 			if ( jump_length < 0x2000 )
 				// jump is short, use normal instruction
 				sj_now->parent->length = 1;
@@ -1801,8 +1828,7 @@ PPC_ShrinkJumps( void )
 /*
  * puts all the data in one place, it consists of many different tasks
  */
-static void
-PPC_ComputeCode( vm_t *vm )
+static void PPC_ComputeCode( vm_t *vm )
 {
 	dest_instruction_t *di_now = di_first;
 
@@ -1815,24 +1841,16 @@ PPC_ComputeCode( vm_t *vm )
 		+ sizeof( unsigned int ) * data_acc
 		+ sizeof( ppc_instruction_t ) * codeInstructions;
 
-#ifdef __amigaos4__
-	unsigned char *dataAndCode = IExec->AllocVecTags(codeLength,
-		AVT_Type, MEMF_EXECUTABLE,
-		AVT_ClearWithValue, 0,
-		TAG_DONE);
-
-	if (!dataAndCode) {
-		DIE( "Not enough memory" );
-	}
-#else
+	#if 1 // Cowcat
 	// get the memory for the generated code, smarter ppcs need the
 	// mem to be marked as executable (whill change later)
-	unsigned char *dataAndCode = mmap( NULL, codeLength,
-		PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0 );
+	//unsigned char *dataAndCode = mmap( NULL, codeLength, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0 );
 
-	if (dataAndCode == MAP_FAILED)
-		DIE( "Not enough memory" );
-#endif
+	unsigned char *dataAndCode = codeLength;
+
+	//if (dataAndCode == MAP_FAILED)
+		//DIE( "Not enough memory" );
+	#endif
 
 	ppc_instruction_t *codeNow, *codeBegin;
 	codeNow = codeBegin = (ppc_instruction_t *)( dataAndCode + VM_Data_Offset( data[ data_acc ] ) );
@@ -1843,17 +1861,25 @@ PPC_ComputeCode( vm_t *vm )
 	// fills the jump instructions with nops
 	// saves pointers of all instructions
 	di_now = di_first;
-	while ( (di_now = di_now->next ) ) {
+
+	while ( (di_now = di_now->next ) )
+	{
 		unsigned long int i_count = di_now->i_count;
-		if ( i_count != FALSE_ICOUNT ) {
+
+		if ( i_count != FALSE_ICOUNT )
+		{
 			if ( ! di_pointers[ i_count ] )
 				di_pointers[ i_count ] = (void *) codeNow;
 		}
 
-		if ( di_now->jump == NULL ) {
+		if ( di_now->jump == NULL )
+		{
 			memcpy( codeNow, &(di_now->code[0]), di_now->length * sizeof( ppc_instruction_t ) );
 			codeNow += di_now->length;
-		} else {
+		}
+
+		else
+		{
 			long int i;
 			symbolic_jump_t *sj;
 			for ( i = 0; i < di_now->length; i++ )
@@ -1868,13 +1894,16 @@ PPC_ComputeCode( vm_t *vm )
 
 	// compute the jumps and write corresponding instructions
 	symbolic_jump_t *sj_now = sj_first;
-	while ( (sj_now = sj_now->nextJump ) ) {
+
+	while ( (sj_now = sj_now->nextJump ) )
+	{
 		ppc_instruction_t *jumpFrom = (void *) sj_now->parent;
 		ppc_instruction_t *jumpTo = (void *) di_pointers[ sj_now->jump_to ];
 		signed long int jumpLength = jumpTo - jumpFrom;
 
 		// if jump is short, just write it
-		if ( jumpLength >= - 8192 && jumpLength < 8192 ) {
+		if ( jumpLength >= - 8192 && jumpLength < 8192 )
+		{
 			powerpc_iname_t branchConditional = sj_now->ext & branchExtLink ? iBCL : iBC;
 			*jumpFrom = IN( branchConditional, sj_now->bo, sj_now->bi, jumpLength * 4 );
 			continue;
@@ -1894,7 +1923,9 @@ PPC_ComputeCode( vm_t *vm )
 
 		// invert instruction condition
 		long int bo = 0;
-		switch ( sj_now->bo ) {
+
+		switch ( sj_now->bo )
+		{
 			case branchTrue:
 				bo = branchFalse;
 				break;
@@ -1958,7 +1989,9 @@ PPC_ComputeCode( vm_t *vm )
 			if ( !d_next )
 				break;
 			d_now = d_next;
+
 		} while (1);
+
 		data_first = NULL;
 	}
 
@@ -1968,33 +2001,32 @@ PPC_ComputeCode( vm_t *vm )
 		PPC_Free( di_first );
 		PPC_Free( sj_first );
 
-		while ( di_now ) {
+		while ( di_now )
+		{
 			di_first = di_now->next;
+
 			if ( di_now->jump )
 				PPC_Free( di_now->jump );
+
 			PPC_Free( di_now );
 			di_now = di_first;
 		}
 	}
 }
 
-static void
-VM_Destroy_Compiled( vm_t *self )
+static void VM_Destroy_Compiled( vm_t *self )
 {
-	if ( self->codeBase ) {
-#ifdef __amigaos4__
-		Com_Printf( "VM_Destroy_Compiled at %p\n", self->codeBase );
-		IExec->FreeVec( self->codeBase );
-#else
-		if ( munmap( self->codeBase, self->codeLength ) )
-			Com_Printf( S_COLOR_RED "Memory unmap failed, possible memory leak\n" );
-#endif
+	if ( self->codeBase )
+	{
+		// Cowcat
+		//if ( munmap( self->codeBase, self->codeLength ) )
+			//Com_Printf( S_COLOR_RED "Memory unmap failed, possible memory leak\n" );
 	}
+
 	self->codeBase = NULL;
 }
 
-void
-VM_Compile( vm_t *vm, vmHeader_t *header )
+void VM_Compile( vm_t *vm, vmHeader_t *header )
 {
 	long int pc = 0;
 	unsigned long int i_count;
@@ -2013,10 +2045,13 @@ VM_Compile( vm_t *vm, vmHeader_t *header )
 
 	// realloc instructionPointers with correct size
 	// use Z_Malloc so vm.c will be able to free the memory
-	if ( sizeof( void * ) != sizeof( int ) ) {
+
+	if ( sizeof( void * ) != sizeof( int ) )
+	{
 		Z_Free( vm->instructionPointers );
 		vm->instructionPointers = Z_Malloc( header->instructionCount * sizeof( void * ) );
 	}
+
 	di_pointers = (void *)vm->instructionPointers;
 	memset( di_pointers, 0, header->instructionCount * sizeof( void * ) );
 
@@ -2028,13 +2063,16 @@ VM_Compile( vm_t *vm, vmHeader_t *header )
 	 * divide it into functions and send each function to compiler
 	 */
 	code = (char *)header + header->codeOffset;
+
 	for ( i_count = 0; i_count < header->instructionCount; ++i_count )
 	{
 		unsigned char op = code[ pc++ ];
 
-		if ( op == OP_ENTER ) {
+		if ( op == OP_ENTER )
+		{
 			if ( i_first->next )
 				VM_CompileFunction( i_first );
+
 			i_first->next = NULL;
 			i_last = i_first;
 		}
@@ -2049,7 +2087,8 @@ VM_Compile( vm_t *vm, vmHeader_t *header )
 		i_now->regPos = 0;
 		i_now->next = NULL;
 
-		if ( vm_opInfo[op] & opImm4 ) {
+		if ( vm_opInfo[op] & opImm4 )
+		{
 			union {
 				unsigned char b[4];
 				unsigned int i;
@@ -2057,13 +2096,16 @@ VM_Compile( vm_t *vm, vmHeader_t *header )
 
 			i_now->arg.i = c.i;
 			pc += 4;
-		} else if ( vm_opInfo[op] & opImm1 ) {
+		}
+
+		else if ( vm_opInfo[op] & opImm1 ) {
 			i_now->arg.b = code[ pc++ ];
 		}
 
 		i_last->next = i_now;
 		i_last = i_now;
 	}
+
 	VM_CompileFunction( i_first );
 	PPC_Free( i_first );
 
@@ -2074,20 +2116,21 @@ VM_Compile( vm_t *vm, vmHeader_t *header )
 	/* check for uninitialized pointers */
 #ifdef DEBUG_VM
 	long int i;
+
 	for ( i = 0; i < header->instructionCount; i++ )
 		if ( di_pointers[ i ] == 0 )
 			Com_Printf( S_COLOR_RED "Pointer %ld not initialized !\n", i );
 #endif
 
-#ifndef __amigaos4__
 	/* mark memory as executable and not writeable */
-	if ( mprotect( vm->codeBase, vm->codeLength, PROT_READ|PROT_EXEC ) ) {
-
+	#if 0 // Cowcat
+	if ( mprotect( vm->codeBase, vm->codeLength, PROT_READ|PROT_EXEC ) )
+	{
 		// it has failed, make sure memory is unmapped before throwing the error
 		VM_Destroy_Compiled( vm );
 		DIE( "mprotect failed" );
 	}
-#endif
+	#endif
 
 	vm->destroy = VM_Destroy_Compiled;
 	vm->compiled = qtrue;
@@ -2105,8 +2148,7 @@ VM_Compile( vm_t *vm, vmHeader_t *header )
 	}
 }
 
-int
-VM_CallCompiled( vm_t *vm, int *args )
+int VM_CallCompiled( vm_t *vm, int *args )
 {
 	int retVal;
 	int *argPointer;
@@ -2150,7 +2192,9 @@ VM_CallCompiled( vm_t *vm, int *args )
 	times( &stop_time );
 	time_diff = stop_time.tms_utime - start_time.tms_utime;
 	time_total_vm += time_diff - time_outside_vm;
-	if ( time_diff > 100 ) {
+
+	if ( time_diff > 100 )
+	{
 		printf( "App clock: %ld, vm total: %ld, vm this: %ld, vm real: %ld, vm out: %ld\n"
 			"Inside VM %f%% of app time\n",
 			stop_time.tms_utime,

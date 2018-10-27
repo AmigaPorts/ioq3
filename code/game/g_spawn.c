@@ -89,6 +89,35 @@ typedef struct
 	fieldtype_t	type;
 } field_t;
 
+#if defined(__amiga__) && defined(__VBCC__) // Cowcat
+#define FOFS2(x,y) (size_t)FOFS(x) + offsetof(entityState_t,y) // Cowcat
+
+field_t fields[] = {
+	{"classname", FOFS(classname), F_STRING},
+	{"origin", FOFS2(s,origin), F_VECTOR},
+	{"model", FOFS(model), F_STRING},
+	{"model2", FOFS(model2), F_STRING},
+	{"spawnflags", FOFS(spawnflags), F_INT},
+	{"speed", FOFS(speed), F_FLOAT},
+	{"target", FOFS(target), F_STRING},
+	{"targetname", FOFS(targetname), F_STRING},
+	{"message", FOFS(message), F_STRING},
+	{"team", FOFS(team), F_STRING},
+	{"wait", FOFS(wait), F_FLOAT},
+	{"random", FOFS(random), F_FLOAT},
+	{"count", FOFS(count), F_INT},
+	{"health", FOFS(health), F_INT},
+	{"dmg", FOFS(damage), F_INT},
+	{"angles", FOFS2(s,angles), F_VECTOR},
+	{"angle", FOFS2(s,angles), F_ANGLEHACK},
+	{"targetShaderName", FOFS(targetShaderName), F_STRING},
+	{"targetShaderNewName", FOFS(targetShaderNewName), F_STRING},
+
+	{NULL}
+};
+
+#else
+
 field_t fields[] = {
 	{"classname", FOFS(classname), F_STRING},
 	{"origin", FOFS(s.origin), F_VECTOR},
@@ -113,6 +142,7 @@ field_t fields[] = {
 	{NULL}
 };
 
+#endif
 
 typedef struct {
 	char	*name;
@@ -391,7 +421,7 @@ void G_ParseField( const char *key, const char *value, gentity_t *ent ) {
 G_SpawnGEntityFromSpawnVars
 
 Spawn an entity and fill in all of the level fields from
-level.spawnVars[], then call the class specfic spawn function
+level.spawnVars[], then call the class specific spawn function
 ===================
 */
 void G_SpawnGEntityFromSpawnVars( void ) {

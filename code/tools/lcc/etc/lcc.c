@@ -18,6 +18,7 @@ static char rcsid[] = "Id: dummy rcsid";
 #include <unistd.h>
 #endif
 
+
 #ifndef TEMPDIR
 #define TEMPDIR "/tmp"
 #endif
@@ -289,10 +290,12 @@ extern int fork(void);
 #endif
 extern int wait(int *);
 
-static int spawn(const char *cmdname, char **argv) {
+static int spawn(const char *cmdname, char **argv)
+{
 	int pid, n, status;
 
-	switch (pid = fork()) {
+	switch (pid = fork())
+	{
 	case -1:
 		fprintf(stderr, "%s: no more processes\n", progname);
 		return 100;
@@ -306,12 +309,16 @@ static int spawn(const char *cmdname, char **argv) {
 	}
 	while ((n = wait(&status)) != pid && n != -1)
 		;
+
 	if (n == -1)
 		status = -1;
-	if (status&0377) {
+
+	if (status&0377)
+	{
 		fprintf(stderr, "%s: fatal error in %s\n", progname, cmdname);
 		status |= 0400;
 	}
+
 	return (status>>8)&0377;
 }
 #endif
@@ -636,7 +643,7 @@ static void opt(char *arg) {
 					clist = append(&arg[3], clist);
 					return;
 				}
-				break; /* and fall thru */
+				break; /* and fall through */
 			case 'a':
 				alist = append(&arg[3], alist);
 				return;

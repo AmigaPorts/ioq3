@@ -19,7 +19,7 @@ along with Quake III Arena source code; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
-#include "../renderercommon/tr_common.h"
+#include "../renderer/tr_local.h"
 
 
 qboolean ( * qwglSwapIntervalEXT)( int interval );
@@ -35,7 +35,8 @@ void ( * qglUnlockArraysEXT) ( void );
 void		GLimp_EndFrame( void ) {
 }
 
-void 		GLimp_Init( void ) {
+int 		GLimp_Init( void )
+{
 }
 
 void		GLimp_Shutdown( void ) {
@@ -44,18 +45,12 @@ void		GLimp_Shutdown( void ) {
 void		GLimp_EnableLogging( qboolean enable ) {
 }
 
-void		GLimp_LogComment( char *comment ) {
+void GLimp_LogComment( char *comment ) {
 }
 
-qboolean	QGL_Init( const char *dllname ) {
+qboolean QGL_Init( const char *dllname ) {
 	return qtrue;
 }
 
 void		QGL_Shutdown( void ) {
-}
-
-void		GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned char blue[256] ) {
-}
-
-void		GLimp_Minimize( void ) {
 }

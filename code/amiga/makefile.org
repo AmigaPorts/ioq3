@@ -1,0 +1,277 @@
+B = /sfs_test/code/ioquake/code
+
+AHI_SND = $(B)/amiga/amiga_snd.c \
+		  $(B)/client/snd_adpcm.c \
+		  $(B)/client/snd_dma.c \
+		  $(B)/client/snd_mem.c \
+		  $(B)/client/snd_mix.c \
+		  $(B)/client/snd_wavelet.c \
+		  $(B)/client/snd_main.c \
+		  $(B)/client/snd_codec.c \
+		  $(B)/client/snd_codec_wav.c
+
+OPENAL_SND = $(B)/client/snd_openal.c
+
+SND_SRC = $(AHI_SND) $(OPENAL_SND)
+
+VM_JIT = vm_ppc.c
+
+SRC = $(B)/client/cl_cgame.c \
+	  $(B)/client/cl_cin.c \
+	  $(B)/client/cl_console.c \
+	  $(B)/client/cl_input.c \
+	  $(B)/client/cl_keys.c \
+	  $(B)/client/cl_main.c \
+	  $(B)/client/cl_net_chan.c \
+	  $(B)/client/cl_parse.c \
+	  $(B)/client/cl_scrn.c \
+	  $(B)/client/cl_ui.c \
+	  $(B)/client/cl_avi.c \
+	  \
+	  $(B)/qcommon/cm_load.c \
+	  $(B)/qcommon/cm_patch.c \
+ 	  $(B)/qcommon/cm_polylib.c \
+ 	  $(B)/qcommon/cm_test.c \
+ 	  $(B)/qcommon/cm_trace.c \
+ 	  $(B)/qcommon/cmd.c \
+	  $(B)/qcommon/common.c \
+	  $(B)/qcommon/cvar.c \
+	  $(B)/qcommon/files.c \
+	  $(B)/qcommon/huffman.c \
+	  $(B)/qcommon/md4.c \
+	  $(B)/qcommon/msg.c \
+	  $(B)/qcommon/net_chan.c \
+	  $(B)/qcommon/net_ip.c \
+	  $(B)/qcommon/q_math.c \
+	  $(B)/qcommon/q_shared.c \
+	  $(B)/qcommon/md5.c \
+	  $(B)/qcommon/puff.c \
+	  \
+	  $(B)/server/sv_bot.c \
+	  $(B)/server/sv_ccmds.c \
+	  $(B)/server/sv_client.c \
+	  $(B)/server/sv_game.c \
+	  $(B)/server/sv_init.c \
+	  $(B)/server/sv_main.c \
+	  $(B)/server/sv_net_chan.c \
+	  $(B)/server/sv_snapshot.c \
+	  $(B)/server/sv_world.c \
+	  \
+	  $(B)/qcommon/unzip.c \
+	  $(B)/qcommon/vm.c \
+	  $(B)/qcommon/vm_interpreted.c \
+	  $(B)/qcommon/$(VM_JIT) \
+	  \
+	  $(B)/botlib/be_aas_bspq3.c \
+	  $(B)/botlib/be_aas_cluster.c \
+	  $(B)/botlib/be_aas_debug.c \
+	  $(B)/botlib/be_aas_entity.c \
+	  $(B)/botlib/be_aas_file.c \
+	  $(B)/botlib/be_aas_main.c \
+	  $(B)/botlib/be_aas_move.c \
+	  $(B)/botlib/be_aas_optimize.c \
+	  $(B)/botlib/be_aas_reach.c \
+	  $(B)/botlib/be_aas_route.c \
+	  $(B)/botlib/be_aas_routealt.c \
+	  $(B)/botlib/be_aas_sample.c \
+	  $(B)/botlib/be_ai_char.c \
+	  $(B)/botlib/be_ai_chat.c \
+	  $(B)/botlib/be_ai_gen.c \
+	  $(B)/botlib/be_ai_goal.c \
+	  $(B)/botlib/be_ai_move.c \
+	  $(B)/botlib/be_ai_weap.c \
+	  $(B)/botlib/be_ai_weight.c \
+	  $(B)/botlib/be_ea.c \
+	  $(B)/botlib/be_interface.c \
+	  $(B)/botlib/l_crc.c \
+	  $(B)/botlib/l_libvar.c \
+	  $(B)/botlib/l_log.c \
+	  $(B)/botlib/l_memory.c \
+	  $(B)/botlib/l_precomp.c \
+	  $(B)/botlib/l_script.c \
+	  $(B)/botlib/l_struct.c \
+	  \
+	  $(B)/renderer/tr_animation.c \
+	  $(B)/renderer/tr_backend.c \
+	  $(B)/renderer/tr_bsp.c \
+	  $(B)/renderer/tr_cmds.c \
+	  $(B)/renderer/tr_curve.c \
+	  $(B)/renderer/tr_flares.c \
+	  $(B)/renderer/tr_font.c \
+	  $(B)/renderer/tr_image.c \
+	  $(B)/renderer/tr_init.c \
+	  $(B)/renderer/tr_light.c \
+	  $(B)/renderer/tr_main.c \
+	  $(B)/renderer/tr_marks.c \
+	  $(B)/renderer/tr_mesh.c \
+	  $(B)/renderer/tr_model.c \
+	  $(B)/renderer/tr_noise.c \
+	  $(B)/renderer/tr_scene.c \
+	  $(B)/renderer/tr_shade.c \
+	  $(B)/renderer/tr_shade_calc.c \
+	  $(B)/renderer/tr_shader.c \
+	  $(B)/renderer/tr_shadows.c \
+	  $(B)/renderer/tr_sky.c \
+	  $(B)/renderer/tr_surface.c \
+	  $(B)/renderer/tr_world.c \
+	  $(B)/renderer/tr_image_bmp.c \
+	  $(B)/renderer/tr_image_tga.c \
+	  $(B)/renderer/tr_image_jpg.c \
+	  $(B)/renderer/tr_image_png.c \
+	  $(B)/renderer/tr_image_pcx.c \
+	  \
+	  $(B)/jpeg-6b/jcapimin.c \
+	  $(B)/jpeg-6b/jccoefct.c \
+	  $(B)/jpeg-6b/jccolor.c \
+	  $(B)/jpeg-6b/jcdctmgr.c \
+	  $(B)/jpeg-6b/jchuff.c \
+	  $(B)/jpeg-6b/jcinit.c \
+	  $(B)/jpeg-6b/jcmainct.c \
+	  $(B)/jpeg-6b/jcmarker.c \
+	  $(B)/jpeg-6b/jcmaster.c \
+	  $(B)/jpeg-6b/jcomapi.c \
+	  $(B)/jpeg-6b/jcparam.c \
+	  $(B)/jpeg-6b/jcphuff.c \
+	  $(B)/jpeg-6b/jcprepct.c \
+	  $(B)/jpeg-6b/jcsample.c \
+	  $(B)/jpeg-6b/jctrans.c \
+	  $(B)/jpeg-6b/jdapimin.c \
+	  $(B)/jpeg-6b/jdapistd.c \
+	  $(B)/jpeg-6b/jdatadst.c \
+	  $(B)/jpeg-6b/jdatasrc.c \
+	  $(B)/jpeg-6b/jdcoefct.c \
+	  $(B)/jpeg-6b/jdcolor.c \
+	  $(B)/jpeg-6b/jddctmgr.c \
+	  $(B)/jpeg-6b/jdhuff.c \
+	  $(B)/jpeg-6b/jdinput.c \
+	  $(B)/jpeg-6b/jdmainct.c \
+	  $(B)/jpeg-6b/jdmarker.c \
+	  $(B)/jpeg-6b/jdmaster.c \
+	  $(B)/jpeg-6b/jdpostct.c \
+	  $(B)/jpeg-6b/jdsample.c \
+	  $(B)/jpeg-6b/jdtrans.c \
+	  $(B)/jpeg-6b/jerror.c \
+	  $(B)/jpeg-6b/jfdctflt.c \
+	  $(B)/jpeg-6b/jidctflt.c \
+	  $(B)/jpeg-6b/jmemmgr.c \
+	  $(B)/jpeg-6b/jmemnobs.c \
+	  $(B)/jpeg-6b/jutils.c \
+	  $(B)/jpeg-6b/jcapistd.c \
+	  \
+	  $(B)/amiga/amiga_input.c \
+	  $(B)/amiga/amiga_main.c \
+	  $(B)/amiga/amiga_syscon.c \
+	  $(B)/amiga/amiga_glimp.c \
+	  $(B)/amiga/amiga_qgl.c \
+	  $(B)/amiga/amiga_shared.c \
+	  $(SND_SRC)
+
+#	   $(B)/amiga/amiga_net.c \
+
+CC = gcc
+
+WARNINGS = -Wall -Wimplicit -Wstrict-prototypes
+OPTIONS = -fno-strict-aliasing -fno-common -fsigned-char
+DEFINES = -DDEBUG -DMINIGL -DOPEN_ARENA -DSTANDALONE #-DNO_VM_COMPILED
+OPTIMIZATION = -ffast-math -falign-loops=16
+
+CFLAGS =-mcrt=newlib $(WARNINGS) $(OPTIONS) $(DEFINES) $(OPTIMIZATION) -g -ggdb -O3
+
+Q3LIBS =-lsocket -lGL -lauto #-lopenal -lvorbisfile -lvorbis -logg -lpthread -lm -lauto -lraauto
+
+define ioquake3_template
+ioquake3_objs/$(notdir $(basename $(1))).o: $(1)
+ifeq ($(notdir $(1)), $(VM_JIT))
+	@echo Compiling $(notdir $(1))
+	$(CC) $(CFLAGS) -Wa,-mregnames -c $(1) -o ioquake3_objs/$(notdir $(basename $(1))).o
+else
+ifeq ($(dir $(1)), $(B)/botlib/)
+	@echo Compiling $(notdir $(1))
+	@$(CC) $(CFLAGS) -DBOTLIB -c $(1) -o ioquake3_objs/$(notdir $(basename $(1))).o
+else
+	@echo Compiling $(notdir $(1))
+	@$(CC) $(CFLAGS) -c $(1) -o ioquake3_objs/$(notdir $(basename $(1))).o
+endif
+endif
+Q3OBJ+=ioquake3_objs/$(notdir $(basename $(1))).o
+endef
+
+define openarena_template
+openarena_objs/$(notdir $(basename $(1))).o: $(1)
+ifeq ($(notdir $(1)), $(VM_JIT))
+	@echo Compiling $(notdir $(1))
+	$(CC) $(CFLAGS) -DOPEN_ARENA -Wa,-mregnames -c $(1) -o openarena_objs/$(notdir $(basename $(1))).o
+else
+ifeq ($(dir $(1)), $(B)/botlib/)
+	@echo Compiling $(notdir $(1))
+	@$(CC) $(CFLAGS) -DOPEN_ARENA -DBOTLIB -c $(1) -o openarena_objs/$(notdir $(basename $(1))).o
+else
+	@echo Compiling $(notdir $(1))
+	@$(CC) $(CFLAGS) -DOPEN_ARENA -c $(1) -o openarena_objs/$(notdir $(basename $(1))).o
+endif
+endif
+OAOBJ+=openarena_objs/$(notdir $(basename $(1))).o
+endef
+
+ioquake3: config dirs dist/ioquake3-ns
+
+openarena: config dirs dist/openarena-ns
+
+all: config dirs dist/ioquake3-ns dist/openarena-ns
+
+$(foreach file,$(SRC),$(eval $(call ioquake3_template,$(file))))
+$(foreach file,$(SRC),$(eval $(call openarena_template,$(file))))
+
+.PHONY: dirs config
+
+dirs:
+	-makedir ioquake3_objs
+	-makedir openarena_objs
+	-makedir dist
+	-makedir ioquake3
+	-makedir ioquake3/baseq3
+	-makedir OpenArena
+	-makedir OpenArena/baseoa
+
+config:
+	@echo Build configuration:
+	@echo --------------------
+	@echo CC:      $(CC)
+	@echo CFLAGS:  $(CFLAGS)
+	@echo Q3LIBS:  $(Q3LIBS)
+	@echo --------------------
+
+dist/ioquake3-ns: .PHONY $(Q3OBJ) makefile
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(Q3OBJ) $(Q3LIBS)
+
+dist/openarena-ns: .PHONY $(OAOBJ) makefile
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OAOBJ) $(Q3LIBS)
+
+release-ioquake3: dist/ioquake3-ns
+	strip $< -R.comment -o dist/ioquake3
+	-copy icons/Quake3_tool.info ioquake3/ioquake3.info
+	-copy icons/Quake3_drawer.info ioquake3.info
+	-copy dist/ioquake3 ioquake3/
+	-copy docs/gpl.txt ioquake3/
+	-copy docs/ioquake3-AmigaOS4.txt ioquake3/
+	-delete ioquake3.lha
+	lha a -re ioquake3.lha ioquake3 ioquake3.info
+
+release-openarena: dist/openarena-ns
+	strip $< -R.comment -o dist/openarena
+	-copy icons/OpenArena_tool.info OpenArena/OpenArena.info
+	-copy icons/OpenArena_drawer.info OpenArena.info
+	-copy dist/openarena openarena/
+	-copy docs/gpl.txt openarena/
+	-copy docs/OpenArena-AmigaOS4.txt openarena/
+	-delete openarena.lha
+	lha a -re openarena.lha openarena openarena.info
+
+release-src:
+	svn export ../../ ram:ioquake3-src/
+	lha a -r ram:ioquake3-src.lha ram:ioquake3-src
+
+clean:
+	delete ioquake3_objs/#?.o
+	delete openarena_objs/#?.o
+

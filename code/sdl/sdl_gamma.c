@@ -26,10 +26,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #	include <SDL.h>
 #endif
 
-#include "../renderercommon/tr_common.h"
+#include "../renderer/tr_local.h"
 #include "../qcommon/qcommon.h"
-
-extern SDL_Window *SDL_window;
 
 /*
 =================
@@ -41,7 +39,7 @@ void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned 
 	Uint16 table[3][256];
 	int i, j;
 
-	if( !glConfig.deviceSupportsGamma || r_ignorehwgamma->integer > 0 )
+	if( !glConfig.deviceSupportsGamma || r_ignorehwgamma->integer )
 		return;
 
 	for (i = 0; i < 256; i++)
@@ -62,7 +60,7 @@ void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned 
 		GetVersionEx( &vinfo );
 		if( vinfo.dwMajorVersion >= 5 && vinfo.dwPlatformId == VER_PLATFORM_WIN32_NT )
 		{
-			ri.Printf( PRINT_DEVELOPER, "performing gamma clamp.\n" );
+			Com_DPrintf( "performing gamma clamp.\n" );
 			for( j = 0 ; j < 3 ; j++ )
 			{
 				for( i = 0 ; i < 128 ; i++ )
@@ -88,9 +86,6 @@ void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned 
 		}
 	}
 
-	if (SDL_SetWindowGammaRamp(SDL_window, table[0], table[1], table[2]) < 0)
-	{
-		ri.Printf( PRINT_DEVELOPER, "SDL_SetWindowGammaRamp() failed: %s\n", SDL_GetError() );
-	}
+	SDL_SetGammaRamp(table[0], table[1], table[2]);
 }
 

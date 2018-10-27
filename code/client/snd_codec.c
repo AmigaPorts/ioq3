@@ -36,8 +36,8 @@ then tries all supported codecs.
 */
 static void *S_CodecGetSound(const char *filename, snd_info_t *info)
 {
-	snd_codec_t *codec;
-	snd_codec_t *orgCodec = NULL;
+	snd_codec_t	*codec;
+	snd_codec_t	*orgCodec = NULL;
 	qboolean	orgNameFailed = qfalse;
 	char		localName[ MAX_QPATH ];
 	const char	*ext;
@@ -58,8 +58,10 @@ static void *S_CodecGetSound(const char *filename, snd_info_t *info)
 				// Load
 				if( info )
 					rtn = codec->load(localName, info);
+
 				else
 					rtn = codec->open(localName);
+
 				break;
 			}
 		}
@@ -75,6 +77,7 @@ static void *S_CodecGetSound(const char *filename, snd_info_t *info)
 				orgCodec = codec;
 				COM_StripExtension( filename, localName, MAX_QPATH );
 			}
+
 			else
 			{
 				// Something loaded
@@ -95,6 +98,7 @@ static void *S_CodecGetSound(const char *filename, snd_info_t *info)
 		// Load
 		if( info )
 			rtn = codec->load(altName, info);
+
 		else
 			rtn = codec->open(altName);
 
@@ -102,15 +106,14 @@ static void *S_CodecGetSound(const char *filename, snd_info_t *info)
 		{
 			if( orgNameFailed )
 			{
-				Com_DPrintf(S_COLOR_YELLOW "WARNING: %s not present, using %s instead\n",
-						filename, altName );
+				Com_DPrintf(S_COLOR_YELLOW "WARNING: %s not present, using %s instead\n", filename, altName );
 			}
 
 			return rtn;
 		}
 	}
 
-	Com_Printf(S_COLOR_YELLOW "WARNING: Failed to %s sound %s!\n", info ? "load" : "open", filename);
+	Com_DPrintf(S_COLOR_YELLOW "WARNING: Failed to %s sound %s!\n", info ? "load" : "open", filename); // show only on developer - Cowcat
 
 	return NULL;
 }
@@ -132,7 +135,7 @@ void S_CodecInit()
 	S_CodecRegister(&ogg_codec);
 #endif
 
-// Register wav codec last so that it is always tried first when a file extension was not found
+	// Register wav codec last so that it is always tried first when a file extension was not found
 	S_CodecRegister(&wav_codec);
 }
 
@@ -203,6 +206,7 @@ snd_stream_t *S_CodecUtilOpen(const char *filename, snd_codec_t *codec)
 
 	// Try to open the file
 	length = FS_FOpenFileRead(filename, &hnd, qtrue);
+
 	if(!hnd)
 	{
 		Com_DPrintf("Can't read sound file %s\n", filename);
@@ -211,6 +215,7 @@ snd_stream_t *S_CodecUtilOpen(const char *filename, snd_codec_t *codec)
 
 	// Allocate a stream
 	stream = Z_Malloc(sizeof(snd_stream_t));
+
 	if(!stream)
 	{
 		FS_FCloseFile(hnd);

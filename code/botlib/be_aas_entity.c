@@ -390,9 +390,9 @@ int AAS_NearestEntity(vec3_t origin, int modelindex)
 		ent = &aasworld.entities[i];
 		if (ent->i.modelindex != modelindex) continue;
 		VectorSubtract(ent->i.origin, origin, dir);
-		if (fabsf(dir[0]) < 40)
+		if (fabs(dir[0]) < 40) // Cowcat
 		{
-			if (fabsf(dir[1]) < 40)
+			if (fabs(dir[1]) < 40) // Cowcat
 			{
 				dist = VectorLength(dir);
 				if (dist < bestdist)

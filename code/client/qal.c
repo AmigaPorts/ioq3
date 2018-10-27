@@ -83,7 +83,7 @@ LPALBUFFERDATA qalBufferData;
 LPALGETBUFFERF qalGetBufferf;
 LPALGETBUFFERI qalGetBufferi;
 LPALDOPPLERFACTOR qalDopplerFactor;
-LPALSPEEDOFSOUND qalSpeedOfSound;
+LPALDOPPLERVELOCITY qalDopplerVelocity;
 LPALDISTANCEMODEL qalDistanceModel;
 
 LPALCCREATECONTEXT qalcCreateContext;
@@ -144,8 +144,23 @@ qboolean QAL_Init(const char *libname)
 	if(OpenALLib)
 		return qtrue;
 
-	if(!(OpenALLib = Sys_LoadDll(libname, qtrue)))
+	Com_Printf( "Loading \"%s\"...\n", libname);
+	if( (OpenALLib = Sys_LoadLibrary(libname)) == 0 )
+	{
+#ifdef _WIN32
 		return qfalse;
+#else
+		char fn[1024];
+		Q_strncpyz( fn, Sys_Cwd( ), sizeof( fn ) );
+		strncat(fn, "/", sizeof(fn) - strlen(fn) - 1);
+		strncat(fn, libname, sizeof(fn) - strlen(fn) - 1);
+
+		if( (OpenALLib = Sys_LoadLibrary(fn)) == 0 )
+		{
+			return qfalse;
+		}
+#endif
+	}
 
 	alinit_fail = qfalse;
 
@@ -201,7 +216,7 @@ qboolean QAL_Init(const char *libname)
 	qalGetBufferf = GPA("alGetBufferf");
 	qalGetBufferi = GPA("alGetBufferi");
 	qalDopplerFactor = GPA("alDopplerFactor");
-	qalSpeedOfSound = GPA("alSpeedOfSound");
+	qalDopplerVelocity = GPA("alDopplerVelocity");
 	qalDistanceModel = GPA("alDistanceModel");
 
 	qalcCreateContext = GPA("alcCreateContext");
@@ -300,7 +315,7 @@ void QAL_Shutdown( void )
 	qalGetBufferf = NULL;
 	qalGetBufferi = NULL;
 	qalDopplerFactor = NULL;
-	qalSpeedOfSound = NULL;
+	qalDopplerVelocity = NULL;
 	qalDistanceModel = NULL;
 
 	qalcCreateContext = NULL;

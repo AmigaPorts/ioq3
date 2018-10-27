@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "client.h"
 
 unsigned	frame_msec;
-int			old_com_frameTime;
+int		old_com_frameTime;
 
 /*
 ===============================================================================
@@ -58,46 +58,63 @@ kbutton_t	in_voiprecord;
 
 kbutton_t	in_buttons[16];
 
-
 qboolean	in_mlooking;
 
-
-void IN_MLookDown( void ) {
+void IN_MLookDown( void )
+{
 	in_mlooking = qtrue;
 }
 
-void IN_MLookUp( void ) {
+void IN_MLookUp( void )
+{
 	in_mlooking = qfalse;
-	if ( !cl_freelook->integer ) {
+
+	if ( !cl_freelook->integer )
+	{
 		IN_CenterView ();
 	}
 }
 
-void IN_KeyDown( kbutton_t *b ) {
-	int		k;
+void IN_KeyDown( kbutton_t *b )
+{
+	int	k;
 	char	*c;
 	
 	c = Cmd_Argv(1);
-	if ( c[0] ) {
+
+	if ( c[0] )
+	{
 		k = atoi(c);
-	} else {
+	}
+
+	else
+	{
 		k = -1;		// typed manually at the console for continuous down
 	}
 
-	if ( k == b->down[0] || k == b->down[1] ) {
+	if ( k == b->down[0] || k == b->down[1] )
+	{
 		return;		// repeating key
 	}
 	
-	if ( !b->down[0] ) {
+	if ( !b->down[0] )
+	{
 		b->down[0] = k;
-	} else if ( !b->down[1] ) {
+	}
+
+	else if ( !b->down[1] )
+	{
 		b->down[1] = k;
-	} else {
+	}
+
+	else
+	{
 		Com_Printf ("Three keys down for a button!\n");
 		return;
 	}
 	
-	if ( b->active ) {
+	if ( b->active )
+	{
 		return;		// still down
 	}
 
@@ -109,29 +126,44 @@ void IN_KeyDown( kbutton_t *b ) {
 	b->wasPressed = qtrue;
 }
 
-void IN_KeyUp( kbutton_t *b ) {
+void IN_KeyUp( kbutton_t *b )
+{
 	int		k;
-	char	*c;
+	char		*c;
 	unsigned	uptime;
 
 	c = Cmd_Argv(1);
-	if ( c[0] ) {
+
+	if ( c[0] )
+	{
 		k = atoi(c);
-	} else {
+	}
+
+	else
+	{
 		// typed manually at the console, assume for unsticking, so clear all
 		b->down[0] = b->down[1] = 0;
 		b->active = qfalse;
 		return;
 	}
 
-	if ( b->down[0] == k ) {
+	if ( b->down[0] == k )
+	{
 		b->down[0] = 0;
-	} else if ( b->down[1] == k ) {
+	}
+
+	else if ( b->down[1] == k )
+	{
 		b->down[1] = 0;
-	} else {
+	}
+
+	else
+	{
 		return;		// key up without coresponding down (menu pass through)
 	}
-	if ( b->down[0] || b->down[1] ) {
+
+	if ( b->down[0] || b->down[1] )
+	{
 		return;		// some other key is still holding it down
 	}
 
@@ -140,9 +172,14 @@ void IN_KeyUp( kbutton_t *b ) {
 	// save timestamp for partial frame summing
 	c = Cmd_Argv(2);
 	uptime = atoi(c);
-	if ( uptime ) {
+
+	if ( uptime )
+	{
 		b->msec += uptime - b->downtime;
-	} else {
+	}
+
+	else
+	{
 		b->msec += frame_msec / 2;
 	}
 
@@ -158,20 +195,27 @@ CL_KeyState
 Returns the fraction of the frame that the key was down
 ===============
 */
-float CL_KeyState( kbutton_t *key ) {
-	float		val;
-	int			msec;
+float CL_KeyState( kbutton_t *key )
+{
+	float	val;
+	int	msec;
 
 	msec = key->msec;
 	key->msec = 0;
 
-	if ( key->active ) {
+	if ( key->active )
+	{
 		// still down
-		if ( !key->downtime ) {
+		if ( !key->downtime )
+		{
 			msec = com_frameTime;
-		} else {
+		}
+
+		else
+		{
 			msec += com_frameTime - key->downtime;
 		}
+
 		key->downtime = com_frameTime;
 	}
 
@@ -182,17 +226,19 @@ float CL_KeyState( kbutton_t *key ) {
 #endif
 
 	val = (float)msec / frame_msec;
-	if ( val < 0 ) {
+
+	if ( val < 0 )
+	{
 		val = 0;
 	}
-	if ( val > 1 ) {
+
+	if ( val > 1 )
+	{
 		val = 1;
 	}
 
 	return val;
 }
-
-
 
 void IN_UpDown(void) {IN_KeyDown(&in_up);}
 void IN_UpUp(void) {IN_KeyUp(&in_up);}
@@ -267,20 +313,20 @@ void IN_Button14Up(void) {IN_KeyUp(&in_buttons[14]);}
 void IN_Button15Down(void) {IN_KeyDown(&in_buttons[15]);}
 void IN_Button15Up(void) {IN_KeyUp(&in_buttons[15]);}
 
-void IN_CenterView (void) {
+void IN_CenterView (void)
+{
 	cl.viewangles[PITCH] = -SHORT2ANGLE(cl.snap.ps.delta_angles[PITCH]);
 }
 
-
 //==========================================================================
 
+cvar_t	*cl_upspeed;
+cvar_t	*cl_forwardspeed;
+cvar_t	*cl_sidespeed;
 cvar_t	*cl_yawspeed;
 cvar_t	*cl_pitchspeed;
-
 cvar_t	*cl_run;
-
 cvar_t	*cl_anglespeedkey;
-
 
 /*
 ================
@@ -289,16 +335,22 @@ CL_AdjustAngles
 Moves the local angle positions
 ================
 */
-void CL_AdjustAngles( void ) {
+void CL_AdjustAngles( void )
+{
 	float	speed;
 	
-	if ( in_speed.active ) {
+	if ( in_speed.active )
+	{
 		speed = 0.001 * cls.frametime * cl_anglespeedkey->value;
-	} else {
+	}
+
+	else
+	{
 		speed = 0.001 * cls.frametime;
 	}
 
-	if ( !in_strafe.active ) {
+	if ( !in_strafe.active )
+	{
 		cl.viewangles[YAW] -= speed*cl_yawspeed->value*CL_KeyState (&in_right);
 		cl.viewangles[YAW] += speed*cl_yawspeed->value*CL_KeyState (&in_left);
 	}
@@ -314,19 +366,24 @@ CL_KeyMove
 Sets the usercmd_t based on key states
 ================
 */
-void CL_KeyMove( usercmd_t *cmd ) {
-	int		movespeed;
-	int		forward, side, up;
+void CL_KeyMove( usercmd_t *cmd )
+{
+	int	movespeed;
+	int	forward, side, up;
 
 	//
 	// adjust for speed key / running
 	// the walking flag is to keep animations consistant
 	// even during acceleration and develeration
 	//
-	if ( in_speed.active ^ cl_run->integer ) {
+	if ( in_speed.active ^ cl_run->integer )
+	{
 		movespeed = 127;
 		cmd->buttons &= ~BUTTON_WALKING;
-	} else {
+	}
+
+	else
+	{
 		cmd->buttons |= BUTTON_WALKING;
 		movespeed = 64;
 	}
@@ -334,7 +391,9 @@ void CL_KeyMove( usercmd_t *cmd ) {
 	forward = 0;
 	side = 0;
 	up = 0;
-	if ( in_strafe.active ) {
+
+	if ( in_strafe.active )
+	{
 		side += movespeed * CL_KeyState (&in_right);
 		side -= movespeed * CL_KeyState (&in_left);
 	}
@@ -359,12 +418,20 @@ void CL_KeyMove( usercmd_t *cmd ) {
 CL_MouseEvent
 =================
 */
-void CL_MouseEvent( int dx, int dy, int time ) {
-	if ( Key_GetCatcher( ) & KEYCATCH_UI ) {
+void CL_MouseEvent( int dx, int dy, int time )
+{
+	if ( Key_GetCatcher( ) & KEYCATCH_UI )
+	{
 		VM_Call( uivm, UI_MOUSE_EVENT, dx, dy );
-	} else if (Key_GetCatcher( ) & KEYCATCH_CGAME) {
+	}
+
+	else if (Key_GetCatcher( ) & KEYCATCH_CGAME)
+	{
 		VM_Call (cgvm, CG_MOUSE_EVENT, dx, dy);
-	} else {
+	}
+
+	else
+	{
 		cl.mouseDx[cl.mouseIndex] += dx;
 		cl.mouseDy[cl.mouseIndex] += dy;
 	}
@@ -377,10 +444,13 @@ CL_JoystickEvent
 Joystick values stay set until changed
 =================
 */
-void CL_JoystickEvent( int axis, int value, int time ) {
-	if ( axis < 0 || axis >= MAX_JOYSTICK_AXIS ) {
+void CL_JoystickEvent( int axis, int value, int time )
+{
+	if ( axis < 0 || axis >= MAX_JOYSTICK_AXIS )
+	{
 		Com_Error( ERR_DROP, "CL_JoystickEvent: bad axis %i", axis );
 	}
+
 	cl.joystickAxis[axis] = value;
 }
 
@@ -389,16 +459,15 @@ void CL_JoystickEvent( int axis, int value, int time ) {
 CL_JoystickMove
 =================
 */
-void CL_JoystickMove( usercmd_t *cmd ) {
+void CL_JoystickMove( usercmd_t *cmd )
+{
+	int	movespeed;
 	float	anglespeed;
 
-	float yaw     = j_yaw->value     * cl.joystickAxis[j_yaw_axis->integer];
-	float right   = j_side->value    * cl.joystickAxis[j_side_axis->integer];
-	float forward = j_forward->value * cl.joystickAxis[j_forward_axis->integer];
-	float pitch   = j_pitch->value   * cl.joystickAxis[j_pitch_axis->integer];
-	float up      = j_up->value      * cl.joystickAxis[j_up_axis->integer];
-
-	if ( !(in_speed.active ^ cl_run->integer) ) {
+	if ( in_speed.active ^ cl_run->integer ) {
+		movespeed = 2;
+	} else {
+		movespeed = 1;
 		cmd->buttons |= BUTTON_WALKING;
 	}
 
@@ -409,22 +478,18 @@ void CL_JoystickMove( usercmd_t *cmd ) {
 	}
 
 	if ( !in_strafe.active ) {
-		cl.viewangles[YAW] += anglespeed * yaw;
-		cmd->rightmove = ClampChar( cmd->rightmove + (int)right );
+		cl.viewangles[YAW] += anglespeed * cl_yawspeed->value * cl.joystickAxis[AXIS_SIDE];
 	} else {
-		cl.viewangles[YAW] += anglespeed * right;
-		cmd->rightmove = ClampChar( cmd->rightmove + (int)yaw );
+		cmd->rightmove = ClampChar( cmd->rightmove + cl.joystickAxis[AXIS_SIDE] );
 	}
 
 	if ( in_mlooking ) {
-		cl.viewangles[PITCH] += anglespeed * forward;
-		cmd->forwardmove = ClampChar( cmd->forwardmove + (int)pitch );
+		cl.viewangles[PITCH] += anglespeed * cl_pitchspeed->value * cl.joystickAxis[AXIS_FORWARD];
 	} else {
-		cl.viewangles[PITCH] += anglespeed * pitch;
-		cmd->forwardmove = ClampChar( cmd->forwardmove + (int)forward );
+		cmd->forwardmove = ClampChar( cmd->forwardmove + cl.joystickAxis[AXIS_FORWARD] );
 	}
 
-	cmd->upmove = ClampChar( cmd->upmove + (int)up );
+	cmd->upmove = ClampChar( cmd->upmove + cl.joystickAxis[AXIS_UP] );
 }
 
 /*
@@ -433,67 +498,48 @@ CL_MouseMove
 =================
 */
 
-void CL_MouseMove(usercmd_t *cmd)
+void CL_MouseMove( usercmd_t *cmd )
 {
-	float mx, my;
+	float	mx, my;
+	float 	zero = 0.0f; // Cowcat
 
 	// allow mouse smoothing
-	if (m_filter->integer)
+	if ( m_filter->integer )
 	{
-		mx = (cl.mouseDx[0] + cl.mouseDx[1]) * 0.5f;
-		my = (cl.mouseDy[0] + cl.mouseDy[1]) * 0.5f;
+		mx = ( cl.mouseDx[0] + cl.mouseDx[1] ) * 0.5f;
+		my = ( cl.mouseDy[0] + cl.mouseDy[1] ) * 0.5f;
 	}
+
 	else
 	{
 		mx = cl.mouseDx[cl.mouseIndex];
 		my = cl.mouseDy[cl.mouseIndex];
 	}
-	
+
 	cl.mouseIndex ^= 1;
 	cl.mouseDx[cl.mouseIndex] = 0;
 	cl.mouseDy[cl.mouseIndex] = 0;
 
-	if (mx == 0.0f && my == 0.0f)
-		return;
-	
-	if (cl_mouseAccel->value != 0.0f)
+	if (mx == zero && my == zero)
 	{
-		if(cl_mouseAccelStyle->integer == 0)
-		{
-			float accelSensitivity;
-			float rate;
-			
-			rate = sqrt(mx * mx + my * my) / (float) frame_msec;
-
-			accelSensitivity = cl_sensitivity->value + rate * cl_mouseAccel->value;
-			mx *= accelSensitivity;
-			my *= accelSensitivity;
-			
-			if(cl_showMouseRate->integer)
-				Com_Printf("rate: %f, accelSensitivity: %f\n", rate, accelSensitivity);
-		}
-		else
-		{
-			float rate[2];
-			float power[2];
-
-			// sensitivity remains pretty much unchanged at low speeds
-			// cl_mouseAccel is a power value to how the acceleration is shaped
-			// cl_mouseAccelOffset is the rate for which the acceleration will have doubled the non accelerated amplification
-			// NOTE: decouple the config cvars for independent acceleration setup along X and Y?
-
-			rate[0] = fabs(mx) / (float) frame_msec;
-			rate[1] = fabs(my) / (float) frame_msec;
-			power[0] = powf(rate[0] / cl_mouseAccelOffset->value, cl_mouseAccel->value);
-			power[1] = powf(rate[1] / cl_mouseAccelOffset->value, cl_mouseAccel->value);
-
-			mx = cl_sensitivity->value * (mx + ((mx < 0) ? -power[0] : power[0]) * cl_mouseAccelOffset->value);
-			my = cl_sensitivity->value * (my + ((my < 0) ? -power[1] : power[1]) * cl_mouseAccelOffset->value);
-
-			if(cl_showMouseRate->integer)
-				Com_Printf("ratex: %f, ratey: %f, powx: %f, powy: %f\n", rate[0], rate[1], power[0], power[1]);
-		}
+		return;
 	}
+
+	if(cl_mouseAccel->value != zero)
+	{
+		float	accelSensitivity;
+		float	rate;
+
+		rate = sqrt( mx * mx + my * my ) / (float)frame_msec;
+		accelSensitivity = cl_sensitivity->value + rate * cl_mouseAccel->value;
+
+		mx *= accelSensitivity;
+		my *= accelSensitivity;
+
+		if (cl_showMouseRate->integer )
+			Com_Printf( "%f : %f\n", rate, accelSensitivity );
+	}
+	
 	else
 	{
 		mx *= cl_sensitivity->value;
@@ -505,15 +551,17 @@ void CL_MouseMove(usercmd_t *cmd)
 	my *= cl.cgameSensitivity;
 
 	// add mouse X/Y movement to cmd
-	if(in_strafe.active)
-		cmd->rightmove = ClampChar(cmd->rightmove + m_side->value * mx);
+	if ( in_strafe.active )
+		cmd->rightmove = ClampChar( cmd->rightmove + m_side->value * mx );
+
 	else
 		cl.viewangles[YAW] -= m_yaw->value * mx;
 
-	if ((in_mlooking || cl_freelook->integer) && !in_strafe.active)
+	if ( (in_mlooking || cl_freelook->integer) && !in_strafe.active )
 		cl.viewangles[PITCH] += m_pitch->value * my;
+
 	else
-		cmd->forwardmove = ClampChar(cmd->forwardmove - m_forward->value * my);
+		cmd->forwardmove = ClampChar( cmd->forwardmove - m_forward->value * my );
 }
 
 
@@ -522,28 +570,34 @@ void CL_MouseMove(usercmd_t *cmd)
 CL_CmdButtons
 ==============
 */
-void CL_CmdButtons( usercmd_t *cmd ) {
-	int		i;
+void CL_CmdButtons( usercmd_t *cmd )
+{
+	int	i;
 
 	//
 	// figure button bits
 	// send a button bit even if the key was pressed and released in
 	// less than a frame
 	//	
-	for (i = 0 ; i < 15 ; i++) {
-		if ( in_buttons[i].active || in_buttons[i].wasPressed ) {
+	for (i = 0 ; i < 15 ; i++)
+	{
+		if ( in_buttons[i].active || in_buttons[i].wasPressed )
+		{
 			cmd->buttons |= 1 << i;
 		}
+
 		in_buttons[i].wasPressed = qfalse;
 	}
 
-	if ( Key_GetCatcher( ) ) {
+	if ( Key_GetCatcher( ) )
+	{
 		cmd->buttons |= BUTTON_TALK;
 	}
 
 	// allow the game to know if any key at all is
 	// currently pressed, even if it isn't bound to anything
-	if ( anykeydown && Key_GetCatcher( ) == 0 ) {
+	if ( anykeydown && Key_GetCatcher( ) == 0 )
+	{
 		cmd->buttons |= BUTTON_ANY;
 	}
 }
@@ -554,8 +608,9 @@ void CL_CmdButtons( usercmd_t *cmd ) {
 CL_FinishMove
 ==============
 */
-void CL_FinishMove( usercmd_t *cmd ) {
-	int		i;
+void CL_FinishMove( usercmd_t *cmd )
+{
+	int	i;
 
 	// copy the state that the cgame is currently sending
 	cmd->weapon = cl.cgameUserCmdValue;
@@ -564,7 +619,8 @@ void CL_FinishMove( usercmd_t *cmd ) {
 	// can be determined without allowing cheating
 	cmd->serverTime = cl.serverTime;
 
-	for (i=0 ; i<3 ; i++) {
+	for (i=0 ; i<3 ; i++)
+	{
 		cmd->angles[i] = ANGLE2SHORT(cl.viewangles[i]);
 	}
 }
@@ -575,7 +631,8 @@ void CL_FinishMove( usercmd_t *cmd ) {
 CL_CreateCmd
 =================
 */
-usercmd_t CL_CreateCmd( void ) {
+usercmd_t CL_CreateCmd( void )
+{
 	usercmd_t	cmd;
 	vec3_t		oldAngles;
 
@@ -598,9 +655,13 @@ usercmd_t CL_CreateCmd( void ) {
 	CL_JoystickMove( &cmd );
 
 	// check to make sure the angles haven't wrapped
-	if ( cl.viewangles[PITCH] - oldAngles[PITCH] > 90 ) {
+	if ( cl.viewangles[PITCH] - oldAngles[PITCH] > 90 )
+	{
 		cl.viewangles[PITCH] = oldAngles[PITCH] + 90;
-	} else if ( oldAngles[PITCH] - cl.viewangles[PITCH] > 90 ) {
+	}
+
+	else if ( oldAngles[PITCH] - cl.viewangles[PITCH] > 90 )
+	{
 		cl.viewangles[PITCH] = oldAngles[PITCH] - 90;
 	} 
 
@@ -608,12 +669,16 @@ usercmd_t CL_CreateCmd( void ) {
 	CL_FinishMove( &cmd );
 
 	// draw debug graphs of turning for mouse testing
-	if ( cl_debugMove->integer ) {
-		if ( cl_debugMove->integer == 1 ) {
-			SCR_DebugGraph( fabs(cl.viewangles[YAW] - oldAngles[YAW]) );
+	if ( cl_debugMove->integer )
+	{
+		if ( cl_debugMove->integer == 1 )
+		{
+			SCR_DebugGraph( fabs(cl.viewangles[YAW] - oldAngles[YAW]), 0 );
 		}
-		if ( cl_debugMove->integer == 2 ) {
-			SCR_DebugGraph( fabs(cl.viewangles[PITCH] - oldAngles[PITCH]) );
+
+		if ( cl_debugMove->integer == 2 )
+		{
+			SCR_DebugGraph( fabs(cl.viewangles[PITCH] - oldAngles[PITCH]), 0 );
 		}
 	}
 
@@ -628,34 +693,33 @@ CL_CreateNewCommands
 Create a new usercmd_t structure for this frame
 =================
 */
-void CL_CreateNewCommands( void ) {
-	int			cmdNum;
+void CL_CreateNewCommands( void )
+{
+	//usercmd_t	*cmd;
+	int		cmdNum;
 
 	// no need to create usercmds until we have a gamestate
-	if ( clc.state < CA_PRIMED ) {
+	if ( clc.state < CA_PRIMED )
+	{
 		return;
 	}
 
 	frame_msec = com_frameTime - old_com_frameTime;
 
-	// if running over 1000fps, act as if each frame is 1ms
-	// prevents divisions by zero
-	if ( frame_msec < 1 ) {
-		frame_msec = 1;
-	}
-
 	// if running less than 5fps, truncate the extra time to prevent
 	// unexpected moves after a hitch
-	if ( frame_msec > 200 ) {
+	if ( frame_msec > 200 )
+	{
 		frame_msec = 200;
 	}
-	old_com_frameTime = com_frameTime;
 
+	old_com_frameTime = com_frameTime;
 
 	// generate a command for this frame
 	cl.cmdNumber++;
 	cmdNum = cl.cmdNumber & CMD_MASK;
 	cl.cmds[cmdNum] = CL_CreateCmd ();
+	//cmd = &cl.cmds[cmdNum]; // needed ? - Cowcat
 }
 
 /*
@@ -669,49 +733,62 @@ delivered in the next packet, but saving a header and
 getting more delta compression will reduce total bandwidth.
 =================
 */
-qboolean CL_ReadyToSendPacket( void ) {
-	int		oldPacketNum;
-	int		delta;
+qboolean CL_ReadyToSendPacket( void )
+{
+	int	oldPacketNum;
+	int	delta;
 
 	// don't send anything if playing back a demo
-	if ( clc.demoplaying || clc.state == CA_CINEMATIC ) {
+	if ( clc.demoplaying || clc.state == CA_CINEMATIC )
+	{
 		return qfalse;
 	}
 
 	// If we are downloading, we send no less than 50ms between packets
-	if ( *clc.downloadTempName &&
-		cls.realtime - clc.lastPacketSentTime < 50 ) {
+	if ( *clc.downloadTempName && cls.realtime - clc.lastPacketSentTime < 50 )
+	{
 		return qfalse;
 	}
 
 	// if we don't have a valid gamestate yet, only send
 	// one packet a second
-	if ( clc.state != CA_ACTIVE && 
-		clc.state != CA_PRIMED && 
-		!*clc.downloadTempName &&
-		cls.realtime - clc.lastPacketSentTime < 1000 ) {
+	if ( clc.state != CA_ACTIVE && clc.state != CA_PRIMED && !*clc.downloadTempName &&
+		cls.realtime - clc.lastPacketSentTime < 1000 )
+	{
 		return qfalse;
 	}
 
 	// send every frame for loopbacks
-	if ( clc.netchan.remoteAddress.type == NA_LOOPBACK ) {
+	if ( clc.netchan.remoteAddress.type == NA_LOOPBACK )
+	{
 		return qtrue;
 	}
 
 	// send every frame for LAN
-	if ( cl_lanForcePackets->integer && Sys_IsLANAddress( clc.netchan.remoteAddress ) ) {
+	//if ( cl_lanForcePackets->integer && Sys_IsLANAddress( clc.netchan.remoteAddress ) )
+	if ( cl_lanForcePackets->integer && clc.netchan.isLANAddress ) // Quake3e - Cowcat
+	{
 		return qtrue;
 	}
+
+	#if 0 // checkrange now in cl_init/cl.main.c - Quake3e - Cowcat
 
 	// check for exceeding cl_maxpackets
 	if ( cl_maxpackets->integer < 15 ) {
 		Cvar_Set( "cl_maxpackets", "15" );
-	} else if ( cl_maxpackets->integer > 125 ) {
+	}
+
+	else if ( cl_maxpackets->integer > 125 ) {
 		Cvar_Set( "cl_maxpackets", "125" );
 	}
+
+	#endif
+
 	oldPacketNum = (clc.netchan.outgoingSequence - 1) & PACKET_MASK;
 	delta = cls.realtime -  cl.outPackets[ oldPacketNum ].p_realtime;
-	if ( delta < 1000 / cl_maxpackets->integer ) {
+
+	if ( delta < 1000 / cl_maxpackets->integer )
+	{
 		// the accumulated commands will go out in the next packet
 		return qfalse;
 	}
@@ -740,18 +817,20 @@ During normal gameplay, a client packet will contain something like:
 
 ===================
 */
-void CL_WritePacket( void ) {
+void CL_WritePacket( void )
+{
 	msg_t		buf;
 	byte		data[MAX_MSGLEN];
-	int			i, j;
+	int		i, j;
 	usercmd_t	*cmd, *oldcmd;
 	usercmd_t	nullcmd;
-	int			packetNum;
-	int			oldPacketNum;
-	int			count, key;
+	int		packetNum;
+	int		oldPacketNum;
+	int		count, key;
 
 	// don't send anything if playing back a demo
-	if ( clc.demoplaying || clc.state == CA_CINEMATIC ) {
+	if ( clc.demoplaying || clc.state == CA_CINEMATIC )
+	{
 		return;
 	}
 
@@ -761,6 +840,7 @@ void CL_WritePacket( void ) {
 	MSG_Init( &buf, data, sizeof(data) );
 
 	MSG_Bitstream( &buf );
+
 	// write the current serverId so the server
 	// can tell if this is from the current gameState
 	MSG_WriteLong( &buf, cl.serverId );
@@ -774,7 +854,8 @@ void CL_WritePacket( void ) {
 	MSG_WriteLong( &buf, clc.serverCommandSequence );
 
 	// write any unacknowledged clientCommands
-	for ( i = clc.reliableAcknowledge + 1 ; i <= clc.reliableSequence ; i++ ) {
+	for ( i = clc.reliableAcknowledge + 1 ; i <= clc.reliableSequence ; i++ )
+	{
 		MSG_WriteByte( &buf, clc_clientCommand );
 		MSG_WriteLong( &buf, i );
 		MSG_WriteString( &buf, clc.reliableCommands[ i & (MAX_RELIABLE_COMMANDS-1) ] );
@@ -783,79 +864,126 @@ void CL_WritePacket( void ) {
 	// we want to send all the usercmds that were generated in the last
 	// few packet, so even if a couple packets are dropped in a row,
 	// all the cmds will make it to the server
-	if ( cl_packetdup->integer < 0 ) {
+	if ( cl_packetdup->integer < 0 )
+	{
 		Cvar_Set( "cl_packetdup", "0" );
-	} else if ( cl_packetdup->integer > 5 ) {
+	}
+
+	else if ( cl_packetdup->integer > 5 )
+	{
 		Cvar_Set( "cl_packetdup", "5" );
 	}
+
 	oldPacketNum = (clc.netchan.outgoingSequence - 1 - cl_packetdup->integer) & PACKET_MASK;
 	count = cl.cmdNumber - cl.outPackets[ oldPacketNum ].p_cmdNumber;
-	if ( count > MAX_PACKET_USERCMDS ) {
+
+	if ( count > MAX_PACKET_USERCMDS )
+	{
 		count = MAX_PACKET_USERCMDS;
 		Com_Printf("MAX_PACKET_USERCMDS\n");
 	}
 
 #ifdef USE_VOIP
 	if (clc.voipOutgoingDataSize > 0)
-	{
-		if((clc.voipFlags & VOIP_SPATIAL) || Com_IsVoipTarget(clc.voipTargets, sizeof(clc.voipTargets), -1))
-		{
-			MSG_WriteByte (&buf, clc_voipOpus);
-			MSG_WriteByte (&buf, clc.voipOutgoingGeneration);
-			MSG_WriteLong (&buf, clc.voipOutgoingSequence);
-			MSG_WriteByte (&buf, clc.voipOutgoingDataFrames);
-			MSG_WriteData (&buf, clc.voipTargets, sizeof(clc.voipTargets));
-			MSG_WriteByte(&buf, clc.voipFlags);
-			MSG_WriteShort (&buf, clc.voipOutgoingDataSize);
-			MSG_WriteData (&buf, clc.voipOutgoingData, clc.voipOutgoingDataSize);
+	{  	// only send if data.
 
-			// If we're recording a demo, we have to fake a server packet with
-			//  this VoIP data so it gets to disk; the server doesn't send it
-			//  back to us, and we might as well eliminate concerns about dropped
-			//  and misordered packets here.
-			if(clc.demorecording && !clc.demowaiting)
-			{
-				const int voipSize = clc.voipOutgoingDataSize;
-				msg_t fakemsg;
-				byte fakedata[MAX_MSGLEN];
-				MSG_Init (&fakemsg, fakedata, sizeof (fakedata));
-				MSG_Bitstream (&fakemsg);
-				MSG_WriteLong (&fakemsg, clc.reliableAcknowledge);
-				MSG_WriteByte (&fakemsg, svc_voipOpus);
-				MSG_WriteShort (&fakemsg, clc.clientNum);
-				MSG_WriteByte (&fakemsg, clc.voipOutgoingGeneration);
-				MSG_WriteLong (&fakemsg, clc.voipOutgoingSequence);
-				MSG_WriteByte (&fakemsg, clc.voipOutgoingDataFrames);
-				MSG_WriteShort (&fakemsg, clc.voipOutgoingDataSize );
-				MSG_WriteBits (&fakemsg, clc.voipFlags, VOIP_FLAGCNT);
-				MSG_WriteData (&fakemsg, clc.voipOutgoingData, voipSize);
-				MSG_WriteByte (&fakemsg, svc_EOF);
-				CL_WriteDemoMessage (&fakemsg, 0);
+		// Move cl_voipSendTarget from a string to the bitmasks if needed.
+		if (cl_voipSendTarget->modified)
+		{
+			char buffer[32];
+			const char *target = cl_voipSendTarget->string;
+
+			if (Q_stricmp(target, "attacker") == 0) {
+				int player = VM_Call( cgvm, CG_LAST_ATTACKER );
+				Com_sprintf(buffer, sizeof (buffer), "%d", player);
+				target = buffer;
+			} else if (Q_stricmp(target, "crosshair") == 0) {
+				int player = VM_Call( cgvm, CG_CROSSHAIR_PLAYER );
+				Com_sprintf(buffer, sizeof (buffer), "%d", player);
+				target = buffer;
 			}
 
-			clc.voipOutgoingSequence += clc.voipOutgoingDataFrames;
-			clc.voipOutgoingDataSize = 0;
-			clc.voipOutgoingDataFrames = 0;
+			if ((*target == '\0') || (Q_stricmp(target, "all") == 0)) {
+				const int all = 0x7FFFFFFF;
+				clc.voipTarget1 = clc.voipTarget2 = clc.voipTarget3 = all;
+			} else if (Q_stricmp(target, "none") == 0) {
+				clc.voipTarget1 = clc.voipTarget2 = clc.voipTarget3 = 0;
+			} else {
+				const char *ptr = target;
+				clc.voipTarget1 = clc.voipTarget2 = clc.voipTarget3 = 0;
+				do {
+					if ((*ptr == ',') || (*ptr == '\0')) {
+						const int val = atoi(target);
+						target = ptr + 1;
+						if ((val >= 0) && (val < 31)) {
+							clc.voipTarget1 |= (1 << (val-0));
+						} else if ((val >= 31) && (val < 62)) {
+							clc.voipTarget2 |= (1 << (val-31));
+						} else if ((val >= 62) && (val < 93)) {
+							clc.voipTarget3 |= (1 << (val-62));
+						}
+					}
+				} while (*(ptr++));
+			}
+			cl_voipSendTarget->modified = qfalse;
 		}
-		else
+
+		
+		MSG_WriteByte (&buf, clc_voip);
+		MSG_WriteByte (&buf, clc.voipOutgoingGeneration);
+		MSG_WriteLong (&buf, clc.voipOutgoingSequence);
+		MSG_WriteByte (&buf, clc.voipOutgoingDataFrames);
+		MSG_WriteLong (&buf, clc.voipTarget1);
+		MSG_WriteLong (&buf, clc.voipTarget2);
+		MSG_WriteLong (&buf, clc.voipTarget3);
+		MSG_WriteShort (&buf, clc.voipOutgoingDataSize);
+		MSG_WriteData (&buf, clc.voipOutgoingData, clc.voipOutgoingDataSize);
+
+		// If we're recording a demo, we have to fake a server packet with
+		//  this VoIP data so it gets to disk; the server doesn't send it
+		//  back to us, and we might as well eliminate concerns about dropped
+		//  and misordered packets here.
+		if ( clc.demorecording && !clc.demowaiting )
 		{
-			// We have data, but no targets. Silently discard all data
-			clc.voipOutgoingDataSize = 0;
-			clc.voipOutgoingDataFrames = 0;
+			const int voipSize = clc.voipOutgoingDataSize;
+			msg_t fakemsg;
+			byte fakedata[MAX_MSGLEN];
+			MSG_Init (&fakemsg, fakedata, sizeof (fakedata));
+			MSG_Bitstream (&fakemsg);
+			MSG_WriteLong (&fakemsg, clc.reliableAcknowledge);
+			
+			MSG_WriteByte (&fakemsg, svc_voip);
+			MSG_WriteShort (&fakemsg, clc.clientNum);
+			MSG_WriteByte (&fakemsg, clc.voipOutgoingGeneration);
+			MSG_WriteLong (&fakemsg, clc.voipOutgoingSequence);
+			MSG_WriteByte (&fakemsg, clc.voipOutgoingDataFrames);
+			MSG_WriteShort (&fakemsg, clc.voipOutgoingDataSize );
+			MSG_WriteData (&fakemsg, clc.voipOutgoingData, voipSize);
+			MSG_WriteByte (&fakemsg, svc_EOF);
+			CL_WriteDemoMessage (&fakemsg, 0);
 		}
-	}
+
+		clc.voipOutgoingSequence += clc.voipOutgoingDataFrames;
+		clc.voipOutgoingDataSize = 0;
+		clc.voipOutgoingDataFrames = 0;
+	} else
 #endif
 
-	if ( count >= 1 ) {
-		if ( cl_showSend->integer ) {
+	if ( count >= 1 )
+	{
+		if ( cl_showSend->integer )
+		{
 			Com_Printf( "(%i)", count );
 		}
 
 		// begin a client move command
-		if ( cl_nodelta->integer || !cl.snap.valid || clc.demowaiting
-			|| clc.serverMessageSequence != cl.snap.messageNum ) {
+		if ( cl_nodelta->integer || !cl.snap.valid || clc.demowaiting || clc.serverMessageSequence != cl.snap.messageNum )
+		{
 			MSG_WriteByte (&buf, clc_moveNoDelta);
-		} else {
+		}
+
+		else 
+		{
 			MSG_WriteByte (&buf, clc_move);
 		}
 
@@ -870,7 +998,8 @@ void CL_WritePacket( void ) {
 		key ^= MSG_HashKey(clc.serverCommands[ clc.serverCommandSequence & (MAX_RELIABLE_COMMANDS-1) ], 32);
 
 		// write all the commands, including the predicted command
-		for ( i = 0 ; i < count ; i++ ) {
+		for ( i = 0 ; i < count ; i++ )
+		{
 			j = (cl.cmdNumber - count + i + 1) & CMD_MASK;
 			cmd = &cl.cmds[j];
 			MSG_WriteDeltaUsercmdKey (&buf, key, oldcmd, cmd);
@@ -887,11 +1016,13 @@ void CL_WritePacket( void ) {
 	cl.outPackets[ packetNum ].p_cmdNumber = cl.cmdNumber;
 	clc.lastPacketSentTime = cls.realtime;
 
-	if ( cl_showSend->integer ) {
+	if ( cl_showSend->integer )
+	{
 		Com_Printf( "%i ", buf.cursize );
 	}
 
 	CL_Netchan_Transmit (&clc.netchan, &buf);	
+
 }
 
 /*
@@ -901,7 +1032,8 @@ CL_SendCmd
 Called every frame to builds and sends a command packet to the server.
 =================
 */
-void CL_SendCmd( void ) {
+void CL_SendCmd( void )
+{
 	// don't send any message if not connected
 	if ( clc.state < CA_CONNECTED ) {
 		return;
@@ -916,10 +1048,12 @@ void CL_SendCmd( void ) {
 	CL_CreateNewCommands();
 
 	// don't send a packet if the last packet was sent too recently
-	if ( !CL_ReadyToSendPacket() ) {
+	if ( !CL_ReadyToSendPacket() )
+	{
 		if ( cl_showSend->integer ) {
 			Com_Printf( ". " );
 		}
+
 		return;
 	}
 
@@ -931,7 +1065,8 @@ void CL_SendCmd( void ) {
 CL_InitInput
 ============
 */
-void CL_InitInput( void ) {
+void CL_InitInput( void )
+{
 	Cmd_AddCommand ("centerview",IN_CenterView);
 
 	Cmd_AddCommand ("+moveup",IN_UpDown);

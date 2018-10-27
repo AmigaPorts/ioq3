@@ -38,7 +38,7 @@ struct mdfour {
 
 /* NOTE: This code makes no attempt to be fast!
 
-   It assumes that an int is at least 32 bits long
+   It assumes that a int is at least 32 bits long
 */
 
 static struct mdfour *m;
@@ -55,10 +55,10 @@ static struct mdfour *m;
 /* this applies md4 to 64 byte chunks */
 static void mdfour64(uint32_t *M)
 {
-	int j;
-	uint32_t AA, BB, CC, DD;
-	uint32_t X[16];
-	uint32_t A,B,C,D;
+	int 		j;
+	uint32_t 	AA, BB, CC, DD;
+	uint32_t 	X[16];
+	uint32_t 	A,B,C,D;
 
 	for (j=0;j<16;j++)
 		X[j] = M[j];
@@ -105,12 +105,18 @@ static void copy64(uint32_t *M, byte *in)
 {
 	int i;
 
-	for (i=0;i<16;i++)
-		M[i] = (in[i*4+3]<<24) | (in[i*4+2]<<16) |
-			(in[i*4+1]<<8) | (in[i*4+0]<<0);
+	for (i=0;i<16;i++) // new Cowcat
+	{
+		//M[i] = (in[i*4+3]<<24) | (in[i*4+2]<<16) | (in[i*4+1]<<8) | (in[i*4+0]<<0);
+		M[i] =
+			((uint32_t)in[i*4+3]<<24) |
+			((uint32_t)in[i*4+2]<<16) |
+			((uint32_t)in[i*4+1]<<8) |
+			((uint32_t)in[i*4+0]<<0) ;
+	}
 }
 
-static void copy4(byte *out,uint32_t x)
+static void copy4(byte *out, uint32_t x)
 {
 	out[0] = x&0xFF;
 	out[1] = (x>>8)&0xFF;
@@ -139,14 +145,21 @@ static void mdfour_tail(byte *in, int n)
 	b = m->totalN * 8;
 
 	Com_Memset(buf, 0, 128);
-	if (n) Com_Memcpy(buf, in, n);
+
+	if (n)
+		Com_Memcpy(buf, in, n);
+
 	buf[n] = 0x80;
 
-	if (n <= 55) {
+	if (n <= 55)
+	{
 		copy4(buf+56, b);
 		copy64(M, buf);
 		mdfour64(M);
-	} else {
+	}
+
+	else
+	{
 		copy4(buf+120, b);
 		copy64(M, buf);
 		mdfour64(M);
@@ -161,9 +174,11 @@ static void mdfour_update(struct mdfour *md, byte *in, int n)
 
 	m = md;
 
-	if (n == 0) mdfour_tail(in, n);
+	if (n == 0)
+		mdfour_tail(in, n);
 
-	while (n >= 64) {
+	while (n >= 64)
+	{
 		copy64(M, in);
 		mdfour64(M);
 		in += 64;
@@ -177,10 +192,12 @@ static void mdfour_update(struct mdfour *md, byte *in, int n)
 
 static void mdfour_result(struct mdfour *md, byte *out)
 {
-	copy4(out, md->A);
-	copy4(out+4, md->B);
-	copy4(out+8, md->C);
-	copy4(out+12, md->D);
+	m = md;
+
+	copy4(out, m->A);
+	copy4(out+4, m->B);
+	copy4(out+8, m->C);
+	copy4(out+12, m->D);
 }
 
 static void mdfour(byte *out, byte *in, int n)
@@ -195,7 +212,7 @@ static void mdfour(byte *out, byte *in, int n)
 
 unsigned Com_BlockChecksum (const void *buffer, int length)
 {
-	int				digest[4];
+	int		digest[4];
 	unsigned	val;
 
 	mdfour( (byte *)digest, (byte *)buffer, length );

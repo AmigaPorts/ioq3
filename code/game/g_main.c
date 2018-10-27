@@ -81,6 +81,7 @@ vmCvar_t	pmove_fixed;
 vmCvar_t	pmove_msec;
 vmCvar_t	g_rankings;
 vmCvar_t	g_listEntity;
+vmCvar_t	g_localTeamPref;
 #ifdef MISSIONPACK
 vmCvar_t	g_obeliskHealth;
 vmCvar_t	g_obeliskRegenPeriod;
@@ -176,7 +177,8 @@ static cvarTable_t		gameCvarTable[] = {
 	{ &pmove_fixed, "pmove_fixed", "0", CVAR_SYSTEMINFO, 0, qfalse},
 	{ &pmove_msec, "pmove_msec", "8", CVAR_SYSTEMINFO, 0, qfalse},
 
-	{ &g_rankings, "g_rankings", "0", 0, 0, qfalse}
+	{ &g_rankings, "g_rankings", "0", 0, 0, qfalse},
+	{ &g_localTeamPref, "g_localTeamPref", "", 0, 0, qfalse }
 
 };
 
@@ -197,36 +199,52 @@ This is the only way control passes into the module.
 This must be the very first function compiled into the .q3vm file
 ================
 */
-Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11  ) {
-	switch ( command ) {
+Q_EXPORT
+#ifndef Q3_VM // Cowcat
+__saveds 
+#endif
+intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11 )
+{
+	switch ( command )
+	{
 	case GAME_INIT:
 		G_InitGame( arg0, arg1, arg2 );
 		return 0;
+
 	case GAME_SHUTDOWN:
 		G_ShutdownGame( arg0 );
 		return 0;
+
 	case GAME_CLIENT_CONNECT:
 		return (intptr_t)ClientConnect( arg0, arg1, arg2 );
+
 	case GAME_CLIENT_THINK:
 		ClientThink( arg0 );
 		return 0;
+
 	case GAME_CLIENT_USERINFO_CHANGED:
 		ClientUserinfoChanged( arg0 );
 		return 0;
+
 	case GAME_CLIENT_DISCONNECT:
 		ClientDisconnect( arg0 );
 		return 0;
+
 	case GAME_CLIENT_BEGIN:
 		ClientBegin( arg0 );
 		return 0;
+
 	case GAME_CLIENT_COMMAND:
 		ClientCommand( arg0 );
 		return 0;
+
 	case GAME_RUN_FRAME:
 		G_RunFrame( arg0 );
 		return 0;
+
 	case GAME_CONSOLE_COMMAND:
 		return ConsoleCommand();
+
 	case BOTAI_START_FRAME:
 		return BotAIStartFrame( arg0 );
 	}
@@ -275,7 +293,7 @@ void G_FindTeams( void ) {
 
 	c = 0;
 	c2 = 0;
-	for ( i=1, e=g_entities+i ; i < level.num_entities ; i++,e++ ){
+	for ( i=MAX_CLIENTS, e=g_entities+i ; i < level.num_entities ; i++,e++ ) {
 		if (!e->inuse)
 			continue;
 		if (!e->team)
@@ -721,6 +739,48 @@ SortRanks
 
 =============
 */
+
+#ifndef Q3_VM
+static void ssort(void  *base, size_t nel, size_t width, int (*comp)(const void *, const void *)) // Cowcat
+{
+	size_t wnel, gap, wgap, i, j, k;
+	char *a, *b, tmp;
+
+	wnel = width * nel;
+
+	for (gap = 0; ++gap < nel;)
+		gap *= 3;
+
+	while ((gap /= 3) != 0)
+	{
+		wgap = width * gap;
+
+		for (i = wgap; i < wnel; i += width)
+		{
+			for (j = i - wgap; ;j -= wgap)
+			{
+				a = j + (char *)base;
+				b = a + wgap;
+
+				if ((*comp)(a, b) <= 0)
+					break;
+
+				k = width;
+
+				do {
+					tmp = *a;
+					*a++ = *b;
+					*b++ = tmp;
+				} while (--k);
+
+				if (j < wgap)
+					break;
+			}
+		}
+	}
+}
+#endif
+
 int QDECL SortRanks( const void *a, const void *b ) {
 	gclient_t	*ca, *cb;
 
@@ -827,8 +887,11 @@ void CalculateRanks( void ) {
 		}
 	}
 
-	qsort( level.sortedClients, level.numConnectedClients, 
-		sizeof(level.sortedClients[0]), SortRanks );
+	#ifndef Q3_VM
+	ssort( level.sortedClients, level.numConnectedClients,sizeof(level.sortedClients[0]), SortRanks ); // Cowcat ssort
+	#else
+	qsort( level.sortedClients, level.numConnectedClients, sizeof(level.sortedClients[0]), SortRanks );
+	#endif
 
 	// set the rank value for all clients that are connected and not spectators
 	if ( g_gametype.integer >= GT_TEAM ) {
@@ -1145,6 +1208,7 @@ void LogExit( const char *string ) {
 	gclient_t		*cl;
 #ifdef MISSIONPACK
 	qboolean won = qtrue;
+	team_t team = TEAM_RED;
 #endif
 	G_LogPrintf( "Exit: %s\n", string );
 
@@ -1181,7 +1245,10 @@ void LogExit( const char *string ) {
 
 		G_LogPrintf( "score: %i  ping: %i  client: %i %s\n", cl->ps.persistant[PERS_SCORE], ping, level.sortedClients[i],	cl->pers.netname );
 #ifdef MISSIONPACK
-		if (g_singlePlayer.integer && g_gametype.integer == GT_TOURNAMENT) {
+		if (g_singlePlayer.integer && !(g_entities[cl - level.clients].r.svFlags & SVF_BOT)) {
+			team = cl->sess.sessionTeam;
+		}
+		if (g_singlePlayer.integer && g_gametype.integer < GT_TEAM) {
 			if (g_entities[cl - level.clients].r.svFlags & SVF_BOT && cl->ps.persistant[PERS_RANK] == 0) {
 				won = qfalse;
 			}
@@ -1192,8 +1259,12 @@ void LogExit( const char *string ) {
 
 #ifdef MISSIONPACK
 	if (g_singlePlayer.integer) {
-		if (g_gametype.integer >= GT_CTF) {
-			won = level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE];
+		if (g_gametype.integer >= GT_TEAM) {
+			if (team == TEAM_BLUE) {
+				won = level.teamScores[TEAM_BLUE] > level.teamScores[TEAM_RED];
+			} else {
+				won = level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE];
+			}
 		}
 		trap_SendConsoleCommand( EXEC_APPEND, (won) ? "spWin\n" : "spLose\n" );
 	}
@@ -1490,7 +1561,7 @@ void CheckTournament( void ) {
 		int		counts[TEAM_NUM_TEAMS];
 		qboolean	notEnough = qfalse;
 
-		if ( g_gametype.integer > GT_TEAM ) {
+		if ( g_gametype.integer >= GT_TEAM ) {
 			counts[TEAM_BLUE] = TeamCount( -1, TEAM_BLUE );
 			counts[TEAM_RED] = TeamCount( -1, TEAM_RED );
 

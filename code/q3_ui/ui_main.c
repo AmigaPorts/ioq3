@@ -40,8 +40,15 @@ This is the only way control passes into the module.
 This must be the very first function compiled into the .qvm file
 ================
 */
-Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11  ) {
-	switch ( command ) {
+Q_EXPORT
+// warpos saveds - Cowcat
+#ifndef Q3_VM
+__saveds 
+#endif
+intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11 )
+{
+	switch ( command )
+	{
 	case UI_GETAPIVERSION:
 		return UI_API_VERSION;
 
@@ -78,8 +85,9 @@ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, i
 	case UI_DRAW_CONNECT_SCREEN:
 		UI_DrawConnectScreen( arg0 );
 		return 0;
-	case UI_HASUNIQUECDKEY:				// mod authors need to observe this
-		return qtrue;  // change this to qfalse for mods!
+
+	case UI_HASUNIQUECDKEY:	// mod authors need to observe this
+		return qtrue;	// change this to qfalse for mods!
 	}
 
 	return -1;
@@ -185,7 +193,7 @@ static cvarTable_t		cvarTable[] = {
 
 	{ &ui_spSelection, "ui_spSelection", "", CVAR_ROM },
 
-	{ &ui_browserMaster, "ui_browserMaster", "0", CVAR_ARCHIVE },
+	{ &ui_browserMaster, "ui_browserMaster", "1", CVAR_ARCHIVE },
 	{ &ui_browserGameType, "ui_browserGameType", "0", CVAR_ARCHIVE },
 	{ &ui_browserSortKey, "ui_browserSortKey", "4", CVAR_ARCHIVE },
 	{ &ui_browserShowFull, "ui_browserShowFull", "1", CVAR_ARCHIVE },
@@ -214,7 +222,8 @@ static cvarTable_t		cvarTable[] = {
 	{ &ui_server16, "server16", "", CVAR_ARCHIVE },
 
 	{ &ui_cdkeychecked, "ui_cdkeychecked", "0", CVAR_ROM },
-	{ &ui_ioq3, "ui_ioq3", "1", CVAR_ROM }
+	{ &ui_ioq3, "ui_ioq3", "1", CVAR_ROM },
+	{ NULL, "g_localTeamPref", "", 0 }
 };
 
 static int cvarTableSize = ARRAY_LEN( cvarTable );
@@ -244,6 +253,10 @@ void UI_UpdateCvars( void ) {
 	cvarTable_t	*cv;
 
 	for ( i = 0, cv = cvarTable ; i < cvarTableSize ; i++, cv++ ) {
+		if ( !cv->vmCvar ) {
+			continue;
+		}
+
 		trap_Cvar_Update( cv->vmCvar );
 	}
 }

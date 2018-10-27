@@ -45,11 +45,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "be_ai_weight.h"		//fuzzy weights
 #include "be_ai_weap.h"
 
+#include <stddef.h>   //added Cowcat
+
 //#define DEBUG_AI_WEAP
 
 //structure field offsets
-#define WEAPON_OFS(x) (size_t)&(((weaponinfo_t *)0)->x)
-#define PROJECTILE_OFS(x) (size_t)&(((projectileinfo_t *)0)->x)
+//#define WEAPON_OFS(x) (size_t)&(((weaponinfo_t *)0)->x)
+//#define PROJECTILE_OFS(x) (size_t)&(((projectileinfo_t *)0)->x)
+#define	WEAPON_OFS(x) (size_t)offsetof(weaponinfo_t,x)		// Cowcat
+#define PROJECTILE_OFS(x) (size_t)offsetof(projectileinfo_t,x)	//
 
 //weapon definition
 static fielddef_t weaponinfo_fields[] =
@@ -199,7 +203,7 @@ weaponconfig_t *LoadWeaponConfig(char *filename)
 {
 	int max_weaponinfo, max_projectileinfo;
 	token_t token;
-	char path[MAX_PATH];
+	char path[MAX_QPATH];
 	int i, j;
 	source_t *source;
 	weaponconfig_t *wc;
@@ -219,7 +223,7 @@ weaponconfig_t *LoadWeaponConfig(char *filename)
 		max_projectileinfo = 32;
 		LibVarSet("max_projectileinfo", "32");
 	} //end if
-	strncpy(path, filename, MAX_PATH);
+	Q_strncpyz(path, filename, sizeof(path));
 	PC_SetBaseFolder(BOTFILESBASEFOLDER);
 	source = LoadSourceFile(path);
 	if (!source)

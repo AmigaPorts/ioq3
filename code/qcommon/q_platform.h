@@ -24,14 +24,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define __Q_PLATFORM_H
 
 // this is for determining if we have an asm version of a C function
-#define idx64 0
-
 #ifdef Q3_VM
 
 #define id386 0
 #define idppc 0
 #define idppc_altivec 0
-#define idsparc 0
 
 #else
 
@@ -41,79 +38,131 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define id386 0
 #endif
 
-#if (defined(powerc) || defined(powerpc) || defined(ppc) || \
-	defined(__ppc) || defined(__ppc__)) && !defined(C_ONLY)
+#if ( defined(powerc) || defined(powerpc) || defined(ppc) || \
+	defined(__ppc) || defined(__ppc__) || defined(__PPC__) ) && !defined(C_ONLY) // added __PPC__ - Cowcat
+
 #define idppc 1
-#if defined(__VEC__)
+
+#if defined(__VECTOR__) // was VEC - Cowcat
+
 #define idppc_altivec 1
-#ifdef __APPLE__  // Apple's GCC does this differently than the FSF.
+
+#ifdef MACOS_X  // Apple's GCC does this differently than the FSF.
 #define VECCONST_UINT8(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) \
 	(vector unsigned char) (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p)
 #else
 #define VECCONST_UINT8(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) \
 	(vector unsigned char) {a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p}
 #endif
+
 #else
-#define idppc_altivec 0
-#endif
-#else
-#define idppc 0
 #define idppc_altivec 0
 #endif
 
-#if defined(__sparc__) && !defined(C_ONLY)
-#define idsparc 1
 #else
-#define idsparc 0
+#define idppc 0
+#define idppc_altivec 0
 #endif
 
 #endif
 
 #ifndef __ASM_I386__ // don't include the C bits if included from qasm.h
 
-// for windows fastcall option
-#define QDECL
-#define QCALL
+//======================= AmigaOS DEFINES =====================
 
-//================================================================= WIN64/32 ===
+#if defined(__amigaos4__)
 
-#if defined(_WIN64) || defined(__WIN64__)
+#define	MAC_STATIC
+#define __cdecl
+#define __declspec(x)
+#define stricmp strcasecmp
+#define ID_INLINE inline
 
-#undef idx64
-#define idx64 1
+//#define CPUSTRING	  "AmigaOS-ppc"
 
-#undef QDECL
-#define QDECL __cdecl
+#define	PATH_SEP	'/'
 
-#undef QCALL
-#define QCALL __stdcall
+#define __rlwimi(out, in, shift, maskBegin, maskEnd) asm("rlwimi %0,%1,%2,%3,%4" : "=r" (out) : "r" (in), "i" (shift), "i" (maskBegin), "i" (maskEnd))
+#define __dcbt(addr, offset) asm("dcbt %0,%1" : : "b" (addr), "r" (offset))
 
-#if defined( _MSC_VER )
-#define OS_STRING "win_msvc64"
-#elif defined __MINGW64__
-#define OS_STRING "win_mingw64"
+static inline unsigned int __lwbrx(register void *addr, register int offset) {
+	register unsigned int word;
+
+	asm("lwbrx %0,%2,%1" : "=r" (word) : "r" (addr), "b" (offset));
+	return word;
+}
+
+static inline unsigned short __lhbrx(register void *addr, register int offset) {
+	register unsigned short halfword;
+
+	asm("lhbrx %0,%2,%1" : "=r" (halfword) : "r" (addr), "b" (offset));
+	return halfword;
+}
+
+static inline float __fctiw(register float f) {
+	register float fi;
+
+	asm("fctiw %0,%1" : "=f" (fi) : "f" (f));
+
+	return fi;
+}
+
+#define DLL_EXT ".so"
+#define OS_STRING "amigaos4"
+#define ARCH_STRING "ppc"
+#define Q3_BIG_ENDIAN
+
 #endif
 
-#define ID_INLINE __inline
-#define PATH_SEP '\\'
+#if defined(__amiga__)
 
-#if defined( __WIN64__ ) 
-#define ARCH_STRING "x86_64"
-#elif defined _M_ALPHA
-#define ARCH_STRING "AXP"
-#endif
-
-#define Q3_LITTLE_ENDIAN
+#define	MAC_STATIC
+#define __cdecl
+#define __declspec(x)
+#define stricmp strcasecmp
+#define ID_INLINE inline
+#define	PATH_SEP	'/'
 
 #define DLL_EXT ".dll"
+#define OS_STRING "amigaos"
 
-#elif defined(_WIN32) || defined(__WIN32__)
+#if defined(__PPC__)
+#define ARCH_STRING "ppc"
+#else
+#define ARCH_STRING "68k"
+#endif
+
+#define Q3_BIG_ENDIAN
+
+#endif
+
+#if 0
+#if defined(__morphos__)
+
+#define	MAC_STATIC
+#define __cdecl
+#define __declspec(x)
+#define stricmp strcasecmp
+#define ID_INLINE inline
+#define	PATH_SEP	'/'
+
+#define DLL_EXT ".dll"
+#define OS_STRING "morphos"
+#define ARCH_STRING "ppc"
+#define Q3_BIG_ENDIAN
+
+#endif
+#endif
+
+// for windows fastcall option
+#define QDECL
+
+//================================================================= WIN32 ===
+
+#ifdef _WIN32
 
 #undef QDECL
 #define QDECL __cdecl
-
-#undef QCALL
-#define QCALL __stdcall
 
 #if defined( _MSC_VER )
 #define OS_STRING "win_msvc"
@@ -136,10 +185,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #endif
 
-
 //============================================================== MAC OS X ===
 
-#if defined(__APPLE__) || defined(__APPLE_CC__)
+#if defined(MACOS_X) || defined(__APPLE_CC__)
+
+// make sure this is defined, just for sanity's sake...
+#ifndef MACOS_X
+#define MACOS_X
+#endif
 
 #define OS_STRING "macosx"
 #define ID_INLINE inline
@@ -149,12 +202,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define ARCH_STRING "ppc"
 #define Q3_BIG_ENDIAN
 #elif defined __i386__
-#define ARCH_STRING "x86"
-#define Q3_LITTLE_ENDIAN
-#elif defined __x86_64__
-#undef idx64
-#define idx64 1
-#define ARCH_STRING "x86_64"
+#define ARCH_STRING "i386"
 #define Q3_LITTLE_ENDIAN
 #endif
 
@@ -164,29 +212,42 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 //================================================================= LINUX ===
 
-#if defined(__linux__) || defined(__FreeBSD_kernel__) || defined(__GNU__)
+#ifdef __linux__
 
 #include <endian.h>
 
-#if defined(__linux__)
 #define OS_STRING "linux"
-#elif defined(__FreeBSD_kernel__)
-#define OS_STRING "kFreeBSD"
-#else
-#define OS_STRING "GNU"
-#endif
-
 #define ID_INLINE inline
-
 #define PATH_SEP '/'
 
-#if !defined(ARCH_STRING)
-# error ARCH_STRING should be defined by the Makefile
-#endif
-
-#if defined __x86_64__
-#undef idx64
-#define idx64 1
+#if defined __i386__
+#define ARCH_STRING "i386"
+#elif defined __x86_64__
+#define ARCH_STRING "x86_64"
+#elif defined __powerpc64__
+#define ARCH_STRING "ppc64"
+#elif defined __powerpc__
+#define ARCH_STRING "ppc"
+#elif defined __s390__
+#define ARCH_STRING "s390"
+#elif defined __s390x__
+#define ARCH_STRING "s390x"
+#elif defined __ia64__
+#define ARCH_STRING "ia64"
+#elif defined __alpha__
+#define ARCH_STRING "alpha"
+#elif defined __sparc__
+#define ARCH_STRING "sparc"
+#elif defined __arm__
+#define ARCH_STRING "arm"
+#elif defined __cris__
+#define ARCH_STRING "cris"
+#elif defined __hppa__
+#define ARCH_STRING "hppa"
+#elif defined __mips__
+#define ARCH_STRING "mips"
+#elif defined __sh__
+#define ARCH_STRING "sh"
 #endif
 
 #if __FLOAT_WORD_ORDER == __BIG_ENDIAN
@@ -222,11 +283,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define PATH_SEP '/'
 
 #ifdef __i386__
-#define ARCH_STRING "x86"
-#elif defined __amd64__
-#undef idx64
-#define idx64 1
-#define ARCH_STRING "x86_64"
+#define ARCH_STRING "i386"
 #elif defined __axp__
 #define ARCH_STRING "alpha"
 #endif
@@ -253,7 +310,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define PATH_SEP '/'
 
 #ifdef __i386__
-#define ARCH_STRING "x86"
+#define ARCH_STRING "i386"
 #elif defined __sparc
 #define ARCH_STRING "sparc"
 #endif
@@ -279,22 +336,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define ARCH_STRING "mips"
 
 #define Q3_BIG_ENDIAN // SGI's MIPS are always big endian
-
-#define DLL_EXT ".so"
-
-#endif
-
-//================================================================= AMIGA ===
-
-#ifdef __amigaos4__
-
-#define OS_STRING "amigaos4"
-#define ID_INLINE inline
-#define PATH_SEP '/'
-
-#define ARCH_STRING "powerpc"
-
-#define Q3_BIG_ENDIAN
 
 #define DLL_EXT ".so"
 
@@ -339,8 +380,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
 //endianness
-void CopyShortSwap (void *dest, void *src);
-void CopyLongSwap (void *dest, void *src);
 short ShortSwap (short l);
 int LongSwap (int l);
 float FloatSwap (const float *f);
@@ -349,8 +388,6 @@ float FloatSwap (const float *f);
 #error "Endianness defined as both big and little"
 #elif defined( Q3_BIG_ENDIAN )
 
-#define CopyLittleShort(dest, src) CopyShortSwap(dest, src)
-#define CopyLittleLong(dest, src) CopyLongSwap(dest, src)
 #define LittleShort(x) ShortSwap(x)
 #define LittleLong(x) LongSwap(x)
 #define LittleFloat(x) FloatSwap(&x)
@@ -360,8 +397,6 @@ float FloatSwap (const float *f);
 
 #elif defined( Q3_LITTLE_ENDIAN )
 
-#define CopyLittleShort(dest, src) Com_Memcpy(dest, src, 2)
-#define CopyLittleLong(dest, src) Com_Memcpy(dest, src, 4)
 #define LittleShort
 #define LittleLong
 #define LittleFloat
@@ -382,13 +417,13 @@ float FloatSwap (const float *f);
 #error "Endianness not defined"
 #endif
 
-
+// Cowcat
 //platform string
-#ifdef NDEBUG
+//#ifdef NDEBUG
 #define PLATFORM_STRING OS_STRING "-" ARCH_STRING
-#else
-#define PLATFORM_STRING OS_STRING "-" ARCH_STRING "-debug"
-#endif
+//#else
+//#define PLATFORM_STRING OS_STRING "-" ARCH_STRING "-debug"
+//#endif
 
 #endif
 
