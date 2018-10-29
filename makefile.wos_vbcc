@@ -5,17 +5,17 @@ BCG = ioquake3_objs_wos/cgame
 BQAG = ioquake3_objs_wos/qagame
 
 CC = vc +warpos
-CC68K = vc +aos68k
+#CC68K = vc +aos68k
 INCLUDES = -ISystem:PosixLib/include
 
-CFLAGS = -c99 -O2 -cpu=603 -speed -merge-constants -maxoptpasses=20 $(INCLUDES) -D__amiga__ -DBOTLIB -DUSE_LOCAL_HEADERS -DDLL #-DNO_VM_COMPILED
+CFLAGS = -c99 -O2 -cpu=603 -speed -merge-constants -maxoptpasses=20 $(INCLUDES) -D__amiga__ -DBOTLIB -DUSE_LOCAL_HEADERS # -DDLL -DNO_VM_COMPILED
 #CFLAGS68K = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -D__amiga__
 
 DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
 #DO_CC68K = $(CC68K) $(CFLAGS68K) -o $@ -c $<
 
-LIBS  = -lppcmath -lm -lmglQ3 -lposix -ldll -lamiga
-LIBSDLL  = -lppcmath -lm -lposix -ldll -lamiga
+LIBS  = -lppcmath -lm -lmglQ3 -lposix -lamiga
+#LIBSDLL  = -lppcmath -lm -lmglQ3 -lposix -ldll -lamiga
 
 OBJS = \
 	$(B)/snd_adpcm.o \
@@ -303,12 +303,12 @@ OBJQAGAME = \
 
 ##
 
-QUAKE3 = $(B)/quake3-6r3
+QUAKE3 = $(B)/quake3-7-vbcc
 Q3UI = $(BUI)/uippc.dll
 CGAME = $(BCG)/cgameppc.dll
 QAGAME = $(BQAG)/qagameppc.dll
 
-all: $(QUAKE3) $(Q3UI) $(CGAME) $(QAGAME)
+all: $(QUAKE3)
 
 $(QUAKE3): $(OBJS)
 	$(CC) -o $@ $(B)/#?.o $(LIBS)

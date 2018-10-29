@@ -786,6 +786,7 @@ vm_t *VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *), vmInte
 VM_Free
 ==============
 */
+
 void VM_Free( vm_t *vm )
 {
 	if(!vm)
@@ -808,7 +809,9 @@ void VM_Free( vm_t *vm )
 	}
 
 	if(vm->destroy)
+	{
 		vm->destroy(vm);
+	}
 
 	if ( vm->dllHandle )
 	{
@@ -1270,7 +1273,7 @@ void VM_LogSyscalls( int *args )
 		args[0], args[1], args[2], args[3], args[4] );
 }
 
-// new ioq3 Cowcat
+
 /*
 =================
 VM_BlockCopy

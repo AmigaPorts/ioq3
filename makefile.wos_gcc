@@ -5,14 +5,15 @@ BCG = $(B)/cgame
 BQAG = $(B)/qagame
 
 CC = gcc --specs=warpup
-CC_4 = ppc-morphos-gcc-4 --specs=warpup
+#CC_4 = ppc-morphos-gcc-4 --specs=warpup
 
-#INCLUDES =
+ALTIVEC = -D__VECTOR__
 
-CFLAGS = -O2 -noixemul -fomit-frame-pointer --fast-math -fno-strict-aliasing $(INCLUDES) -D__amiga__ -DBOTLIB -DUSE_LOCAL_HEADERS # -DNO_VM_COMPILED
+CFLAGS = -O2 -noixemul -fomit-frame-pointer --fast-math -fno-strict-aliasing -D__amiga__ -DBOTLIB -DUSE_LOCAL_HEADERS $(ALTIVEC) # -DNO_VM_COMPILED
 
 DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
-DO_CC_4 = $(CC_4) $(CFLAGS) -o $@ -c $<
+DO_CC_ALTIVEC = $(CC) $(CFLAGS) -maltivec -o $@ -c $<
+#DO_CC_4 = $(CC_4) $(CFLAGS) -o $@ -c $<
 
 LIBS  = -lmglQ3 
 
@@ -75,8 +76,8 @@ OBJS = \
 	  $(B)/zutil.o \
 	  $(B)/vm.o \
 	  $(B)/vm_interpreted.o \
-	  $(B)/vm_ppc_new.o \
-	  $(B)/vm_ppc_asm_gcc.o \
+	  $(B)/vm_powerpc.o \
+	  $(B)/vm_powerpc_asm.o \
 	\
 	  $(B)/be_aas_bspq3.o \
 	  $(B)/be_aas_cluster.o \
@@ -181,6 +182,11 @@ OBJS = \
 	  $(B)/amiga_qgl.o \
 	  $(B)/amiga_shared.o \
 	  $(B)/wos_asm_gcc.o \
+
+OBJSVEC  = \
+	  $(B)/snd_altivec.o \
+	  $(B)/tr_altivec.o \
+
 ##
   
 OBJSUI  = \
@@ -309,7 +315,11 @@ QAGAME = $(BQAG)/qagameppc.dll
 
 all: $(QUAKE3)
 
-$(QUAKE3): $(OBJS)
+ifndef ALTIVEC
+OBJSVEC =
+endif
+
+$(QUAKE3): $(OBJS) $(OBJSVEC)
 	$(CC) -o $@ $(B)/*.o $(LIBS)
 
 $(Q3UI): $(OBJSUI)
@@ -427,9 +437,9 @@ $(B)/vm.o:  code/qcommon/vm.c
 	$(DO_CC)
 $(B)/vm_interpreted.o:  code/qcommon/vm_interpreted.c
 	$(DO_CC)
-$(B)/vm_ppc_new.o:  code/qcommon/vm_ppc_new.c
-	$(DO_CC_4)
-$(B)/vm_ppc_asm_gcc.o:  code/qcommon/vm_ppc_asm_gcc.s
+$(B)/vm_powerpc.o:  code/qcommon/vm_powerpc.c
+	$(DO_CC)
+$(B)/vm_powerpc_asm.o:  code/qcommon/vm_powerpc_asm.c
 	$(DO_CC)
 
 $(B)/be_aas_bspq3.o:  code/botlib/be_aas_bspq3.c
@@ -535,6 +545,9 @@ $(B)/tr_surface.o:  code/renderer/tr_surface.c
 	$(DO_CC)
 $(B)/tr_world.o:  code/renderer/tr_world.c
 	$(DO_CC)
+$(B)/tr_altivec.o:  code/renderer/tr_altivec.c
+	$(DO_CC_ALTIVEC)
+
 $(B)/tr_image_bmp.o:  code/renderer/tr_image_bmp.c
 	$(DO_CC)
 $(B)/tr_image_tga.o:  code/renderer/tr_image_tga.c
@@ -656,6 +669,8 @@ $(B)/snd_codec.o:  code/client/snd_codec.c
 	$(DO_CC)
 $(B)/snd_codec_wav.o:  code/client/snd_codec_wav.c
 	$(DO_CC)
+$(B)/snd_altivec.o:  code/client/snd_altivec.c
+	$(DO_CC_ALTIVEC)
 
 
 ##

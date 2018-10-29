@@ -3084,8 +3084,8 @@ static void Com_DetectAltivec(void)
 
 		if (!detected)
 		{
-			altivec = ( Sys_GetProcessorFeatures( ) & CF_ALTIVEC );
-			//altivec = qtrue; // Cowcat
+			//altivec = ( Sys_GetProcessorFeatures( ) & CF_ALTIVEC );
+			altivec = qtrue; // Cowcat
 			detected = qtrue;
 		}
 
