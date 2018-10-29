@@ -62,6 +62,7 @@ ULONG callback(__reg("a0") struct Hook *hook, __reg("a2") struct AHIAudioCtrl *a
 #endif
 
 
+// pragma(2) here ? 
 #pragma amiga-align
 
 struct ChannelInfo
@@ -71,6 +72,7 @@ struct ChannelInfo
 };
 
 #pragma default-align
+
 
 struct Library *AHIBase = NULL;
 static struct MsgPort *AHImp = NULL;
@@ -83,7 +85,7 @@ static struct ChannelInfo info;
 cvar_t *sndbits;
 cvar_t *sndspeed;
 cvar_t *sndchannels;
-/*uint32*/ ULONG samplepos;
+ULONG samplepos;
 
 static int speed;
 static UBYTE *dmabuf = NULL;
@@ -91,13 +93,12 @@ static int buflen;
 
 #define MINBUFFERSIZE 4*16384
 
-//extern ULONG EffFunc(struct Hook *hook, struct AHIAudioCtrl *actrl, struct AHIEffChannelInfo *info);
+//extern ULONG callback(struct Hook *hook, struct AHIAudioCtrl *actrl, struct AHIEffChannelInfo *info);
 
 struct Hook EffHook = 
 {
   	0, 0,
   	(HOOKFUNC)callback,
-	//(HOOKFUNC)EffFunc,
   	0, 0,
 };
 

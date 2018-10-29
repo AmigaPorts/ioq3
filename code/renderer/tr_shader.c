@@ -2254,7 +2254,7 @@ static void FixRenderCommandList( int newShader )
 
 		while ( 1 )
 		{
-			//curCmd = PADP(curCmd, sizeof(void *)); // test - Cowcat
+			curCmd = PADP(curCmd, sizeof(void *)); // test - Cowcat
 
 			switch ( *(const int *)curCmd )
 			{

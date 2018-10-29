@@ -39,7 +39,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 
 #if ( defined(powerc) || defined(powerpc) || defined(ppc) || \
-	defined(__ppc) || defined(__ppc__) || defined(__PPC__) ) && !defined(C_ONLY) // added __PPC__ - Cowcat
+	defined(__ppc) || defined(__ppc__) || defined(__PPC__) && !defined(__VBCC__) ) && !defined(C_ONLY) // added PPC/VBCC- Cowcat
 
 #define idppc 1
 

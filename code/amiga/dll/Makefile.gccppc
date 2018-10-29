@@ -1,0 +1,39 @@
+OBJS =  dllstartup.o dll.o dllimport.o
+
+ARCHIVE = libdllppc.a
+
+OTHER = 
+
+CC = ppc-amigaos-gcc -V 2.95.1 -warpup
+
+LD = ppc-amigaos-ld
+
+AR = ppc-amigaos-ar
+
+RANLIB = ppc-amigaos-ranlib
+
+CODEGEN = -mcpu=604e -Wall -mmultiple
+
+OPTIMIZE = -O3
+
+CFLAGS= $(CODEGEN) $(OPTIMIZE)
+
+%.o : %.c
+	$(CC) $(CFLAGS) -S $< -o $*.s
+	$(CC) $(CFLAGS) -c $*.s -o $*.o
+
+ASMS = $(OBJS:.o=.s)
+
+$(ARCHIVE) : $(OBJS)
+	$(AR) r $@ $?
+	$(RANLIB) $@
+	copy $@ ade:ppc-amigaos/lib
+
+depend : 
+	makedepend -f Makefile -i / $(OBJS)
+
+clean :
+	rm $(ARCHIVE) $(OBJS) $(ASMS) $(OTHER)
+
+#DEPENDENCIES
+

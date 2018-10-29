@@ -209,7 +209,7 @@ void GL_TexEnv( GLint env ) // Quake3e cleanup
 ** in Q3.
 */
 
-#ifdef __VBCC__
+#if defined(__VBCC__) && defined(__PPC__)
 qboolean smoothshade = qfalse; // Cowcat
 #endif
 
@@ -245,7 +245,7 @@ void GL_State( unsigned long stateBits )
 	{
 		GLenum srcFactor = GL_ONE, dstFactor = GL_ONE;
 
-		#ifdef __VBCC__ // minigl vbcc blending workaround - Cowcat
+		#if defined(__VBCC__) && defined(__PPC__) // minigl vbcc blending workaround - Cowcat
 
 		qboolean flat = qfalse;
 
@@ -268,7 +268,7 @@ void GL_State( unsigned long stateBits )
 
 				case GLS_SRCBLEND_ONE:
 					srcFactor = GL_ONE;
-				#ifdef __VBCC__
+				#if defined(__VBCC__) && defined(__PPC__)
 					flat = qtrue;
 				#endif
 					break;
@@ -345,7 +345,7 @@ void GL_State( unsigned long stateBits )
 					break;
 			}
 
-			#ifdef __VBCC__ // minigl vbcc blending workaround - Cowcat
+			#if defined(__VBCC__) && defined(__PPC__) // minigl vbcc blending workaround - Cowcat
 
 			// railgun sync - Cowcat
 			if ( flat != smoothcheck && dstFactor == GL_ONE )
@@ -1284,7 +1284,7 @@ void RB_ExecuteRenderCommands( const void *data )
 
 	while ( 1 )
 	{
-		//data = PADP(data, sizeof(void *)); // test - Cowcat
+		data = PADP(data, sizeof(void *)); // test - Cowcat
 
 		switch ( *(const int *)data )
 		{
