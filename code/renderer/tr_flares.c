@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "../qcommon/cm_local.h" // added Cowcat
 
-#ifdef __VBCC__
+#if defined(__VBCC__) && defined(__PPC__)
 extern qboolean smoothshade; // Cowcat
 #endif
 
@@ -541,7 +541,6 @@ void RB_RenderFlares (void)
 		return;
 	#endif
 
-
 	if(r_flareCoeff->modified)
 	{
 		R_SetFlareCoeff();
@@ -617,7 +616,7 @@ void RB_RenderFlares (void)
 			  backEnd.viewParms.viewportY, backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight,
 			  -99999, 99999 );
 
-	#ifdef __VBCC__ // minigl vbcc workaround - Cowcat
+	#if defined(__VBCC__) && defined(__PPC__) // minigl vbcc workaround - Cowcat
 
 	qglShadeModel(GL_SMOOTH); 
 	smoothshade = qtrue; //

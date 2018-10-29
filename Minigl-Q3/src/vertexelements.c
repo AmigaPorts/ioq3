@@ -2142,7 +2142,7 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 
 //added 27-05-02
 
-static PolyBuffer clipbuffer2[MGL_MAXVERTS*6>>2]; // test Cowcat
+static PolyBuffer clipbuffer2[MGL_MAXVERTS*6>>2]; // Cowcat
 #define CBUF2 clipbuffer2 //
 
 static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWORD*idx)
@@ -2150,7 +2150,7 @@ static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWO
 	int	i;
 	ULONG	local_and, local_or;
 	ULONG	error;
-	static UWORD trichain[MGL_MAXVERTS*6]; // was 4 - increased for some Q3 mods - test Cowcat
+	static UWORD trichain[MGL_MAXVERTS*6]; // was 4 increased for some Q3 mods - Cowcat
 	GLuint	visible;
 	int	cnum, free, chainverts;
 	int	offs = context->ArrayPointer.transformed;
@@ -2287,7 +2287,7 @@ static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWO
 				Convert(context, &vbase[idx[i+2]], idx[i+2]);
 
 				//cnum += AE_ClipTriangle(context, &clip, &CBUF[cnum], &free, local_or);
-				cnum += AE_ClipTriangle(context, &clip, &CBUF2[cnum], &free, local_or); // test Cowcat
+				cnum += AE_ClipTriangle(context, &clip, &CBUF2[cnum], &free, local_or); // Cowcat
 			}
 		}
 	}
