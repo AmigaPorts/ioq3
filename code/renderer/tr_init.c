@@ -916,6 +916,8 @@ void GfxInfo_f( void )
 
 		int	primitives;
 
+		primitives = r_primitives->integer;
+
 		ri.Printf( PRINT_ALL, "rendering primitives: " );
 
 		if ( primitives == 0 )
