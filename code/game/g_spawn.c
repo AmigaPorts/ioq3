@@ -89,7 +89,7 @@ typedef struct
 	fieldtype_t	type;
 } field_t;
 
-#if defined(__amiga__) && defined(__VBCC__) // Cowcat
+#if defined(AMIGAOS) && defined(__VBCC__) // Cowcat
 #define FOFS2(x,y) (size_t)FOFS(x) + offsetof(entityState_t,y) // Cowcat
 
 field_t fields[] = {

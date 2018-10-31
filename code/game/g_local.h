@@ -692,7 +692,7 @@ void BotTestAAS(vec3_t origin);
 extern	level_locals_t	level;
 extern	gentity_t		g_entities[MAX_GENTITIES];
 
-#if defined(__amiga__) && defined(__VBCC__) // Cowcat
+#if defined(AMIGAOS) && defined(__VBCC__) // Cowcat
 #include <stddef.h>   
 #define FOFS(x) (size_t)offsetof(gentity_t,x)
 #else
