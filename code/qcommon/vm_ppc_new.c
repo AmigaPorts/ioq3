@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "vm_local.h"
 
-#if defined(__amiga__)
+#if defined(AMIGAOS)
 #if defined(__GNUC__)
 #include <powerpc/powerpc.h>
 #include <powerpc/powerpc_protos.h>

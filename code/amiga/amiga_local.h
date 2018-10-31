@@ -33,7 +33,8 @@ void Sys_SetDefaultCDPath(const char *path);
 void IN_Init (void);
 void IN_Frame (void);
 void IN_Shutdown (void);
-
+void install_grabs(void);
+void uninstall_grabs(void);
 
 void IN_JoyMove( void );
 void IN_StartupJoystick( void );

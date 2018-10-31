@@ -215,7 +215,7 @@ void S_TransferPaintBuffer(int endtime)
 
 		else if (dma.samplebits == 8)
 		{
-			#ifdef __amiga__ // Cowcat
+			#ifdef AMIGAOS // Cowcat
 
 			// Amiga needs signed 8 bit data
 			char *out = (char *) pbuf;

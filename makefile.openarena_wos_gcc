@@ -6,7 +6,7 @@ CC = gcc --specs=warpup
 
 ALTIVEC = -D__VECTOR__
 
-CFLAGS = -O2 -noixemul -fomit-frame-pointer --fast-math -fno-strict-aliasing -D__amiga__ -DBOTLIB -DUSE_LOCAL_HEADERS -DSTANDALONE $(ALTIVEC) # -DNO_VM_COMPILED
+CFLAGS = -O2 -noixemul -fomit-frame-pointer --fast-math -fno-strict-aliasing -DAMIGAOS -DBOTLIB -DUSE_LOCAL_HEADERS -DSTANDALONE $(ALTIVEC) # -DNO_VM_COMPILED
 
 DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
 DO_CC_ALTIVEC = $(CC) $(CFLAGS) -maltivec -o $@ -c $<

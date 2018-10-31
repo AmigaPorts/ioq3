@@ -945,7 +945,7 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 		isLightmap = qtrue;
 	}
 
-	if ( tr.numImages >= MAX_DRAWIMAGES ) // was == Quake3e - Cowcat
+	if ( tr.numImages == MAX_DRAWIMAGES )
 	{
 		ri.Error( ERR_DROP, "R_CreateImage: MAX_DRAWIMAGES hit\n");
 	}
@@ -1393,10 +1393,9 @@ void R_CreateBuiltinImages( void )
 	for(x = 0; x < ARRAY_LEN( tr.scratchImage ); x++) // Quake3e - Cowcat
 	{
 		// scratchimage is usually used for cinematic drawing
-		
-		//tr.scratchImage[x] = R_CreateImage("*scratch", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE, 0);
+		tr.scratchImage[x] = R_CreateImage("*scratch", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE, 0);
 		// Quake3e - Cowcat crash if null
-		tr.scratchImage[x] = R_CreateImage("*scratch", /*NULL*/ (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE, GL_RGB);
+		//tr.scratchImage[x] = R_CreateImage("*scratch", /*NULL*/ (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE, GL_RGB);
 	}
 
 	R_CreateDlightImage();

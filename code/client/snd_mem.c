@@ -186,7 +186,7 @@ resample / decimate to the current source rate
 ================
 */
 
-#if defined(__amiga__) && defined(__VBCC__)
+#if defined(AMIGAOS) && defined(__VBCC__)
 
 #undef LittleShort
 

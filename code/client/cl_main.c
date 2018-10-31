@@ -138,7 +138,7 @@ void CL_ShowIP_f(void);
 void CL_ServerStatus_f(void);
 void CL_ServerStatusResponse( netadr_t from, msg_t *msg );
 
-#if defined(__amiga__) && defined(__VBCC__)
+#if defined(AMIGAOS) && defined(__VBCC__)
 
 #undef LittleLong
 
@@ -1780,7 +1780,7 @@ void CL_Connect_f( void )
 		if(!strcmp(Cmd_Argv(1), "-4"))
 			family = NA_IP;
 
-#ifndef __amiga__
+#ifndef AMIGAOS
 		else if(!strcmp(Cmd_Argv(1), "-6"))
 			family = NA_IP6;
 #endif
@@ -2596,7 +2596,7 @@ void CL_ServersResponsePacket( const netadr_t* from, msg_t *msg, qboolean extend
 
 			addresses[numservers].type = NA_IP;
 		}
-#ifndef __amiga__
+#ifndef AMIGAOS
 		// IPv6 address, if it's an extended response
 		else if (extended && *buffptr == '/')
 		{
@@ -3950,7 +3950,7 @@ void CL_ServerInfoPacket( netadr_t from, msg_t *msg )
 				case NA_IP:
 					type = 1;
 					break;
-		#ifndef __amiga__
+		#ifndef AMIGAOS
 				case NA_IP6:
 					type = 2;
 					break;
@@ -4334,7 +4334,7 @@ void CL_LocalServers_f( void )
 
 			to.type = NA_BROADCAST;
 			NET_SendPacket( NS_CLIENT, strlen( message ), message, to );
-#ifndef __amiga__
+#ifndef AMIGAOS
 			to.type = NA_MULTICAST6;
 			NET_SendPacket( NS_CLIENT, strlen( message ), message, to );
 #endif
@@ -4389,7 +4389,7 @@ void CL_GlobalServers_f( void )
 	cls.numglobalservers = -1;
 	cls.pingUpdateSource = AS_GLOBAL;
 
-#ifndef __amiga__
+#ifndef AMIGAOS
 	// Use the extended query for IPv6 masters
 	if (to.type == NA_IP6 || to.type == NA_MULTICAST6)
 	{
@@ -4728,7 +4728,7 @@ void CL_Ping_f( void )
 		if(!strcmp(Cmd_Argv(1), "-4"))
 			family = NA_IP;
 
-#ifndef __amiga__
+#ifndef AMIGAOS
 		else if(!strcmp(Cmd_Argv(1), "-6"))
 			family = NA_IP6;
 #endif
@@ -4929,7 +4929,7 @@ void CL_ServerStatus_f(void)
 		{
 			if(!strcmp(Cmd_Argv(1), "-4"))
 				family = NA_IP;
-#ifndef __amiga__
+#ifndef AMIGAOS
 			else if(!strcmp(Cmd_Argv(1), "-6"))
 				family = NA_IP6;
 #endif

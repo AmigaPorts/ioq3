@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stddef.h>   //added Cowcat
 
-#if defined(__amiga__) && defined(__VBCC__)
+#if defined(AMIGAOS) && defined(__VBCC__)
 
 #undef LittleShort
 #undef LittleLong
@@ -1104,7 +1104,7 @@ typedef struct {
 } netField_t;
 
 
-#if defined(__amiga__) && defined(__VBCC__)
+#if defined(AMIGAOS) && defined(__VBCC__)
 
 // old workaround - Cowcat
 #define NETF(x) (size_t)offsetof(entityState_t,x)
@@ -1574,7 +1574,7 @@ plyer_state_t communication
 ============================================================================
 */
 
-#if defined(__amiga__) && defined(__VBCC__)
+#if defined(AMIGAOS) && defined(__VBCC__)
 
 // old workaround - Cowcat
 #define PSF(x) (size_t)offsetof(playerState_t,x)

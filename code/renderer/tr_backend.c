@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "tr_local.h"
 
-#ifdef __amiga__
+#ifdef AMIGAOS
 //#include <mgl/mglmacros.h>
 #endif
 
@@ -930,8 +930,8 @@ void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int
 	{
 		image->width = image->uploadWidth = cols;
 		image->height = image->uploadHeight = rows;
-		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		//qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+		//qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, cols, cols, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
 		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat
@@ -1092,7 +1092,7 @@ const void *RB_DrawBuffer( const void *data )
 
 	cmd = (const drawBufferCommand_t *)data;
 
-	#if !defined(__amiga__)
+	#if !defined(AMIGAOS)
 	qglDrawBuffer( cmd->buffer );
 	#endif
 

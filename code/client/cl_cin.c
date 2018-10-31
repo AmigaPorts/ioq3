@@ -436,7 +436,7 @@ static void blit2_32( byte *src, byte *dst, int spl  )
 	memcpy(dst+spl, src+8, 8);
 }
 
-#else
+#else // Cowcat test
 
 /******************************************************************************
 *
@@ -796,6 +796,7 @@ static unsigned int yuv_to_rgb24( long y, long u, long v )
 	
 	return LittleLong ((r)|(g<<8)|(b<<16)|(255<<24));
 	//return LittleLong ((unsigned long)(r)|(g<<8)|(b<<16)|(255UL<<24)); // spearmint
+
 }
 
 /******************************************************************************

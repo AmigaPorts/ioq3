@@ -623,6 +623,8 @@ void install_grabs (void)
 {
 	//mglGrabFocus(GL_TRUE);
 	mouse_active = qfalse;
+
+	//ModifyIDCMP(win, IDCMP_RAWKEY|IDCMP_MOUSEMOVE|IDCMP_MOUSEBUTTONS|IDCMP_DELTAMOVE);
 }
 
 void uninstall_grabs (void)
@@ -631,4 +633,7 @@ void uninstall_grabs (void)
 	mx = 0;
 	my = 0;
 	mouse_active = qtrue;
+
+	//ModifyIDCMP(win, IDCMP_RAWKEY|IDCMP_MOUSEBUTTONS);
+	
 }

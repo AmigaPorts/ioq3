@@ -226,7 +226,7 @@ qint64 Long64NoSwap (qint64 ll)
 	return ll;
 }
 
-#if defined(__amiga__) && defined(__VBCC__) && defined (__PPC__)
+#if defined(AMIGAOS) && defined(__VBCC__) && defined (__PPC__)
 
 int __LittleLong(__reg("r4") int) =
 	"\trlwinm\t3,4,24,0,31\n"

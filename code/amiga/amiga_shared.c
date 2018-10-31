@@ -150,7 +150,7 @@ int Sys_Milliseconds(void)
 
 #else // Cowcat
 
-#if defined(__amiga__) && !defined(__PPC__)
+#if !defined(__PPC__)
 extern struct Library *TimerBase;
 #endif
 
@@ -188,51 +188,15 @@ int Sys_Milliseconds(void)
 
 #endif
 
-//#if defined(AMIGA) && 
 #if defined(__VBCC__) && defined(__PPC__)
 extern float rint(float x);
 #endif
-
-#if 0
-float rint-test(float x)
-{
-	static const float TWO23 = 8388608.0;
-
-	if(fabs(x) < TWO23)
-	{
-		if( x > 0.0 )
-		{
-			x += TWO23;
-			x -= TWO23;
-
-			if(x == 0.0)
-				x = 0.0;
-		}
-
-		else if (x < 0.0)
-		{
-			x = TWO23 - x;
-			x = -(x - TWO23);
-
-			if(x == 0.0)
-				x = -0.0;
-		}
-		
-	}
-
-	return x;
-}
-#endif
-
-//#include "../renderer/tr_local.h"
 
 void Sys_SnapVector(float *v)
 {
 	v[0] = rint(v[0]);
 	v[1] = rint(v[1]);
 	v[2] = rint(v[2]);
-
-	//ri.Printf(PRINT_ALL, "rint 0 %f, 1 %f, 2 %f\n", v[0],v[1],v[2]);
 }
 
 void Sys_Mkdir(const char *path)

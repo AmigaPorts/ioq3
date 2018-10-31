@@ -114,7 +114,7 @@ static inline float __fctiw(register float f) {
 
 #endif
 
-#if defined(__amiga__)
+#if defined(AMIGAOS)
 
 #define	MAC_STATIC
 #define __cdecl
@@ -136,8 +136,7 @@ static inline float __fctiw(register float f) {
 
 #endif
 
-#if 0
-#if defined(__morphos__)
+#if defined(MORPHOS)
 
 #define	MAC_STATIC
 #define __cdecl
@@ -151,7 +150,6 @@ static inline float __fctiw(register float f) {
 #define ARCH_STRING "ppc"
 #define Q3_BIG_ENDIAN
 
-#endif
 #endif
 
 // for windows fastcall option

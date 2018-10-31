@@ -75,7 +75,7 @@ static qboolean	winsockInitialized = qfalse;
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#	if !defined(__sun) && !defined(__sgi) && !defined(__amiga__)
+#	if !defined(__sun) && !defined(__sgi) && !defined(AMIGAOS)
 #		include <ifaddrs.h>
 #	endif
 
@@ -98,7 +98,7 @@ static int networkingEnabled = 0;
 
 #define NET_ENABLEV4		0x01
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 #define NET_ENABLEV6		0x02
 // if this flag is set, always attempt ipv6 connections instead of ipv4 if a v6 address is found.
 #define NET_PRIOV6		0x04
@@ -108,7 +108,7 @@ static int networkingEnabled = 0;
 #define NET_DISABLEMCAST	0x08
 
 
-#if defined(__amiga__)
+#if defined(AMIGAOS)
 
 /*
  *  Desired design of maximum size and alignment.
@@ -178,7 +178,7 @@ static cvar_t	*net_socksPassword;
 static cvar_t	*net_ip;
 static cvar_t	*net_port;
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 
 static cvar_t   *net_port6;
 static cvar_t	*net_mcast6addr;
@@ -303,7 +303,7 @@ static void NetadrToSockadr( netadr_t *a, struct sockaddr *s )
 		((struct sockaddr_in *)s)->sin_port = a->port;
 	}
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 	else if( a->type == NA_IP6 )
 	{
 		((struct sockaddr_in6 *)s)->sin6_family = AF_INET6;
@@ -331,7 +331,7 @@ static void SockadrToNetadr( struct sockaddr *s, netadr_t *a )
 		a->port = ((struct sockaddr_in *)s)->sin_port;
 	}
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 	else if(s->sa_family == AF_INET6)
 	{
 		a->type = NA_IP6;
@@ -382,7 +382,7 @@ static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int s
 		{
 			// Decide here and now which protocol family to use
 
-	#if !defined(__amiga__)
+	#if !defined(AMIGAOS)
 			if((net_enabled->integer & NET_ENABLEV6) && (net_enabled->integer & NET_PRIOV6))
 				search = SearchAddrInfo(res, AF_INET6);
 
@@ -390,7 +390,7 @@ static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int s
 	#endif
 				search = SearchAddrInfo(res, AF_INET);
 
-	#if !defined(__amiga__)
+	#if !defined(AMIGAOS)
 			if(!search)
 			{
 				if((net_enabled->integer & NET_ENABLEV6) &&
@@ -440,7 +440,7 @@ static void Sys_SockaddrToString(char *dest, int destlen, struct sockaddr *input
 {
 	socklen_t inputlen;
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 	if (input->sa_family == AF_INET6)
 		inputlen = sizeof(struct sockaddr_in6);
 
@@ -468,7 +468,7 @@ qboolean Sys_StringToAdr( const char *s, netadr_t *a, netadrtype_t family )
 			fam = AF_INET;
 			break;
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 		case NA_IP6:
 			fam = AF_INET6;
 			break;
@@ -511,7 +511,7 @@ qboolean NET_CompareBaseAdr (netadr_t a, netadr_t b)
 		return qfalse;
 	}
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 	if (a.type == NA_IP6)
 	{
 		if(!memcmp(a.ip6, b.ip6, sizeof(a.ip6)) && a.scope_id == b.scope_id)
@@ -539,7 +539,7 @@ const char *NET_AdrToString (netadr_t a)
 		Com_sprintf (s, sizeof(s), "bot");
 	}
 
-#if !defined(__amiga__) // Cowcat
+#if !defined(AMIGAOS) // Cowcat
 	else if (a.type == NA_IP || a.type == NA_IP6)
 #else
 	else if (a.type == NA_IP ) // Cowcat
@@ -574,7 +574,7 @@ const char *NET_AdrToStringwPort (netadr_t a)
 		Com_sprintf(s, sizeof(s), "%s:%hu", NET_AdrToString(a), ntohs(a.port));
 	}
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 	else if(a.type == NA_IP6)
 	{
 		Com_sprintf(s, sizeof(s), "[%s]:%hu", NET_AdrToString(a), ntohs(a.port));
@@ -590,7 +590,7 @@ qboolean NET_CompareAdr (netadr_t a, netadr_t b)
 	if(!NET_CompareBaseAdr(a, b))
 		return qfalse;
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 	if (a.type == NA_IP || a.type == NA_IP6)
 #else
 	if (a.type == NA_IP)
@@ -679,7 +679,7 @@ qboolean NET_GetPacket( netadr_t *net_from, msg_t *net_message, fd_set *fdr )
 		}
 	}
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 	if(ip6_socket != INVALID_SOCKET && FD_ISSET(ip6_socket, fdr))
 	{
 		fromlen = sizeof(from);
@@ -756,7 +756,7 @@ void Sys_SendPacket( int length, const void *data, netadr_t to )
 	int			ret = SOCKET_ERROR;
 	struct sockaddr_storage	addr;
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 
 	if( to.type != NA_BROADCAST && to.type != NA_IP && to.type != NA_IP6 && to.type != NA_MULTICAST6)
 	{
@@ -803,7 +803,7 @@ void Sys_SendPacket( int length, const void *data, netadr_t to )
 	else
 	{
 
-#if defined(__amiga__) // AmigaOS uses IP4
+#if defined(AMIGAOS) // AmigaOS uses IP4
 
 		ret = sendto( ip_socket, data, length, 0, (struct sockaddr *) &addr, sizeof(struct sockaddr_in) );
 
@@ -878,7 +878,7 @@ qboolean Sys_IsLANAddress( netadr_t adr )
 			return qtrue;
 	}
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 	else if(adr.type == NA_IP6)
 	{
 		if(adr.ip6[0] == 0xfe && (adr.ip6[1] & 0xc0) == 0x80)
@@ -903,7 +903,7 @@ qboolean Sys_IsLANAddress( netadr_t adr )
 				addrsize = sizeof(adr.ip);
 			}
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 			else
 			{
 				// TODO? should we check the scope_id here?
@@ -954,7 +954,7 @@ void Sys_ShowIP(void)
 		if(localIP[i].type == NA_IP)
 			Com_Printf( "IP: %s\n", addrbuf);
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 		else if(localIP[i].type == NA_IP6)
 			Com_Printf( "IP6: %s\n", addrbuf);
 #endif
@@ -1049,7 +1049,7 @@ SOCKET NET_IPSocket( char *net_interface, int port, int *err )
 	return newsocket;
 }
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 
 /*
 ====================
@@ -1487,7 +1487,7 @@ void NET_AddLocalAddress(char *ifname, struct sockaddr *addr, struct sockaddr *n
 			localIP[numIP].type = NA_IP;
 		}
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 		else if(family == AF_INET6)
 		{
 			addrlen = sizeof(struct sockaddr_in6);
@@ -1554,7 +1554,7 @@ void NET_GetLocalAddress( void ) // changed here - Cowcat
 	{
 		struct sockaddr_in 	mask4;
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 		struct sockaddr_in6 	mask6;
 #endif
 
@@ -1567,7 +1567,7 @@ void NET_GetLocalAddress( void ) // changed here - Cowcat
 		mask4.sin_family = AF_INET;
 		memset(&mask4.sin_addr.s_addr, 0xFF, sizeof(mask4.sin_addr.s_addr));
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 		memset(&mask6, 0, sizeof(mask6));
 		mask6.sin6_family = AF_INET6;
 		memset(&mask6.sin6_addr, 0xFF, sizeof(mask6.sin6_addr));
@@ -1579,7 +1579,7 @@ void NET_GetLocalAddress( void ) // changed here - Cowcat
 			if(search->ai_family == AF_INET)
 				NET_AddLocalAddress("", search->ai_addr, (struct sockaddr *) &mask4);
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 			else if(search->ai_family == AF_INET6)
 				NET_AddLocalAddress("", search->ai_addr, (struct sockaddr *) &mask6);
 #endif
@@ -1604,7 +1604,7 @@ void NET_OpenIP( void )
 	int	err;
 	int	port;
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 	int	port6;
 	port6 = net_port6->integer;
 #else
@@ -1617,7 +1617,7 @@ void NET_OpenIP( void )
 	// dedicated servers can be started without requiring
 	// a different net_port for each one
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 	if(net_enabled->integer & NET_ENABLEV6)
 	{
 		for( i = 0 ; i < 10 ; i++ )
@@ -1683,7 +1683,7 @@ static qboolean NET_GetCvars( void )
 {
 	int modified;
 
-#if defined (DEDICATED) || defined(__amiga__)
+#if defined (DEDICATED) || defined(AMIGAOS)
 	// I want server owners to explicitly turn on ipv6 support.
 	net_enabled = Cvar_Get( "net_enabled", "1", CVAR_LATCH | CVAR_ARCHIVE );
 #else
@@ -1695,7 +1695,7 @@ static qboolean NET_GetCvars( void )
 	modified = net_enabled->modified;
 	net_enabled->modified = qfalse;
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 
 	net_ip6 = Cvar_Get( "net_ip6", "::", CVAR_LATCH );
 	modified += net_ip6->modified;
@@ -1814,7 +1814,7 @@ void NET_Config( qboolean enableNetworking )
 			ip_socket = INVALID_SOCKET;
 		}
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 		if(multicast6_socket)
 		{
 			if(multicast6_socket != ip6_socket)
@@ -1843,7 +1843,7 @@ void NET_Config( qboolean enableNetworking )
 		if (net_enabled->integer)
 		{
 			NET_OpenIP();
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 			NET_SetMulticast6();
 #endif
 		}
@@ -1966,7 +1966,7 @@ void NET_Sleep(int msec)
 		highestfd = ip_socket;
 	}
 
-#if !defined(__amiga__)
+#if !defined(AMIGAOS)
 	if(ip6_socket != INVALID_SOCKET)
 	{
 		FD_SET(ip6_socket, &fdr);
@@ -2015,7 +2015,7 @@ Support functions for AmigaOS
 
 */
 
-#if defined(__amiga__)
+#if defined(AMIGAOS)
 
 char * gai_strerror(int retval)
 {

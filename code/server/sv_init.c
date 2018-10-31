@@ -319,7 +319,7 @@ void SV_Startup( void )
 
 	Cvar_Set( "sv_running", "1" );
 
-#ifndef __amiga__
+#ifndef AMIGAOS
 	// Join the ipv6 multicast group now that a map is running so clients can scan for us on the local network.
 	NET_JoinMulticast6();
 #endif
@@ -840,7 +840,7 @@ void SV_Shutdown( char *finalmsg )
 
 	Com_Printf( "----- Server Shutdown (%s) -----\n", finalmsg );
 
-#ifndef __amiga__
+#ifndef AMIGAOS
 	NET_LeaveMulticast6();
 #endif
 

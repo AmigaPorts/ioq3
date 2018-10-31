@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_local.h" 
 
-#ifdef __amiga__
+#ifdef AMIGAOS
 #include <mgl/mglmacros.h>
 #endif
 
@@ -70,7 +70,7 @@ R_DrawStripElements
 ===================
 */
 
-#ifdef __amiga__
+#ifdef AMIGAOS
 
 extern UWORD *ElementIndex; // amiga_glimp.c
 
@@ -319,8 +319,12 @@ void R_DrawElements( int numIndexes, const glIndex_t *indexes )
 
 	if ( primitives == 1 )
 	{
-		//R_DrawStripElements( numIndexes, indexes, R_ArrayElement );
+		#ifndef AMIGAOS
+		R_DrawStripElements( numIndexes, indexes, R_ArrayElement );
+		#else
 		R_DrawStripElementsAmiga( numIndexes, indexes );
+		#endif
+
 		return;
 	}
 

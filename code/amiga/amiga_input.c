@@ -88,8 +88,6 @@ void IN_DeactivateMouse( void )
 
 		mouse_active = qfalse;
 	}
-
-	
 }
 
 
@@ -203,7 +201,7 @@ void IN_ProcessEvents(void)
 
 	while ((imsg = (struct IntuiMessage *)GetMsg(Sys_EventPort)))
 	{
-		const ULONG msgTime = 0;//Sys_Milliseconds();
+		const ULONG msgTime = 0; //Sys_Milliseconds();
 		
 		switch (imsg->Class)
 		{

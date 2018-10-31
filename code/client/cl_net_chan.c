@@ -102,7 +102,7 @@ CL_Netchan_Decode
 ==============
 */
 
-#if defined(__amiga__) && defined(__VBCC__)
+#if defined(AMIGAOS) && defined(__VBCC__)
 
 #undef LittleLong
 

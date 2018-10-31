@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <proto/exec.h>
 #endif
 
-#if defined(__amiga__) && defined(__VBCC__) && defined (__PPC__)
+#if defined(AMIGAOS) && defined(__VBCC__) && defined (__PPC__)
 
 #undef LittleLong
 

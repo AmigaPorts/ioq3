@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 // Cowcat
 #if 0
-#if defined(__amiga__) && defined(__VBCC__)
+#if defined(AMIGAOS) && defined(__VBCC__)
 static ID_INLINE float _vmf(intptr_t x)
 {
 	floatint_t fi;

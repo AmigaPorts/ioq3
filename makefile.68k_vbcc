@@ -7,7 +7,7 @@ BQAG = ioquake3_objs/qagame
 CC = vc +aos68k
 INCLUDES = -ISystem:PosixLib/include
 
-CFLAGS = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -D__amiga__ -DBOTLIB -DUSE_LOCAL_HEADERS -DDLL -DNO_VM_COMPILED
+CFLAGS = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -DAMIGAOS -DBOTLIB -DUSE_LOCAL_HEADERS -DDLL -DNO_VM_COMPILED
 
 DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
 

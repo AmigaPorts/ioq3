@@ -4,7 +4,7 @@ B = oa_objs
 CC = vc +aos68k
 INCLUDES = -ISystem:PosixLib/include
 
-CFLAGS = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -D__amiga__ -DBOTLIB -DUSE_LOCAL_HEADERS -DNO_VM_COMPILED -DSTANDALONE
+CFLAGS = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -DAMIGAOS -DBOTLIB -DUSE_LOCAL_HEADERS -DNO_VM_COMPILED -DSTANDALONE
 
 DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
 

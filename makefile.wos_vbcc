@@ -8,8 +8,8 @@ CC = vc +warpos
 #CC68K = vc +aos68k
 INCLUDES = -ISystem:PosixLib/include
 
-CFLAGS = -c99 -O2 -cpu=603 -speed -merge-constants -maxoptpasses=20 $(INCLUDES) -D__amiga__ -DBOTLIB -DUSE_LOCAL_HEADERS # -DDLL -DNO_VM_COMPILED
-#CFLAGS68K = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -D__amiga__
+CFLAGS = -c99 -O2 -cpu=603 -speed -merge-constants -maxoptpasses=20 $(INCLUDES) -DAMIGAOS -DBOTLIB -DUSE_LOCAL_HEADERS # -DDLL -DNO_VM_COMPILED
+#CFLAGS68K = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -DAMIGAOS
 
 DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
 #DO_CC68K = $(CC68K) $(CFLAGS68K) -o $@ -c $<

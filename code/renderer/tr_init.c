@@ -915,7 +915,6 @@ void GfxInfo_f( void )
 		#else // Cowcat
 
 		int	primitives;
-
 		primitives = r_primitives->integer;
 
 		ri.Printf( PRINT_ALL, "rendering primitives: " );
