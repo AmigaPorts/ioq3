@@ -547,7 +547,7 @@ void SV_ClipToEntity( trace_t *trace, const vec3_t start, const vec3_t mins, con
 
 	touch = SV_GentityNum( entityNum );
 
-	Com_Memset( trace, 0, sizeof( *trace ) ); // Quake3e - was sizeof(trace_t)) - Cowcat
+	Com_Memset( trace, 0, sizeof( *trace ) ); // ec-/Quake3e - was sizeof(trace_t) )
 
 	// if it doesn't have any brushes of a type we
 	// are looking for, ignore it
@@ -710,7 +710,7 @@ void SV_Trace( trace_t *results, const vec3_t start, vec3_t mins, vec3_t maxs, c
 		maxs = vec3_origin;
 	}
 
-	Com_Memset ( &clip, 0, sizeof( clip ) ); // Quake3e - was sizeof ( moveclip_t ) ); - Cowcat
+	Com_Memset ( &clip, 0, sizeof( clip ) ); // ec-/Quake3e - was sizeof ( moveclip_t ) )
 
 	// clip to world
 	CM_BoxTrace( &clip.trace, start, end, mins, maxs, 0, contentmask, capsule );

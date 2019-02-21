@@ -378,6 +378,7 @@ static long int VM_AsmCall( int callSyscallInvNum, int callProgramStack )
 	// save the stack to allow recursive VM entry
 	currentVM->programStack = callProgramStack - 4;
 
+	#if !defined(AMIGAOS)
 	// we need to convert ints to longs on 64bit powerpcs
 	if ( sizeof( intptr_t ) == sizeof( int ) )
 	{
@@ -390,6 +391,7 @@ static long int VM_AsmCall( int callSyscallInvNum, int callProgramStack )
 	}
 
 	else
+	#endif
 	{
 		intptr_t args[MAX_VMSYSCALL_ARGS];
 
@@ -1123,7 +1125,8 @@ static void VM_CompileFunction( source_instruction_t * const i_first )
 					DIE( "Weird opcode order" );
 
 				// don't prepare stack if not needed
-				if ( prepareStack ) {
+				if ( prepareStack )
+				{
 					long int i, save_pos = STACK_SAVE;
 
 					in( iMFLR, r0 );
@@ -1191,6 +1194,7 @@ static void VM_CompileFunction( source_instruction_t * const i_first )
 					{
 						if ( rFIRST != r3 )
 							in( iMR, r3, rFIRST );
+
 						gpr_pos--;
 					}
 
@@ -1282,9 +1286,11 @@ static void VM_CompileFunction( source_instruction_t * const i_first )
 
 					/* syscall */
 					in( iLL, r0, VM_Data_Offset( AsmCall ), rVMDATA ); // get asmCall pointer
+
 					/* rFIRST can be r3 or some static register */
 					if ( rFIRST != r3 )
 						in( iMR, r3, rFIRST ); // push OPSTACK top value on argument list
+
 					in( iMR, r4, rPSTACK ); // push PSTACK on argument list
 
 					/* common code */
@@ -1334,6 +1340,7 @@ static void VM_CompileFunction( source_instruction_t * const i_first )
 					signed long int hi, lo;
 					hi = i_now->arg.ss[ 0 ];
 					lo = i_now->arg.ss[ 1 ];
+
 					if ( lo < 0 )
 						hi += 1;
 
@@ -1786,11 +1793,13 @@ static void VM_CompileFunction( source_instruction_t * const i_first )
 					signed short int hi, lo;
 					hi = i_const->arg.ss[ 0 ];
 					lo = i_const->arg.ss[ 1 ];
+
 					if ( lo < 0 )
 						hi += 1;
 
 					if ( hi != 0 )
 						in( iADDIS, rSECOND, rSECOND, hi );
+
 					if ( lo != 0 )
 						in( iADDI, rSECOND, rSECOND, lo );
 
@@ -2047,22 +2056,24 @@ static void PPC_ComputeCode( vm_t *vm )
 		+ sizeof( unsigned int ) * data_acc
 		+ sizeof( ppc_instruction_t ) * codeInstructions;
 
-	/*
-	size_t codeLength = (size_t)AllocVecPPC( ( sizeof( vm_data_t )
-		+ sizeof( unsigned int ) * data_acc
-		+ sizeof( ppc_instruction_t ) * codeInstructions ) , MEMF_ANY|MEMF_PUBLIC|MEMF_CLEAR, 0);
-	*/
-
 	// get the memory for the generated code, smarter ppcs need the
 	// mem to be marked as executable (whill change later)
-	//unsigned char *dataAndCode = mmap( NULL, codeLength, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0 ); // no mmap -Cowcat
+
+	#if !defined(AMIGAOS)
+	unsigned char *dataAndCode = mmap( NULL, codeLength, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0 );
+
+	if (dataAndCode == MAP_FAILED)
+		DIE( "Not enough memory" );
+
+	#else
 
 	unsigned char *dataAndCode = AllocVecPPC(codeLength, MEMF_ANY|MEMF_PUBLIC|MEMF_CLEAR, 0); // cheat - gets freed by mos2wos gcc !! - Cowcat
 
-	//if (dataAndCode == MAP_FAILED)
-	if (!dataAndCode) // Cowcat
+	if (!dataAndCode)
 		DIE( "Not enough memory" );
 
+	#endif
+	
 	ppc_instruction_t *codeNow, *codeBegin;
 	codeNow = codeBegin = (ppc_instruction_t *)( dataAndCode + VM_Data_Offset( data[ data_acc ] ) );
 
@@ -2236,9 +2247,10 @@ static void VM_Destroy_Compiled( vm_t *self )
 {
 	if ( self->codeBase )
 	{
-		// Cowcat
-		//if ( munmap( self->codeBase, self->codeLength ) )
-			//Com_Printf( S_COLOR_RED "Memory unmap failed, possible memory leak\n" );
+		#if !defined(AMIGAOS)
+		if ( munmap( self->codeBase, self->codeLength ) )
+			Com_Printf( S_COLOR_RED "Memory unmap failed, possible memory leak\n" );
+		#endif
 	}
 
 	self->codeBase = NULL;
@@ -2341,7 +2353,7 @@ void VM_Compile( vm_t *vm, vmHeader_t *header )
 #endif
 
 	/* mark memory as executable and not writeable */
-	#if 0 // Cowcat
+	#if !defined(AMIGAOS) // Cowcat
 	if ( mprotect( vm->codeBase, vm->codeLength, PROT_READ|PROT_EXEC ) )
 	{
 		// it has failed, make sure memory is unmapped before throwing the error
@@ -2383,9 +2395,14 @@ int VM_CallCompiled( vm_t *vm, int *args )
 
 	vm->currentlyInterpreting = qtrue;
 
-	programStack -= ( 8 + 4 * MAX_VMMAIN_ARGS );
+	//programStack -= ( 8 + 4 * MAX_VMMAIN_ARGS );
+	programStack -= ( 8 + 4 * 4 ); // we ony need 4 - Cowcat
+
 	argPointer = (int *)&image[ programStack + 8 ];
-	memcpy( argPointer, args, 4 * MAX_VMMAIN_ARGS );
+
+	//memcpy( argPointer, args, 4 * MAX_VMMAIN_ARGS );
+	memcpy( argPointer, args, 4 * 4 ); // we ony need 4 - Cowcat
+
 	argPointer[ -1 ] = 0;
 	argPointer[ -2 ] = -1;
 

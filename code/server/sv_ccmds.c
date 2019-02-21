@@ -319,7 +319,6 @@ static void SV_MapRestart_f( void )
 	sv.serverId = com_frameTime;
 	Cvar_Set( "sv_serverid", va("%i", sv.serverId ) );
 
-	// Cowcat - update this part
 	for (i=0 ; i<sv_maxclients->integer ; i++)
 	{
 		if ( svs.clients[i].state == CS_PRIMED )
@@ -510,7 +509,7 @@ static void SV_Ban_f( void )
 
 	if( cl->netchan.remoteAddress.type == NA_LOOPBACK )
 	{
-		SV_SendServerCommand(NULL, "print \"%s\"", "Cannot kick host player\n");
+		Com_Printf("Cannot kick host player\n");
 		return;
 	}
 
@@ -576,7 +575,7 @@ static void SV_BanNum_f( void )
 
 	if( cl->netchan.remoteAddress.type == NA_LOOPBACK )
 	{
-		SV_SendServerCommand(NULL, "print \"%s\"", "Cannot kick host player\n");
+		Com_Printf("Cannot kick host player\n");
 		return;
 	}
 
@@ -618,7 +617,7 @@ SV_RehashBans_f
 Load saved bans from file.
 ==================
 */
-void SV_RehashBans_f(void)
+static void SV_RehashBans_f(void)
 {
 	int		index, filelen;
 	fileHandle_t	readfrom;
@@ -704,11 +703,19 @@ Ban a user from being able to play on this server based on his ip address.
 
 static void SV_AddBanToList(qboolean isexception)
 {
-	char *banstring, *suffix;
-	netadr_t ip;
-	int argc, mask;
-	fileHandle_t writeto;
+	char		*banstring, *suffix;
+	netadr_t	ip;
+	int		argc, mask;
+	fileHandle_t	writeto;
 	
+	// make sure server is running
+	if(!com_sv_running->integer)
+	{
+		Com_Printf("Server is not running.\n");
+		return;
+	}
+		
+
 	argc = Cmd_Argc();
 	
 	if(argc < 2 || argc > 3)
@@ -750,11 +757,6 @@ static void SV_AddBanToList(qboolean isexception)
 		client_t *cl;
 		
 		// client num.
-		if(!com_sv_running->integer)
-		{
-			Com_Printf("Server is not running.\n");
-			return;
-		}
 		
 		cl = SV_GetPlayerByNum();
 
@@ -884,8 +886,8 @@ static void SV_DelBanFromList(qboolean isexception)
 
 static void SV_ListBans_f(void)
 {
-	int index, count;
-	serverBan_t *ban;
+	int		index, count;
+	serverBan_t	*ban;
 	
 	// List all bans
 	for(index = count = 0; index < serverBansCount; index++)
@@ -1199,7 +1201,7 @@ SV_CompleteMapName
 static void SV_CompleteMapName( char *args, int argNum )
 {
 	if( argNum == 2 ) {
-		Field_CompleteFilename( "maps", "bsp", qtrue );
+		Field_CompleteFilename( "maps", "bsp", qtrue, qfalse );
 	}
 }
 

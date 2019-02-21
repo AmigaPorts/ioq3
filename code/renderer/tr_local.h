@@ -313,7 +313,7 @@ typedef enum {
 
 } texMod_t;
 
-#define MAX_SHADER_DEFORMS	3
+#define MAX_SHADER_DEFORMS 3
 
 typedef struct {
 	deform_t	deformation;		// vertex coordinate modification type
@@ -354,7 +354,7 @@ typedef struct {
 } texModInfo_t;
 
 
-#define MAX_IMAGE_ANIMATIONS	8
+#define MAX_IMAGE_ANIMATIONS 8
 
 typedef struct {
 	image_t			*image[MAX_IMAGE_ANIMATIONS];
@@ -535,7 +535,7 @@ typedef struct {
 // This is an arbitry limit. Vanilla Q3 only supported 32 surfaces in skins but failed to
 // enforce the maximum limit when reading skin files. It was possile to use more than 32
 // surfaces which accessed out of bounds memory past end of skin->surfaces hunk block.
-#define MAX_SKIN_SURFACES	256
+#define MAX_SKIN_SURFACES 256
 
 // skins allow models to be retextured without modifying the model file
 typedef struct {
@@ -704,7 +704,6 @@ typedef struct {
 	// triangle definitions
 	int			numIndexes;
 	int			*indexes;
-	//glIndex_t		*indexes; // 16 bit indices test - Cowcat
 
 	int			numVerts;
 	drawVert_t		*verts;
@@ -976,7 +975,7 @@ typedef struct {
 	const byte			*externalVisData;	// from RE_SetWorldVisData, shared with CM_Load
 
 	image_t				*defaultImage;
-	image_t				*scratchImage[MAX_VIDEO_HANDLES]; // *scratchImage[32] Quake3e - Cowcat
+	image_t				*scratchImage[MAX_VIDEO_HANDLES]; // was *scratchImage[32] ec-/Quake3e
 	image_t				*fogImage;
 	image_t				*dlightImage;		// inverse-quare highlight for projective adding
 	image_t				*flareImage;
@@ -1234,7 +1233,7 @@ void	GL_SelectTexture( int unit );
 void	GL_TextureMode( const char *string );
 void	GL_CheckErrors( void );
 void	GL_State( unsigned long stateVector );
-void	GL_TexEnv( GLint env ); // was int - Quake3e - Cowcat
+void	GL_TexEnv( GLint env ); // was int - ec-/Quake3e
 void	GL_Cull( int cullType );
 
 #define GLS_SRCBLEND_ZERO				0x00000001
@@ -1319,12 +1318,6 @@ const void *RB_TakeVideoFrameCmd( const void *data );
 
 void R_DrawElements(int numIndexes, const glIndex_t *indexes);
 void VectorArrayNormalize(vec4_t *normals, unsigned int count);
-
-#ifdef idppc_altivec
-void LerpMeshVertexes_altivec(md3Surface_t *surf, float backlerp);
-void ProjectDlightTexture_altivec( void );
-void RB_CalcDiffuseColor_altivec( unsigned char *colors );
-#endif
 
 //
 // tr_shader.c
@@ -1414,7 +1407,7 @@ void RB_EndSurface(void);
 void RB_CheckOverflow( int verts, int indexes );
 
 #define RB_CHECKOVERFLOW(v,i) if (tess.numVertexes + (v) >= SHADER_MAX_VERTEXES || tess.numIndexes + (i) >= SHADER_MAX_INDEXES ) {RB_CheckOverflow(v,i);}
-//#define RB_CHECKOVERFLOW(v,i) RB_CheckOverflow(v,i)
+//#define RB_CHECKOVERFLOW(v,i) RB_CheckOverflow(v,i) // test this - Cowcat
 
 void RB_StageIteratorGeneric( void );
 void RB_StageIteratorSky( void );
@@ -1784,5 +1777,10 @@ void R_InitFreeType( void );
 void R_DoneFreeType( void );
 void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font);
 
+#ifdef idppc_altivec
+void LerpMeshVertexes_altivec(md3Surface_t *surf, float backlerp);
+void ProjectDlightTexture_altivec( void );
+void RB_CalcDiffuseColor_altivec( unsigned char *colors );
+#endif
 
 #endif //TR_LOCAL_H

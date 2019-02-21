@@ -52,7 +52,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifdef __VBCC__
 #pragma amiga-align
 #elif defined(WARPUP)
-#pragma pack(2)
+#pragma pack(push,2)
 #endif
 
 #include <utility/tagitem.h>
@@ -79,7 +79,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifdef __VBCC__
 #pragma default-align
 #elif defined (WARPUP)
-#pragma pack()
+#pragma pack(pop)
 #endif
 
 #endif

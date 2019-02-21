@@ -80,7 +80,7 @@ SV_ExpandNewlines
 Converts newlines to "\n" so a line prints nicer
 ===============
 */
-char *SV_ExpandNewlines( char *in )
+static char *SV_ExpandNewlines( char *in )
 {
 	static	char	string[1024];
 	int		l;
@@ -126,6 +126,7 @@ void SV_AddServerCommand( client_t *client, const char *cmd )
 		return;
 
 	client->reliableSequence++;
+
 	// if we would be losing an old command that hasn't been acknowledged,
 	// we must drop the connection
 	// we check == instead of >= so a broadcast print added by SV_DropClient()
@@ -322,7 +323,7 @@ and all connected players.  Used for getting detailed information after
 the simple info query.
 ================
 */
-void SVC_Status( netadr_t from )
+static void SVC_Status( netadr_t from )
 {
 	char		player[1024];
 	char		status[MAX_MSGLEN];
@@ -333,13 +334,15 @@ void SVC_Status( netadr_t from )
 	int		playerLength;
 	char		infostring[MAX_INFO_STRING];
 
-#ifndef DEDICATED
 	// ignore if we are in single player
-	if ( Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER )
+	if ( Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER || Cvar_VariableValue("ui_singlePlayerActive"))
 	{
 		return;
 	}
-#endif
+
+	// A maximum challenge length of 128 should be more than plenty.
+	if(strlen(Cmd_Argv(1)) > 128)
+		return;
 
 	strcpy( infostring, Cvar_InfoString( CVAR_SERVERINFO ) );
 
@@ -387,13 +390,11 @@ void SVC_Info( netadr_t from )
 	char	*gamedir;
 	char	infostring[MAX_INFO_STRING];
 
-#ifndef DEDICATED
 	// ignore if we are in single player
 	if ( Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER || Cvar_VariableValue("ui_singlePlayerActive"))
 	{
 		return;
 	}
-#endif
 
 	/*
 	 * Check whether Cmd_Argv(1) has a sane length. This was not done in the original Quake3 version which led
@@ -470,7 +471,7 @@ SVC_FlushRedirect
 
 ================
 */
-void SV_FlushRedirect( char *outputbuf )
+static void SV_FlushRedirect( char *outputbuf )
 {
 	NET_OutOfBandPrint( NS_SERVER, svs.redirectAddress, "print\n%s", outputbuf );
 }
@@ -484,7 +485,7 @@ Shift down the remaining args
 Redirect all printfs
 ===============
 */
-void SVC_RemoteCommand( netadr_t from, msg_t *msg )
+static void SVC_RemoteCommand( netadr_t from, msg_t *msg )
 {
 	qboolean	valid;
 	unsigned int 	time;
@@ -572,7 +573,7 @@ Clients that are in the game can still send
 connectionless packets.
 =================
 */
-void SV_ConnectionlessPacket( netadr_t from, msg_t *msg )
+static void SV_ConnectionlessPacket( netadr_t from, msg_t *msg )
 {
 	char	*s;
 	char	*c;
@@ -590,7 +591,7 @@ void SV_ConnectionlessPacket( netadr_t from, msg_t *msg )
 
 	c = Cmd_Argv(0);
 
-	if(com_developer->integer) // Quake3e - Cowcat
+	if(com_developer->integer) // ec-/Quake3e
 		Com_Printf ("SV packet %s : %s\n", NET_AdrToString(from), c);
 
 	if (!Q_stricmp(c, "getstatus")) {
@@ -609,6 +610,7 @@ void SV_ConnectionlessPacket( netadr_t from, msg_t *msg )
 	} else if (!Q_stricmp(c, "ipAuthorize")) {
 		SV_AuthorizeIpPacket( from );
 #endif
+
 	} else if (!Q_stricmp(c, "rcon")) {
 		SVC_RemoteCommand( from, msg );
 	}
@@ -622,7 +624,7 @@ void SV_ConnectionlessPacket( netadr_t from, msg_t *msg )
 
 	else
 	{
-		if(com_developer->integer) // Quake3e - Cowcat
+		if(com_developer->integer) // ec-/Quake3e
 			Com_Printf ("bad connectionless packet from %s:\n%s\n", NET_AdrToString (from), s);
 	}
 }
@@ -706,7 +708,7 @@ SV_CalcPings
 Updates the cl->ping variables
 ===================
 */
-void SV_CalcPings( void )
+static void SV_CalcPings( void )
 {
 	int		i, j;
 	client_t	*cl;
@@ -785,7 +787,7 @@ for a few seconds to make sure any final reliable message gets resent
 if necessary
 ==================
 */
-void SV_CheckTimeouts( void )
+static void SV_CheckTimeouts( void )
 {
 	int		i;
 	client_t	*cl;
@@ -814,7 +816,7 @@ void SV_CheckTimeouts( void )
 
 		if ( cl->state >= CS_CONNECTED && cl->lastPacketTime < droppoint)
 		{
-#ifdef DEBUG // Quake3e - Cowcat
+#ifdef DEBUG // ec-/Quake3e
 			// wait several frames so a debugger session doesn't
 			// cause a timeout
 			if ( ++cl->timeoutCount > 5 )
@@ -841,7 +843,7 @@ void SV_CheckTimeouts( void )
 SV_CheckPaused
 ==================
 */
-qboolean SV_CheckPaused( void )
+static qboolean SV_CheckPaused( void )
 {
 	int		count;
 	client_t	*cl;

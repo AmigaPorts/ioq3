@@ -3,9 +3,19 @@
 
 #ifdef __DLL_LIB_BUILD
 
+#ifdef __VBCC__
 #pragma amiga-align
+#elif defined(WARPUP)
+#pragma pack(2)
+#endif
+
 #include <exec/exec.h>
-#pragma default-align
+
+#ifdef __VBCC__
+#pragma default align
+#elif defined (WARPUP)
+#pragma pack()
+#endif
 
 #endif
 
@@ -230,7 +240,7 @@ typedef void * HINSTANCE;
 
 #ifdef __GNUC__
 #ifdef __PPC__
-#define __saveds
+//#define __saveds
 #endif
 #endif
 

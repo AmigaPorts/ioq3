@@ -6,12 +6,22 @@
 
 #include "dll.h"
 
+#ifdef __VBCC__
 #pragma amiga-align
+#elif defined(WARPUP)
+#pragma pack(2)
+#endif
+
 #include <dos/dos.h>
 #include <dos/dostags.h>
 #include <proto/exec.h>
 #include <proto/dos.h>
+
+#ifdef __VBCC__
 #pragma default-align
+#elif defined(WARPUP)
+#pragma pack(0)
+#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -73,12 +83,41 @@ void *dllLoadLibrary(char *filename, char *portname)
 	return hinst;
 }
 
+#if defined(AMIGAOS)
+
+#ifdef __VBCC__
+#pragma amiga-align
+#elif defined(WARPUP)
+#pragma pack(2)
+#endif
+
+#include <exec/exec.h>
+#include <exec/memory.h>
+#include <proto/exec.h>
+
+#ifdef __PPC__
+#if defined(__GNUC__)
+#include <powerpc/powerpc_protos.h>
+#else
+#include <powerpc/powerpc.h>
+#include <proto/powerpc.h>
+#endif
+#endif
+
+#ifdef __VBCC__
+#pragma default-align
+#elif defined (WARPUP)
+#pragma pack()
+#endif
+
+#endif
+
 void *dllInternalLoadLibrary(char *filename,char *portname,int raiseusecount)
 {
 	struct dll_sInstance	*inst;
 	struct MsgPort		*dllport;
 	struct MsgPort		*myport;
-	dll_tMessage		msg,*reply;
+	dll_tMessage		msg, *reply;
 	static int		cleanupflag = 0;
 	BPTR			handle;
 	int			i;
@@ -129,12 +168,14 @@ void *dllInternalLoadLibrary(char *filename,char *portname,int raiseusecount)
 	if(i == DLLOPENDLLS_MAX)
 		return 0L;  // No free slot available
 
-	if(!(inst = malloc(sizeof(struct dll_sInstance))))
+	if( !(inst = malloc(sizeof(struct dll_sInstance))) )
+	//if( !(inst = AllocVecPPC( sizeof(struct dll_sInstance), MEMF_ANY, 0 )) ) // Cowcat
 		return 0L;
 
 	if(!(myport = CreateMsgPort()))
 	{
 		free(inst);
+		//FreeVecPPC(inst); // Cowcat
 		return 0L;
 	}
 
@@ -171,6 +212,7 @@ void *dllInternalLoadLibrary(char *filename,char *portname,int raiseusecount)
 	{
 		DeleteMsgPort(myport);
 		free(inst);
+		//FreeVecPPC(inst); // Cowcat
 		return 0L;
 	}
 
@@ -193,6 +235,7 @@ void *dllInternalLoadLibrary(char *filename,char *portname,int raiseusecount)
 		{
 			DeleteMsgPort(myport);
 			free(inst);
+			//FreeVecPPC(inst); // Cowcat
 			return 0L;
 		}
 		
@@ -217,6 +260,7 @@ void *dllInternalLoadLibrary(char *filename,char *portname,int raiseusecount)
 		//FIXME: Must/Can I send a Close message here ??
 		DeleteMsgPort(myport);
 		free(inst);
+		//FreeVecPPC(inst); // Cowcat
 		return 0L;
 	}
 
@@ -282,6 +326,7 @@ void dllInternalFreeLibrary(int i)
 
 	DeleteMsgPort(myport);
 	free(inst);
+	//FreeVecPPC(inst); // Cowcat
 
 	bzero(&dllOpenedDLLs[i],sizeof(dllOpenedDLLs[i]));
 

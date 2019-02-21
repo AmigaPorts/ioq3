@@ -26,7 +26,7 @@ AR = ar
 RANLIB = ranlib
 
 LIBOBJ = context.o vertexbuffer.o draw.o texture.o fog.o \
-	hclip.o init.o glu.o \
+	hclip.o init.o \
 	aclip.o vertexelements.o vertexarray.o \
 	others.o matrix.o
 

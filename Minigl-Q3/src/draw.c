@@ -3902,7 +3902,6 @@ void d_DrawTrianglesVA(GLcontext context)
 	}
 
 	Reset_W3D_ArrayPointers(context, ClientState);
-
 }
 
 

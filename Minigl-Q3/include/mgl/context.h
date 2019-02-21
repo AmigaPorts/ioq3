@@ -33,6 +33,7 @@
 
 
 #ifdef __PPC__
+
 typedef struct LockTimeHandle_s
 {
 	struct timeval StartTime;

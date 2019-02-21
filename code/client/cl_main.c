@@ -124,7 +124,6 @@ typedef struct serverStatus_s
 } serverStatus_t;
 
 serverStatus_t cl_serverStatusList[MAX_SERVERSTATUSREQUESTS];
-int serverStatusCount;
 
 #if defined __USEA3D && defined __A3D_GEOM
 void hA3Dg_ExportRenderGeom (refexport_t *incoming_re);
@@ -160,7 +159,14 @@ int __LittleLong(__reg("d0") int) =
 
 #define LittleLong(x) __LittleLong(x)
 
+#else // (__GNUC__)
+
+#undef LittleLong
+
+#define LittleLong(x) (((uint32_t)(x) << 24 ) | (((uint32_t)(x) & 0xff00) << 8 ) | (((uint32_t)(x) & 0x00ff0000) >> 8 ) | ((uint32_t)(x) >> 24))
+
 #endif
+
 
 /*
 ===============
@@ -220,9 +226,9 @@ static void CL_UpdateVoipIgnore(const char *idstr, qboolean ignore)
 		if ((id >= 0) && (id < MAX_CLIENTS)) {
 			clc.voipIgnore[id] = ignore;
 			CL_AddReliableCommand(va("voip %s %d",
-			                         ignore ? "ignore" : "unignore", id));
+						 ignore ? "ignore" : "unignore", id));
 			Com_Printf("VoIP: %s ignoring player #%d\n",
-			            ignore ? "Now" : "No longer", id);
+				    ignore ? "Now" : "No longer", id);
 		}
 	}
 }
@@ -310,10 +316,10 @@ static void CL_CaptureVoip(void)
 #endif
 
 	if (!clc.speexInitialized)
-		return;  // just in case this gets called at a bad time.
+		return;	 // just in case this gets called at a bad time.
 
 	if (clc.voipOutgoingDataSize > 0)
-		return;  // packet is pending transmission, don't record more yet.
+		return;	 // packet is pending transmission, don't record more yet.
 
 	if (cl_voipUseVAD->modified) {
 		Cvar_Set("cl_voipSend", (useVad) ? "1" : "0");
@@ -404,10 +410,10 @@ static void CL_CaptureVoip(void)
 				// encode raw audio samples into Speex data...
 				speex_bits_reset(&clc.speexEncoderBits);
 				speex_encode_int(clc.speexEncoder, sampptr,
-				                 &clc.speexEncoderBits);
+						 &clc.speexEncoderBits);
 				bytes = speex_bits_write(&clc.speexEncoderBits,
-				                         (char *) &clc.voipOutgoingData[wpos+1],
-				                         sizeof (clc.voipOutgoingData) - (wpos+1));
+							 (char *) &clc.voipOutgoingData[wpos+1],
+							 sizeof (clc.voipOutgoingData) - (wpos+1));
 				assert((bytes > 0) && (bytes < 256));
 				clc.voipOutgoingData[wpos] = (byte) bytes;
 				wpos += bytes + 1;
@@ -419,17 +425,17 @@ static void CL_CaptureVoip(void)
 			}
 
 			clc.voipPower = (voipPower / (32768.0f * 32768.0f *
-			                 ((float) (clc.speexFrameSize * speexFrames)))) *
-			                 100.0f;
+					 ((float) (clc.speexFrameSize * speexFrames)))) *
+					 100.0f;
 
 			if ((useVad) && (clc.voipPower < cl_voipVADThreshold->value)) {
-				CL_VoipNewGeneration();  // no "talk" for at least 1/4 second.
+				CL_VoipNewGeneration();	 // no "talk" for at least 1/4 second.
 			} else {
 				clc.voipOutgoingDataSize = wpos;
 				clc.voipOutgoingDataFrames = speexFrames;
 
 				Com_DPrintf("VoIP: Send %d frames, %d bytes, %f power\n",
-				            speexFrames, wpos, clc.voipPower);
+					    speexFrames, wpos, clc.voipPower);
 
 				#if 0
 				static FILE *encio = NULL;
@@ -475,6 +481,8 @@ void CL_AddReliableCommand( const char *cmd, qboolean isDisconnectedCmd )
 
 	// if we would be losing an old command that hasn't been acknowledged,
 	// we must drop the connection
+	// also leave one slot open for the disconnect command in this case.
+
 	if ( (isDisconnectedCmd && unacknowledged > MAX_RELIABLE_COMMANDS ) || 
 		(!isDisconnectedCmd && unacknowledged >= MAX_RELIABLE_COMMANDS ) )
 	{
@@ -616,7 +624,7 @@ void CL_Record_f( void )
 		return;
 	}
 
-  	// sync 0 doesn't prevent recording, so not forcing it off .. everyone does g_sync 1 ; record ; g_sync 0 ..
+	// sync 0 doesn't prevent recording, so not forcing it off .. everyone does g_sync 1 ; record ; g_sync 0 ..
 	if ( NET_IsLocalAddress( clc.serverAddress ) && !Cvar_VariableValue( "g_synchronousClients" ) )
 	{
 		Com_Printf (S_COLOR_YELLOW "WARNING: You should set 'g_synchronousClients 1' for smoother demo recording\n");
@@ -760,10 +768,10 @@ CL_DemoFrameDurationSDev
 */
 static float CL_DemoFrameDurationSDev( void )
 {
-	int 	i;
-	int 	numFrames;
-	float 	mean = 0.0f;
-	float 	variance = 0.0f;
+	int	i;
+	int	numFrames;
+	float	mean = 0.0f;
+	float	variance = 0.0f;
 
 	if( ( clc.timeDemoFrames - 1 ) > MAX_TIMEDEMO_DURATIONS )
 		numFrames = MAX_TIMEDEMO_DURATIONS;
@@ -823,8 +831,8 @@ void CL_DemoCompleted( void )
 			if( cl_timedemoLog && strlen( cl_timedemoLog->string ) > 0 )
 			{
 				int		i;
-				int 		numFrames;
-				fileHandle_t 	f;
+				int		numFrames;
+				fileHandle_t	f;
 
 				if( ( clc.timeDemoFrames - 1 ) > MAX_TIMEDEMO_DURATIONS )
 					numFrames = MAX_TIMEDEMO_DURATIONS;
@@ -1005,7 +1013,7 @@ static void CL_CompleteDemoName( char *args, int argNum )
 		char demoExt[ 16 ];
 
 		Com_sprintf( demoExt, sizeof( demoExt ), ".%s%d", DEMOEXT, com_protocol->integer );
-		Field_CompleteFilename( "demos", demoExt, qtrue );
+		Field_CompleteFilename( "demos", demoExt, qtrue, qtrue );
 	}
 }
 
@@ -1433,6 +1441,10 @@ void CL_Disconnect( qboolean showMainMenu )
 		CL_WritePacket();
 	}
 	
+	// Remove pure paks
+	FS_PureServerSetLoadedPaks("", "");
+	FS_PureServerSetReferencedPaks( "", "" );
+
 	CL_ClearState ();
 
 	// wipe the client connection
@@ -1532,6 +1544,7 @@ void CL_RequestMotd( void )
 	}
 
 	cls.updateServer.port = BigShort( PORT_UPDATE );
+
 	Com_Printf( "%s resolved to %i.%i.%i.%i:%i\n", UPDATE_SERVER_NAME,
 		cls.updateServer.ip[0], cls.updateServer.ip[1],
 		cls.updateServer.ip[2], cls.updateServer.ip[3],
@@ -1543,9 +1556,8 @@ void CL_RequestMotd( void )
 	// only srand I could catch before here is tr_noise.c l:26 srand(1001)
 	// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=382
 	// NOTE: the Com_Milliseconds xoring only affects the lower 16-bit word,
-  	//   but I decided it was enough randomization
-	//Com_sprintf( cls.updateChallenge, sizeof( cls.updateChallenge ), "%i", ((rand() << 16) ^ rand()) ^ Com_Milliseconds());
-	Com_sprintf( cls.updateChallenge, sizeof( cls.updateChallenge ), "%i", (int)((((unsigned int)rand() << 16) ^ (unsigned int)rand()) ^ Com_Milliseconds())); // new Cowcat
+	//   but I decided it was enough randomization
+	Com_sprintf( cls.updateChallenge, sizeof( cls.updateChallenge ), "%i", (int)((((unsigned int)rand() << 16) ^ (unsigned int)rand()) ^ Com_Milliseconds()));
 
 	Info_SetValueForKey( info, "challenge", cls.updateChallenge );
 	Info_SetValueForKey( info, "renderer", cls.glconfig.renderer_string );
@@ -1659,25 +1671,6 @@ CONSOLE COMMANDS
 
 /*
 ==================
-CL_ForwardToServer_f
-==================
-*/
-void CL_ForwardToServer_f( void )
-{
-	if ( clc.state != CA_ACTIVE || clc.demoplaying )
-	{
-		Com_Printf ("Not connected to a server.\n");
-		return;
-	}
-	
-	// don't forward the first argument
-	if ( Cmd_Argc() > 1 ) {
-		CL_AddReliableCommand( Cmd_Args(), qfalse );
-	}
-}
-
-/*
-==================
 CL_Setenv_f
 
 Mostly for controlling voodoo environment variables
@@ -1717,6 +1710,26 @@ void CL_Setenv_f( void )
 		{
 			Com_Printf( "%s undefined\n", Cmd_Argv(1));
 		}
+	}
+}
+
+
+/*
+==================
+CL_ForwardToServer_f
+==================
+*/
+void CL_ForwardToServer_f( void )
+{
+	if ( clc.state != CA_ACTIVE || clc.demoplaying )
+	{
+		Com_Printf ("Not connected to a server.\n");
+		return;
+	}
+	
+	// don't forward the first argument
+	if ( Cmd_Argc() > 1 ) {
+		CL_AddReliableCommand( Cmd_Args(), qfalse );
 	}
 }
 
@@ -1763,13 +1776,13 @@ void CL_Connect_f( void )
 {
 	char		server[MAX_OSPATH];
 	const char	*serverString;
-	int 		argc = Cmd_Argc();
-	netadrtype_t 	family = NA_UNSPEC;
+	int		argc = Cmd_Argc();
+	netadrtype_t	family = NA_UNSPEC;
 
 	if ( argc != 2 && argc != 3 )
 	{
 		Com_Printf( "usage: connect [-4|-6] server\n");
-		return;	
+		return; 
 	}
 	
 	if(argc == 2)
@@ -1790,6 +1803,7 @@ void CL_Connect_f( void )
 		Q_strncpyz( server, Cmd_Argv(2), sizeof(server) );
 	}
 
+	// save arguments for reconnect
 	Q_strncpyz( cl_reconnectArgs, Cmd_Args(), sizeof(cl_reconnectArgs) );
 
 	Cvar_Set("ui_singlePlayerActive", "0");
@@ -1841,9 +1855,7 @@ void CL_Connect_f( void )
 	// if we aren't playing on a lan, we need to authenticate
 	// with the cd key
 	if ( NET_IsLocalAddress( clc.serverAddress ) )
-	{
 		clc.state = CA_CHALLENGING;
-	}
 
 	else
 	{
@@ -1922,8 +1934,8 @@ void CL_Rcon_f( void )
 		if (!strlen(rconAddress->string))
 		{
 			Com_Printf ("You must either be connected,\n"
-						"or set the 'rconAddress' cvar\n"
-						"to issue rcon commands\n");
+					"or set the 'rconAddress' cvar\n"
+					"to issue rcon commands\n");
 
 			return;
 		}
@@ -1989,30 +2001,35 @@ void CL_Vid_Restart_f( void )
 	if(!FS_ConditionalRestart(clc.checksumFeed, qtrue))
 	{
 		// if not running a server clear the whole hunk
-		if ( !com_sv_running->integer )
+		if ( com_sv_running->integer )
 		{
-			// clear the whole hunk
-			Hunk_Clear();
+			// clear all the client data on the hunk
+			Hunk_ClearToMark();
+			
 		}
 	
 		else
 		{
-			// clear all the client data on the hunk
-			Hunk_ClearToMark();
+			// clear the whole hunk
+			Hunk_Clear();
 		}
 
 		// shutdown the UI
 		CL_ShutdownUI();
+
 		// shutdown the CGame
 		CL_ShutdownCGame();
+
 		// shutdown the renderer and clear the renderer interface
 		CL_ShutdownRef();
+
 		// client is no longer pure untill new checksums are sent
 		CL_ResetPureClientAtServer();
+
 		// clear pak references
 		FS_ClearPakReferences( FS_UI_REF | FS_CGAME_REF );
-		// reinitialize the filesystem if the game directory or checksum has changed
 
+		// reinitialize the filesystem if the game directory or checksum has changed
 		cls.rendererStarted = qfalse;
 		cls.uiStarted = qfalse;
 		cls.cgameStarted = qfalse;
@@ -2228,9 +2245,9 @@ game directory.
 void CL_BeginDownload( const char *localName, const char *remoteName )
 {
 	Com_DPrintf("***** CL_BeginDownload *****\n"
-				"Localname: %s\n"
-				"Remotename: %s\n"
-				"****************************\n", localName, remoteName);
+			"Localname: %s\n"
+			"Remotename: %s\n"
+			"****************************\n", localName, remoteName);
 
 	Q_strncpyz ( clc.downloadName, localName, sizeof(clc.downloadName) );
 	Com_sprintf( clc.downloadTempName, sizeof(clc.downloadTempName), "%s.tmp", localName );
@@ -2341,7 +2358,7 @@ void CL_NextDownload(void)
 					"disabled on your client. "
 					"(cl_allowDownload is %d)",
 					cl_allowDownload->integer);
-				return;	
+				return; 
 			}
 
 			else
@@ -2379,13 +2396,13 @@ void CL_InitDownloads(void)
 		// but it's possible that some referenced files on the server are missing
 		if (FS_ComparePaks( missingfiles, sizeof( missingfiles ), qfalse ) )
 		{      
-	  		// NOTE TTimo I would rather have that printed as a modal message box
-	  		//   but at this point while joining the game we don't know wether we will successfully join or not
-	  		Com_Printf( "\nWARNING: You are missing some files referenced by the server:\n%s"
+			// NOTE TTimo I would rather have that printed as a modal message box
+			//   but at this point while joining the game we don't know wether we will successfully join or not
+			Com_Printf( "\nWARNING: You are missing some files referenced by the server:\n%s"
 				  "You might not be able to join the game\n"
 				  "Go to the setting menu to turn on autodownload, or get the file elsewhere\n\n", missingfiles );
 		}
-  	}
+	}
 
 	else if ( FS_ComparePaks( clc.downloadList, sizeof( clc.downloadList ) , qtrue ) )
 	{
@@ -2435,7 +2452,7 @@ void CL_CheckForResend( void )
 		return;
 	}
 
-	clc.connectTime = cls.realtime;	// for retransmit requests
+	clc.connectTime = cls.realtime; // for retransmit requests
 	clc.connectPacketCount++;
 
 	switch ( clc.state )
@@ -2498,6 +2515,7 @@ CL_MotdPacket
 */
 void CL_MotdPacket( netadr_t from )
 {
+#ifdef UPDATE_SERVER_NAME
 	char	*challenge;
 	char	*info;
 
@@ -2519,6 +2537,7 @@ void CL_MotdPacket( netadr_t from )
 
 	Q_strncpyz( cls.updateInfoString, info, sizeof( cls.updateInfoString ) );
 	Cvar_Set( "cl_motdString", challenge );
+#endif
 }
 
 /*
@@ -2552,12 +2571,12 @@ CL_ServersResponsePacket
 void CL_ServersResponsePacket( const netadr_t* from, msg_t *msg, qboolean extended )
 {
 	int		i, j, count, total;
-	netadr_t 	addresses[MAX_SERVERSPERPACKET];
+	netadr_t	addresses[MAX_SERVERSPERPACKET];
 	int		numservers;
 	byte*		buffptr;
 	byte*		buffend;
 	
-	Com_Printf("CL_ServersResponsePacket\n");
+	Com_Printf("CL_ServersResponsePacket from %s\n", NET_AdrToStringwPort(*from));
 
 	if (cls.numglobalservers == -1)
 	{
@@ -2568,8 +2587,8 @@ void CL_ServersResponsePacket( const netadr_t* from, msg_t *msg, qboolean extend
 
 	// parse through server response string
 	numservers = 0;
-	buffptr    = msg->data;
-	buffend    = buffptr + msg->cursize;
+	buffptr	   = msg->data;
+	buffend	   = buffptr + msg->cursize;
 
 	// advance to initial token
 	do
@@ -2694,7 +2713,7 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg )
 
 	c = Cmd_Argv(0);
 
-	if( com_developer->integer) // Quake3e - Cowcat
+	if( com_developer->integer) // ec-/Quake3e
 		Com_Printf ("CL packet %s: %s\n", NET_AdrToStringwPort(from), c);
 
 	// challenge from the server we are connecting to
@@ -2778,7 +2797,7 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg )
 		clc.connectPacketCount = 0;
 		clc.connectTime = -99999;
 
-		// take this address as the new server address.  This allows
+		// take this address as the new server address.	 This allows
 		// a server proxy to hand off connections to multiple servers
 		clc.serverAddress = from;
 		Com_DPrintf ("challengeResponse: %d\n", clc.challenge);
@@ -2945,7 +2964,7 @@ void CL_PacketEvent( netadr_t from, msg_t *msg )
 	//
 	if ( !NET_CompareAdr( from, clc.netchan.remoteAddress ) )
 	{
-		if( com_developer->integer) // Quake3e - Cowcat
+		if( com_developer->integer) // ec-/Quake3e
 			Com_Printf ("%s:sequenced packet without connection\n", NET_AdrToStringwPort( from ) );
 
 		// FIXME: send a client disconnect?
@@ -3120,7 +3139,7 @@ void CL_Frame ( int msec )
 		if( clc.state == CA_ACTIVE && !clc.demorecording && !clc.demoplaying )
 		{
 			// If not recording a demo, and we should be, start one
-			qtime_t	now;
+			qtime_t now;
 			char	*nowString;
 			char	*p;
 			char	mapName[ MAX_QPATH ];
@@ -3167,7 +3186,7 @@ void CL_Frame ( int msec )
 
 	if ( cl_timegraph->integer )
 	{
-		SCR_DebugGraph ( cls.realFrametime * 0.25, 0 );
+		SCR_DebugGraph ( cls.realFrametime * 0.25 );
 	}
 
 	// see if we need to update any userinfo
@@ -3471,28 +3490,28 @@ void CL_Video_f( void )
 		// scan for a free filename
 		for( i = 0; i <= 9999; i++ )
 		{
-	  		int a, b, c, d;
+			int a, b, c, d;
 
-	  		last = i;
+			last = i;
 
-	  		a = last / 1000;
-	  		last -= a * 1000;
-	  		b = last / 100;
-	  		last -= b * 100;
-	  		c = last / 10;
-	  		last -= c * 10;
-	  		d = last;
+			a = last / 1000;
+			last -= a * 1000;
+			b = last / 100;
+			last -= b * 100;
+			c = last / 10;
+			last -= c * 10;
+			d = last;
 
-	  		Com_sprintf( filename, MAX_OSPATH, "videos/video%d%d%d%d.avi", a, b, c, d );
+			Com_sprintf( filename, MAX_OSPATH, "videos/video%d%d%d%d.avi", a, b, c, d );
 
-	  		if( !FS_FileExists( filename ) )
+			if( !FS_FileExists( filename ) )
 				break; // file doesn't exist
 		}
 
 		if( i > 9999 )
 		{
-	  		Com_Printf( S_COLOR_RED "ERROR: no free file names to create video\n" );
-	  		return;
+			Com_Printf( S_COLOR_RED "ERROR: no free file names to create video\n" );
+			return;
 		}
 	}
 
@@ -3582,7 +3601,10 @@ void CL_Init( void )
 	// register our variables
 	//
 	cl_noprint = Cvar_Get( "cl_noprint", "0", 0 );
+
+#ifdef UPDATE_SERVER_NAME
 	cl_motd = Cvar_Get ("cl_motd", "1", 0);
+#endif
 
 	cl_timeout = Cvar_Get ("cl_timeout", "200", 0);
 
@@ -3608,7 +3630,7 @@ void CL_Init( void )
 	cl_anglespeedkey = Cvar_Get ("cl_anglespeedkey", "1.5", 0);
 
 	cl_maxpackets = Cvar_Get ("cl_maxpackets", "30", CVAR_ARCHIVE );
-	Cvar_CheckRange ( cl_maxpackets, 15, 125, qtrue );		// Quake3e - Cowcat
+	Cvar_CheckRange ( cl_maxpackets, 15, 125, qtrue );		// ec-/Quake3e
 	cl_packetdup = Cvar_Get ("cl_packetdup", "1", CVAR_ARCHIVE );
 
 	cl_run = Cvar_Get ("cl_run", "1", CVAR_ARCHIVE);
@@ -3797,7 +3819,7 @@ void CL_Shutdown( char *finalmsg, qboolean disconnect, qboolean quit )
 
 	Cmd_RemoveCommand ("cmd");
 	Cmd_RemoveCommand ("configstrings");
-	Cmd_RemoveCommand ("userinfo");
+	Cmd_RemoveCommand ("clientinfo");
 	Cmd_RemoveCommand ("snd_restart");
 	Cmd_RemoveCommand ("vid_restart");
 	Cmd_RemoveCommand ("disconnect");
@@ -3806,6 +3828,7 @@ void CL_Shutdown( char *finalmsg, qboolean disconnect, qboolean quit )
 	Cmd_RemoveCommand ("cinematic");
 	Cmd_RemoveCommand ("stoprecord");
 	Cmd_RemoveCommand ("connect");
+	Cmd_RemoveCommand ("reconnect");
 	Cmd_RemoveCommand ("localservers");
 	Cmd_RemoveCommand ("globalservers");
 	Cmd_RemoveCommand ("rcon");
@@ -3813,6 +3836,8 @@ void CL_Shutdown( char *finalmsg, qboolean disconnect, qboolean quit )
 	Cmd_RemoveCommand ("ping");
 	Cmd_RemoveCommand ("serverstatus");
 	Cmd_RemoveCommand ("showip");
+	Cmd_RemoveCommand ("fs_openedList");
+	Cmd_RemoveCommand ("fs_referencedList");
 	Cmd_RemoveCommand ("model");
 	Cmd_RemoveCommand ("video");
 	Cmd_RemoveCommand ("stopvideo");
@@ -3933,10 +3958,9 @@ void CL_ServerInfoPacket( netadr_t from, msg_t *msg )
 		if ( cl_pinglist[i].adr.port && !cl_pinglist[i].time && NET_CompareAdr( from, cl_pinglist[i].adr ) )
 		{
 			// calc ping time
-			//cl_pinglist[i].time = cls.realtime - cl_pinglist[i].start + 1;
-			cl_pinglist[i].time = Sys_Milliseconds() - cl_pinglist[i].start; // test new - Cowcat
+			cl_pinglist[i].time = Sys_Milliseconds() - cl_pinglist[i].start;
 			
-			if (com_developer->integer) // Quake3e - Cowcat
+			if (com_developer->integer) // ec-/Quake3e
 				Com_Printf( "ping time %dms from %s\n", cl_pinglist[i].time, NET_AdrToString( from ) );
 
 			// save of info
@@ -4014,50 +4038,6 @@ void CL_ServerInfoPacket( netadr_t from, msg_t *msg )
 CL_GetServerStatus
 ===================
 */
-#if 0
-serverStatus_t *CL_GetServerStatus( netadr_t from )
-{
-	serverStatus_t	*serverStatus;
-	int		i, oldest, oldestTime;
-
-	serverStatus = NULL;
-
-	for (i = 0; i < MAX_SERVERSTATUSREQUESTS; i++)
-	{
-		if ( NET_CompareAdr( from, cl_serverStatusList[i].address ) ) {
-			return &cl_serverStatusList[i];
-		}
-	}
-
-	for (i = 0; i < MAX_SERVERSTATUSREQUESTS; i++)
-	{
-		if ( cl_serverStatusList[i].retrieved ) {
-			return &cl_serverStatusList[i];
-		}
-	}
-
-	oldest = -1;
-	oldestTime = 0;
-
-	for (i = 0; i < MAX_SERVERSTATUSREQUESTS; i++)
-	{
-		if (oldest == -1 || cl_serverStatusList[i].startTime < oldestTime)
-		{
-			oldest = i;
-			oldestTime = cl_serverStatusList[i].startTime;
-		}
-	}
-
-	if (oldest != -1)
-	{
-		return &cl_serverStatusList[oldest];
-	}
-
-	serverStatusCount++;
-	return &cl_serverStatusList[serverStatusCount & (MAX_SERVERSTATUSREQUESTS-1)];
-}
-
-#else // check Cowcat
 
 serverStatus_t *CL_GetServerStatus( netadr_t from )
 {
@@ -4091,7 +4071,6 @@ serverStatus_t *CL_GetServerStatus( netadr_t from )
 
 	return &cl_serverStatusList[oldest];
 }
-#endif
 
 /*
 ===================
@@ -4100,7 +4079,7 @@ CL_ServerStatus
 */
 int CL_ServerStatus( char *serverAddress, char *serverStatusString, int maxLen )
 {
-	int 		i;
+	int		i;
 	netadr_t	to;
 	serverStatus_t	*serverStatus;
 
@@ -4275,7 +4254,7 @@ void CL_ServerStatusResponse( netadr_t from, msg_t *msg )
 			else
 				s = "unknown";
 
-			Com_Printf("%-2d   %-3d    %-3d   %s\n", i, score, ping, s );
+			Com_Printf("%-2d   %-3d	   %-3d	  %s\n", i, score, ping, s );
 		}
 	}
 
@@ -4358,7 +4337,7 @@ void CL_GlobalServers_f( void )
 	if ((count = Cmd_Argc()) < 3 || (masterNum = atoi(Cmd_Argv(1))) < 0 || masterNum > 4)
 	{
 		Com_Printf( "usage: globalservers <master# 0-4> <protocol> [keywords]\n");
-		return;	
+		return; 
 	}
 
 	sprintf(command, "sv_master%d", masterNum + 1);
@@ -4367,7 +4346,7 @@ void CL_GlobalServers_f( void )
 	if(!*masteraddress)
 	{
 		Com_Printf( "CL_GlobalServers_f: Error: No master server address given.\n");
-		return;	
+		return; 
 	}
 
 	// reset the list, waiting for response
@@ -4378,7 +4357,7 @@ void CL_GlobalServers_f( void )
 	if(!i)
 	{
 		Com_Printf( "CL_GlobalServers_f: Error: could not resolve address of master %s\n", masteraddress);
-		return;	
+		return; 
 	}
 
 	else if(i == 2)
@@ -4396,7 +4375,7 @@ void CL_GlobalServers_f( void )
 		cmdname = "getserversExt " GAMENAME_FOR_MASTER;
 
 		// TODO: test if we only have an IPv6 connection. If it's the case,
-		//       request IPv6 servers only by appending " ipv6" to the command
+		//	 request IPv6 servers only by appending " ipv6" to the command
 	}
 	else
 #endif
@@ -4424,7 +4403,7 @@ void CL_GlobalServers_f( void )
 	if ((count = Cmd_Argc()) < 3 || (masterNum = atoi(Cmd_Argv(1))) < 0 || masterNum > MAX_MASTER_SERVERS)
 	{
 		Com_Printf("usage: globalservers <master# 0-%d> <protocol> [keywords]\n", MAX_MASTER_SERVERS);
-		return;	
+		return; 
 	}
 
 	// request from all master servers
@@ -4459,7 +4438,7 @@ void CL_GlobalServers_f( void )
 	if(!*masteraddress)
 	{
 		Com_Printf( "CL_GlobalServers_f: Error: No master server address given.\n");
-		return;	
+		return; 
 	}
 
 	// reset the list, waiting for response
@@ -4470,7 +4449,7 @@ void CL_GlobalServers_f( void )
 	if(!i)
 	{
 		Com_Printf( "CL_GlobalServers_f: Error: could not resolve address of master %s\n", masteraddress);
-		return;	
+		return; 
 	}
 
 	else if(i == 2)
@@ -4525,11 +4504,10 @@ void CL_GetPing( int n, char *buf, int buflen, int *pingtime )
 	int		time;
 	int		maxPing;
 
-	//if (!cl_pinglist[n].adr.port)
-	if (n < 0 || n >= MAX_PINGREQUESTS || !cl_pinglist[n].adr.port) // check - Cowcat
+	if (n < 0 || n >= MAX_PINGREQUESTS || !cl_pinglist[n].adr.port)
 	{
 		// empty slot
-		buf[0]    = '\0';
+		buf[0]	  = '\0';
 		*pingtime = 0;
 		return;
 	}
@@ -4542,8 +4520,7 @@ void CL_GetPing( int n, char *buf, int buflen, int *pingtime )
 	if (!time)
 	{
 		// check for timeout
-		//time = cls.realtime - cl_pinglist[n].start;
-		time = Sys_Milliseconds() - cl_pinglist[n].start; // check - Cowcat
+		time = Sys_Milliseconds() - cl_pinglist[n].start;
 		maxPing = Cvar_VariableIntegerValue( "cl_maxPing" );
 
 		if( maxPing < 100 ) {
@@ -4562,22 +4539,6 @@ void CL_GetPing( int n, char *buf, int buflen, int *pingtime )
 	*pingtime = time;
 }
 
-#if 0 // Cowcat
-/*
-==================
-CL_UpdateServerInfo
-==================
-*/
-void CL_UpdateServerInfo( int n )
-{
-	if (!cl_pinglist[n].adr.port)
-	{
-		return;
-	}
-
-	CL_SetServerInfoByAddress(cl_pinglist[n].adr, cl_pinglist[n].info, cl_pinglist[n].time );
-}
-#endif 
 
 /*
 ==================
@@ -4586,8 +4547,7 @@ CL_GetPingInfo
 */
 void CL_GetPingInfo( int n, char *buf, int buflen )
 {
-	//if (!cl_pinglist[n].adr.port)
-	if (n < 0 || n >= MAX_PINGREQUESTS || !cl_pinglist[n].adr.port) // check - Cowcat
+	if (n < 0 || n >= MAX_PINGREQUESTS || !cl_pinglist[n].adr.port)
 	{
 		// empty or invalid slot
 		if (buflen)
@@ -4623,7 +4583,7 @@ int CL_GetPingQueueCount( void )
 	int	count;
 	ping_t	*pingptr;
 
-	count   = 0;
+	count	= 0;
 	pingptr = cl_pinglist;
 
 	for (i=0; i<MAX_PINGREQUESTS; i++, pingptr++ )
@@ -4658,8 +4618,7 @@ ping_t* CL_GetFreePing( void )
 		{
 			if (!pingptr->time)
 			{
-				//if (cls.realtime - pingptr->start < 500)
-				if (Sys_Milliseconds() - pingptr->start < 500) // Cowcat
+				if (Sys_Milliseconds() - pingptr->start < 500)
 				{
 					// still waiting for response
 					continue;
@@ -4680,14 +4639,13 @@ ping_t* CL_GetFreePing( void )
 
 	// use oldest entry
 	pingptr = cl_pinglist;
-	best    = cl_pinglist;
-	oldest  = INT_MIN;
+	best	= cl_pinglist;
+	oldest	= INT_MIN;
 
 	for (i=0; i<MAX_PINGREQUESTS; i++, pingptr++ )
 	{
 		// scan for oldest
-		//time = cls.realtime - pingptr->start;
-		time = Sys_Milliseconds() - pingptr->start; // Cowcat
+		time = Sys_Milliseconds() - pingptr->start;
 
 		if (time > oldest)
 		{
@@ -4717,7 +4675,7 @@ void CL_Ping_f( void )
 	if ( argc != 2 && argc != 3 )
 	{
 		Com_Printf( "usage: ping [-4|-6] server\n");
-		return;	
+		return; 
 	}
 	
 	if(argc == 2)
@@ -4747,8 +4705,7 @@ void CL_Ping_f( void )
 	pingptr = CL_GetFreePing();
 
 	memcpy( &pingptr->adr, &to, sizeof (netadr_t) );
-	//pingptr->start = cls.realtime;
-	pingptr->start = Sys_Milliseconds(); // Cowcat
+	pingptr->start = Sys_Milliseconds();
 	pingptr->time  = 0;
 
 	CL_SetServerInfoByAddress(pingptr->adr, NULL, 0);
@@ -4788,17 +4745,18 @@ qboolean CL_UpdateVisiblePings_f(int source)
 			case AS_LOCAL :
 				server = &cls.localServers[0];
 				max = cls.numlocalservers;
-			break;
+				break;
 
 			case AS_GLOBAL :
 				server = &cls.globalServers[0];
 				max = cls.numglobalservers;
-			break;
+				break;
 
 			case AS_FAVORITES :
 				server = &cls.favoriteServers[0];
 				max = cls.numfavoriteservers;
-			break;
+				break;
+
 			default:
 				return qfalse;
 		}
@@ -4840,8 +4798,7 @@ qboolean CL_UpdateVisiblePings_f(int source)
 						}
 
 						memcpy(&cl_pinglist[j].adr, &server[i].adr, sizeof(netadr_t));
-						//cl_pinglist[j].start = cls.realtime;
-						cl_pinglist[j].start = Sys_Milliseconds(); // Cowcat
+						cl_pinglist[j].start = Sys_Milliseconds();
 						cl_pinglist[j].time = 0;
 						NET_OutOfBandPrint( NS_CLIENT, cl_pinglist[j].adr, "getinfo xxx" );
 						slots++;

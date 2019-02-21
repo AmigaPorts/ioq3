@@ -86,7 +86,7 @@ void SV_UpdateConfigstrings(client_t *client)
 {
 	int index;
 
-	for( index = 0; index <= MAX_CONFIGSTRINGS; index++ )
+	for( index = 0; index < MAX_CONFIGSTRINGS; index++ )
 	{
 		// if the CS hasn't changed since we went to CS_PRIMED, ignore
 		if(!client->csUpdated[index])
@@ -231,7 +231,7 @@ to the clients -- only the fields that differ from the
 baseline will be transmitted
 ================
 */
-void SV_CreateBaseline( void )
+static void SV_CreateBaseline( void )
 {
 	sharedEntity_t	*svent;
 	int		entnum;	
@@ -260,7 +260,7 @@ SV_BoundMaxClients
 
 ===============
 */
-void SV_BoundMaxClients( int minimum )
+static void SV_BoundMaxClients( int minimum )
 {
 	// get the current maxclients value
 	Cvar_Get( "sv_maxclients", "8", 0 );
@@ -287,7 +287,7 @@ NOT cause this to be called, unless the game is exited to
 the menu system first.
 ===============
 */
-void SV_Startup( void )
+static void SV_Startup( void )
 {
 	if ( svs.initialized )
 	{
@@ -415,7 +415,7 @@ void SV_ChangeMaxClients( void )
 SV_ClearServer
 ================
 */
-void SV_ClearServer(void)
+static void SV_ClearServer(void)
 {
 	int i;
 
@@ -535,8 +535,8 @@ void SV_SpawnServer( char *server, qboolean killBots )
 	// make sure we are not paused
 	Cvar_Set("cl_paused", "0");
 
+	// get a new checksum feed and restart the file system
 	sv.checksumFeed = ( ((unsigned int)rand() << 16) ^ (unsigned int)rand() ) ^ Com_Milliseconds();
-
 	FS_Restart( sv.checksumFeed );
 
 	CM_LoadMap( va("maps/%s.bsp", server), qfalse, &checksum );
@@ -661,6 +661,7 @@ void SV_SpawnServer( char *server, qboolean killBots )
 		p = FS_LoadedPakNames();
 		Cvar_Set( "sv_pakNames", p );
 
+		// we need to touch the cgame and ui qvm...
 		SV_TouchFile("vm/cgame.qvm");
 		SV_TouchFile("vm/ui.qvm");
 	}
@@ -711,7 +712,6 @@ SV_Init
 Only called at main exe startup, not for each game
 ===============
 */
-void SV_BotInitBotLib(void);
 
 void SV_Init (void)
 {
@@ -869,7 +869,7 @@ void SV_Shutdown( char *finalmsg )
 
 	Com_Memset( &svs, 0, sizeof( svs ) );
 
-	Cvar_Set( "sv_running", "0" );
+	Cvar_Set("sv_running", "0" );
 	Cvar_Set("ui_singlePlayerActive", "0");
 
 	Com_Printf( "---------------------------\n" );

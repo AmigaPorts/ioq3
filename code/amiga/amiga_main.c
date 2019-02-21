@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifdef __VBCC__
 #pragma amiga-align
 #elif defined(WARPUP)
-#pragma pack(2)
+#pragma pack(push,2)
 #endif
 
 #include <exec/exec.h>
@@ -48,7 +48,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifdef __VBCC__
 #pragma default align
 #elif defined (WARPUP)
-#pragma pack()
+#pragma pack(pop)
 #endif
 
 #ifdef DLL
@@ -66,13 +66,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define DeleteExtIO(p) DeleteIORequest(p)
 #endif
 
-struct MsgPort *Sys_EventPort = 0;
+struct Library *SocketBase;
 
-//#if !defined(__GNUC__)
-struct Library *SocketBase; // = 0;
-//#endif
-
-int	totalMsec, countMsec;
+//int	totalMsec, countMsec;
 
 /*
 #define MAX_QUED_EVENTS		256
@@ -99,7 +95,7 @@ qboolean Sys_LowPhysicalMemory() // It is always true - Cowcat
 	//return (avail <= MEM_THRESHOLD) ? qtrue : qfalse;
 }
 
-#if 1
+#if 0
 
 extern char *FS_BuildOSPath( const char *base, const char *game, const char *qpath );
 
@@ -124,25 +120,15 @@ void *Sys_LoadDll( const char *name, char *fqpath, intptr_t(**entryPoint)(int, i
 	fname[0] = 0;
 	
 	getcwd(curpath, sizeof(curpath));
-	
-	#if 0 // Cowcat
-
-	#ifdef __PPC__
-	snprintf(fname, sizeof(fname), "%sppc.so", name);
-	#else
-	snprintf(fname, sizeof(fname), "%s68k.so", name);
-	#endif
-
-	#endif
 
 	pwdpath = Sys_Cwd();
 	basepath = Cvar_VariableString( "fs_basepath" );
 	gamedir = Cvar_VariableString( "fs_game" );
 	cdpath = Cvar_VariableString( "fs_cdpath" );
 
-	fn = FS_BuildOSPath( pwdpath, gamedir, name ); // was fname - Cowcat
+	fn = FS_BuildOSPath( pwdpath, gamedir, name );
 	Com_Printf( "Sys_LoadDll(%s)... \n", fn );
-	libHandle = dllLoadLibrary(fn, name); // was fname - Cowcat
+	libHandle = dllLoadLibrary(fn, name);
 
 	if (!libHandle)
 		return NULL;
@@ -172,39 +158,38 @@ void *Sys_LoadDll( const char *name, char *fqpath, intptr_t(**entryPoint)(int, i
 
 #else
 
+#ifdef DLL
+char *Sys_GetDLLName( const char *name )
+{
+	return va("%s.sp." ARCH_STRING DLL_EXT, name);
+}
+#endif
+
+//void * QDECL Sys_LoadDll( const char *name, intptr_t(**entryPoint)(int, ...), intptr_t(*systemcalls)(intptr_t, ...) )
 void *Sys_LoadDll( const char *name, char *fqpath, intptr_t(**entryPoint)(int, int, int, int ), intptr_t(*systemcalls)(intptr_t, ...) ) // Cowcat
 {
 #ifdef DLL
 
-	char	fname[MAX_OSPATH];
-	char	curpath[MAX_OSPATH];
-	char	*basepath;
-	char	*pwdpath;
-	char	*gamedir;
-	char	*cdpath;
-	char	*fn;
 	void	*libHandle;
+	char	fname[MAX_OSPATH];
+	char	*basepath;
+	char	*gamedir;
+	char	*fn;
 	void	(*dllEntry)( intptr_t (*syscallptr)(intptr_t, ...) );
-	//void	(*dllEntry)( intptr_t (*syscallptr)(intptr_t*) ); // new
 
-	fname[0] = 0;
-	
-	getcwd(curpath, sizeof(curpath));
-	
-	#ifdef __PPC__
-	snprintf(fname, sizeof(fname), "%sppc.so", name);
-	#else
-	snprintf(fname, sizeof(fname), "%s68k.so", name);
-	#endif
+	Q_strncpyz(fname, Sys_GetDLLName(name), sizeof(fname));
 
-	pwdpath = Sys_Cwd();
 	basepath = Cvar_VariableString( "fs_basepath" );
 	gamedir = Cvar_VariableString( "fs_game" );
-	cdpath = Cvar_VariableString( "fs_cdpath" );
 
-	fn = FS_BuildOSPath( pwdpath, gamedir, fname );
+	//fn = FS_BuildOSPath( basepath, "", fname ); // fuck it - Cowcat
+	fn = (char*)name;
+
+	//Com_Printf( "name(%s)... \n", name );
+	//Com_Printf( "fname(%s)... \n", fname );
+
 	Com_Printf( "Sys_LoadDll(%s)... \n", fn );
-	libHandle = dllLoadLibrary(fn, fname);
+	libHandle = dllLoadLibrary(fn, (char*)name );
 
 	if (!libHandle)
 		return NULL;
@@ -219,9 +204,6 @@ void *Sys_LoadDll( const char *name, char *fqpath, intptr_t(**entryPoint)(int, i
 	}
 	
 	dllEntry(systemcalls);
-
-	if (libHandle)
-		Q_strncpyz(fqpath, fn, MAX_QPATH);
 
 	return libHandle;
 
@@ -304,11 +286,29 @@ void Timer_Term(void)
 }
 
 #endif
-		
+
+void LeaveAmigaLibs(void)
+{
+	if(SocketBase)
+	{
+		CloseLibrary(SocketBase);
+		SocketBase = NULL;
+		//printf("SocketBase NULL\n");
+	}
+
+}
+	
 void Sys_Exit(int ex)
 {
 	//Sys_DestroyConsole();
 	//Timer_Term(); // not used now - Cowcat
+
+	NET_Shutdown();
+
+	LeaveAmigaLibs();
+
+	//printf("Sys_Exit\n");
+
 	exit(ex);
 }
 
@@ -383,10 +383,8 @@ Restart the input subsystem
 */
 void Sys_In_Restart_f( void ) 
 {
-  	IN_Shutdown();
-  	IN_Init();
+	IN_Restart();
 }
-
 
 
 /*
@@ -431,7 +429,7 @@ void Sys_Init( void )
 	}
 	//
 
-	IN_Init();
+	//IN_Init(); // now in amiga_glimp - Cowcat
 }
 
 qboolean Sys_CheckCD( void ) 
@@ -582,14 +580,12 @@ int main(int argc, char **argv)
 {
 	char 	*cmdline;
 	int 	i, len;
-	int	startTime, endTime;
+	//int	startTime, endTime;
 
 	//Timer_Init(); // not used now - Cowcat
 	
-	//#if !defined(__GNUC__)
 	if(SocketBase == NULL)
 		SocketBase = OpenLibrary("bsdsocket.library",0L);
-	//#endif
 
 	//Sys_CreateConsole();
 
@@ -622,17 +618,17 @@ int main(int argc, char **argv)
 
 	while( 1 ) 
 	{
-		startTime = Sys_Milliseconds();
+		//startTime = Sys_Milliseconds();
 
 		// make sure mouse and joystick are only called once a frame
-		//IN_Frame(); // now in common.c - Com_Frame
+		//IN_Frame(); // now called in common.c - Com_Frame
 
 		// run the game
 		Com_Frame();
 
-		endTime = Sys_Milliseconds();
-		totalMsec += endTime - startTime;
-		countMsec++;
+		//endTime = Sys_Milliseconds();
+		//totalMsec += endTime - startTime;
+		//countMsec++;
 	}
 
 	return 0; 

@@ -58,7 +58,7 @@ static void R_ChopPolyBehindPlane( int numInPoints, vec3_t inPoints[MAX_VERTS_ON
 	}
 
 	counts[0] = counts[1] = counts[2] = 0;
-	dists[0] = 0.0; // Quake3e
+	dists[0] = 0.0; // ec-/Quake3e
 	sides[0] = 0;	//
 
 	// determine sides for each point

@@ -157,7 +157,7 @@ void GLScissor(GLcontext context, GLint x, GLint y, GLsizei width, GLsizei heigh
 	{
 		static W3D_Scissor scissor;
 
-		#if 1 // update for Quake3 - Cowcat
+		#if 1 // update - Cowcat
 
 		if (y < 0)
 		{
@@ -190,40 +190,48 @@ void GLScissor(GLcontext context, GLint x, GLint y, GLsizei width, GLsizei heigh
 	else
 	{
 		context->scissor.left = x;
-		context->scissor.top = context->w3dWindow->Height - y - height; // needed ? Cowcat
+		context->scissor.top = context->w3dWindow->Height - y - height;
 		context->scissor.width = width;
 		context->scissor.height = height;
 	}
 
 	#else // test
 
-	//static W3D_Scissor scissor;
-
-	if (y < 0)
-	{
-		height += y;
-		y = 0;
-	}
-
-	if (x < 0)
-	{
-		width += x;
-		x = 0;
-	}
-
-	if ( (height + y) > context->w3dWindow->Height )
-		height = context->w3dWindow->Height- y;
-
-	if ( (width + x) > context->w3dWindow->Width )
-		width = context->w3dWindow->Width - x;
-
 	context->scissor.left = x;
-	context->scissor.top = context->w3dWindow->Height - y - height;
+	context->scissor.top = y;
 	context->scissor.width = width;
 	context->scissor.height = height;
 
 	if(context->Scissor_State == GL_TRUE)
-		W3D_SetScissor(context->w3dContext, &(context->scissor));
+	{
+		if (y < 0)
+		{
+			height += y;
+			y = 0;
+		}
+
+		if (x < 0)
+		{
+			width += x;
+			x = 0;
+		}
+
+		if ( (height + y) > context->w3dWindow->Height )
+			height = context->w3dWindow->Height- y;
+
+		if ( (width + x) > context->w3dWindow->Width )
+			width = context->w3dWindow->Width - x;
+
+		static W3D_Scissor scissor;
+
+		scissor.left = x;
+		scissor.top = context->w3dWindow->Height - y - height;
+		scissor.width = width;
+		scissor.height = height;
+
+		if(context->Scissor_State == GL_TRUE)
+			W3D_SetScissor(context->w3dContext, &scissor);
+	}
 
 	#endif
 }
@@ -275,8 +283,17 @@ static void vid_CloseDisplay(GLcontext context)
 
 	//vid_DeletePointer(context->w3dWindow); // Cowcat
 
-	if (context->w3dWindow) CloseWindow(context->w3dWindow);
-	if (context->w3dScreen) CloseScreen(context->w3dScreen);
+	if (context->w3dWindow)
+	{
+		CloseWindow(context->w3dWindow);
+		context->w3dWindow = NULL;
+	}
+
+	if (context->w3dScreen)
+	{
+		CloseScreen(context->w3dScreen);
+		context->w3dScreen = NULL;
+	}
 
 	if (clw == GL_TRUE) OpenWorkBench();
 }
@@ -669,7 +686,7 @@ static GLboolean vid_OpenDisplay(GLcontext context, int pw, int ph, ULONG id)
 	*/
 
 	W3D_SetState(context->w3dContext, W3D_DITHERING,    W3D_ENABLE);
-	W3D_SetState(context->w3dContext, W3D_SCISSOR,	    W3D_ENABLE);
+	//W3D_SetState(context->w3dContext, W3D_SCISSOR,    W3D_ENABLE); // disabled for Q3
 	W3D_SetState(context->w3dContext, W3D_GOURAUD,	    W3D_ENABLE);
 	W3D_SetState(context->w3dContext, W3D_PERSPECTIVE,  W3D_ENABLE);
 
@@ -783,25 +800,26 @@ static void vid_CloseWindow(GLcontext context)
 	Warp3DBase = NULL;
 
 	#endif
-	
+
 	if (context->w3dWindow)
-		CloseWindow(context->w3dWindow);				     
+	{ 
+		CloseWindow(context->w3dWindow);
+		context->w3dWindow = NULL;				     
+	}
 
 	// Lock Pub Screen Fix - Cowcat
 	if (context->w3dScreen)
 	{ 
-		UnlockPubScreen(NULL,context->w3dScreen);				
-		CloseScreen(context->w3dScreen); 
+		UnlockPubScreen(NULL, context->w3dScreen);				
+		CloseScreen(context->w3dScreen);
+		context->w3dScreen = NULL;
 	}
 
 	if (context->w3dBitMap)
 		FreeBitMap(context->w3dBitMap);
 
 	if (context->w3dRastPort)
-		free(context->w3dRastPort);		
-
-	//if (context->w3dRastPort)   FreeVecPPC(context->w3dRastPort); // test Cowcat						
-	
+		free(context->w3dRastPort);
 }
 
 static GLboolean vid_OpenWindow(GLcontext context, int w, int h)
@@ -860,7 +878,6 @@ static GLboolean vid_OpenWindow(GLcontext context, int w, int h)
 		goto Duh;
 
 	context->w3dRastPort = malloc(sizeof(struct RastPort));
-	//context->w3dRastPort= AllocVecPPC(sizeof(struct RastPort), MEMF_CACHEOFF|MEMF_WRITETHROUGH|MEMF_ANY, 0); // test Cowcat
        
 	if (!context->w3dRastPort)
 	{
@@ -929,7 +946,9 @@ static GLboolean vid_OpenWindow(GLcontext context, int w, int h)
 	*/
 
 	W3D_SetState(context->w3dContext, W3D_DITHERING,    W3D_ENABLE);
-	W3D_SetState(context->w3dContext, W3D_SCISSOR,	    W3D_ENABLE);
+	//W3D_SetState(context->w3dContext, W3D_SCISSOR,    W3D_ENABLE); // do not enable - 
+									 // half rendered ui models + black bar on top window in Q3 - Cowcat
+
 	W3D_SetState(context->w3dContext, W3D_GOURAUD,	    W3D_ENABLE);
 	W3D_SetState(context->w3dContext, W3D_PERSPECTIVE,  W3D_ENABLE);
 
@@ -1295,6 +1314,7 @@ void MGLEnableSync(GLcontext context, GLboolean enable)
 	context->DoSync = enable;
 }
 
+
 void MGLSwitchDisplay(GLcontext context)
 {
 	int nowbuf = context->BufNr;
@@ -1323,9 +1343,7 @@ void MGLSwitchDisplay(GLcontext context)
 		while (!ChangeScreenBuffer(context->w3dScreen, context->Buffers[nowbuf]));
 		
 		// Make BufNr the new draw area
-
-		W3D_SetDrawRegion(context->w3dContext, context->Buffers[context->BufNr]->sb_BitMap,
-			0, &(context->scissor));
+		W3D_SetDrawRegion(context->w3dContext, context->Buffers[context->BufNr]->sb_BitMap, 0, &(context->scissor));
 	
 		if (context->DoSync)
 		{
@@ -1341,7 +1359,6 @@ void MGLSwitchDisplay(GLcontext context)
 			context->w3dWindow->BorderTop,
 			context->w3dWindow->Width - context->w3dWindow->BorderLeft - context->w3dWindow->BorderRight,
 			context->w3dWindow->Height - context->w3dWindow->BorderTop - context->w3dWindow->BorderBottom,
-			//context->scissor.height, // test - Cowcat
 			0xC0);
 	}
 }
@@ -1360,7 +1377,7 @@ GLboolean MGLInitContext(GLcontext context)
 
 	/*
 	allocate w array that is large enough to cope with almost any texcoordstride - 
-	this array is used for all textured, unclipped primitives that go theough the vetexarray pipeline
+	this array is used for all textured, unclipped primitives that go through the vertexarray pipeline
 	*/
  
 	context->WBuffer	    = malloc(64*newVertexBufferSize);
@@ -1369,7 +1386,6 @@ GLboolean MGLInitContext(GLcontext context)
 		return GL_FALSE;
 
 	//this is for glArrayElement and for glDrawElements index-conversion:
-
 	context->ElementIndex	    = malloc(sizeof(UWORD)*(newVertexBufferSize));
 
 	if (!context->ElementIndex)
@@ -1418,7 +1434,7 @@ GLboolean MGLInitContext(GLcontext context)
 	context->ArrayTexBound	 = GL_FALSE;	//repeated by glEnd();
 
 	context->ActiveTexture	 = 0;
-	context->VirtualTexUnits = 0;  //disable multitex
+	context->VirtualTexUnits = 0;		//disable multitex
 
 	for (i=0; i<newTextureBufferSize; i++)
 	{
@@ -1571,7 +1587,7 @@ GLboolean MGLInitContext(GLcontext context)
 	context->DrawElementsHook   = 0;
 	context->DrawArraysHook	    = 0;
 #endif
-	context->VertexArrayPipeline  = GL_TRUE;
+	//context->VertexArrayPipeline  = GL_TRUE; // already done - Cowcat
 
 	/* Area: All triangles smaller than this will not be drawn */
 	//Surgeon: to prevent gaps, triangle-mesh areas are considered coherently
@@ -1600,7 +1616,6 @@ void *MGLCreateContext(int offx, int offy, int w, int h)
 	GLcontext context;
 
 	context = malloc(sizeof(struct GLcontext_t));
-	//context = AllocVecPPC(sizeof(struct GLcontext_t), MEMF_PUBLIC|MEMF_CLEAR,0); // test - Cowcat
 
 	if (!context)
 	{
@@ -1610,7 +1625,7 @@ void *MGLCreateContext(int offx, int offy, int w, int h)
 		return NULL;
 	}
 
-	memset(context, 0,  sizeof(struct GLcontext_t));
+	memset(context, 0, sizeof(struct GLcontext_t));
 
 	if (newWindowMode == GL_FALSE)
 	{
@@ -1655,10 +1670,9 @@ void *MGLCreateContext(int offx, int offy, int w, int h)
 	return context;
 }
 
-
 void MGLDeleteContext(GLcontext context)
 {
-	GLint current, peak;
+	//GLint current, peak; // Cowcat
 
 	if( !context ) return; //Olivier Fabre
 
@@ -1699,18 +1713,28 @@ void MGLDeleteContext(GLcontext context)
 
 	if (context->GeneratedTextures) 
 	{
-		free (context->GeneratedTextures);
+		free(context->GeneratedTextures);
 		context->GeneratedTextures = NULL;
 	}
 
-	MGLTexMemStat(context, &current, &peak);
+	if (context->PaletteData) // missing ? - Cowcat
+	{
+		free(context->PaletteData);
+		context->PaletteData = NULL;
+	}
 
-	if (CyberGfxBase) CloseLibrary(CyberGfxBase);
+	//MGLTexMemStat(context, &current, &peak); // Cowcat
+
+	#if 0 // Done in MGLTerm - Cowcat
+
+	if (CyberGfxBase)
+		CloseLibrary(CyberGfxBase);
 
 	CyberGfxBase = NULL;
 
+	#endif
+
 	free(context);
-	//FreeVecPPC(context); // test Cowcat
 }
 
 #define ED (flag == GL_TRUE?W3D_ENABLE:W3D_DISABLE)

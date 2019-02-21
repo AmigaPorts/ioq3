@@ -960,7 +960,7 @@ int Q_stricmp (const char *s1, const char *s2)
 	return (s1 && s2) ? Q_stricmpn (s1, s2, 99999) : -1;
 }
 
-#else // Quake3e - Cowcat
+#else // ec-/Quake3e
 
 int Q_stricmp (const char *s1, const char *s2)
 {
@@ -1234,7 +1234,7 @@ char *QDECL va( char *format, ... )
 	return buf;
 }
 
-#else // Quake3e test - Cowcat
+#else // ec-/Quake3e
 
 char *QDECL va( char *format, ... )
 {

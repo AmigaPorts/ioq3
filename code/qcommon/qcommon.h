@@ -133,8 +133,8 @@ NET
 #define MAX_RELIABLE_COMMANDS	64	// max string commands buffered for restransmit
 
 typedef enum {
+	NA_BAD = 0,			// an address lookup failed
 	NA_BOT,
-	NA_BAD,				// an address lookup failed
 	NA_LOOPBACK,
 	NA_BROADCAST,
 	NA_IP,
@@ -227,7 +227,7 @@ typedef struct {
 #ifdef LEGACY_PROTOCOL
 	qboolean	compat;
 #endif
-	qboolean	isLANAddress; // quake3e - Cowcat
+	qboolean	isLANAddress; // ec-/quake3e
 
 } netchan_t;
 
@@ -708,9 +708,6 @@ int	FS_Seek( fileHandle_t f, long offset, int origin );
 
 qboolean FS_FilenameCompare( const char *s1, const char *s2 );
 
-const char *FS_GamePureChecksum( void );
-// Returns the checksum of the pk3 from which the server loaded the qagame.qvm
-
 const char *FS_LoadedPakNames( void );
 const char *FS_LoadedPakChecksums( void );
 const char *FS_LoadedPakPureChecksums( void );
@@ -739,12 +736,13 @@ qboolean FS_idPak( char *pak, char *base, int numPaks );
 
 qboolean FS_ComparePaks( char *neededpaks, int len, qboolean dlstring );
 
-void	FS_Rename( const char *from, const char *to );
+void FS_Rename( const char *from, const char *to );
 
-void	FS_Remove( const char *osPath );
-void	FS_HomeRemove( const char *homePath );
+void FS_Remove( const char *osPath );
+void FS_HomeRemove( const char *homePath );
 
-void	FS_FilenameCompletion( const char *dir, const char *ext, qboolean stripExt, void(*callback)(const char *s) );
+void FS_FilenameCompletion( const char *dir, const char *ext, qboolean stripExt, void(*callback)(const char *s),
+	qboolean allowNonPureFilesOnDisk );
 
 qboolean FS_Which(const char *filename, void *searchPath);
 
@@ -769,7 +767,7 @@ typedef struct {
 void Field_Clear( field_t *edit );
 void Field_AutoComplete( field_t *edit );
 void Field_CompleteKeyname( void );
-void Field_CompleteFilename( const char *dir, const char *ext, qboolean stripExt );
+void Field_CompleteFilename( const char *dir, const char *ext, qboolean stripExt, qboolean allowNonPureFilesOnDisk );
 void Field_CompleteCommand( char *cmd, qboolean doCommands, qboolean doCvars );
 
 /*
@@ -852,8 +850,8 @@ void		Com_StartupVariable( const char *match );
 // if match is NULL, all set commands will be executed, otherwise
 // only a set with the exact name.  Only used during startup.
 
-#define DELAY_WRITECONFIG // Quake3e - test Cowcat
-void		Com_WriteConfiguration( void ); // Quake3e
+#define DELAY_WRITECONFIG // ec-/Quake3e
+void		Com_WriteConfiguration( void ); // ec-/Quake3e
 
 extern	cvar_t	*com_developer;
 extern	cvar_t	*com_dedicated;
@@ -1044,7 +1042,7 @@ void Key_WriteBindings( fileHandle_t f );
 void S_ClearSoundBuffer( void );
 // call before filesystem access
 
-void SCR_DebugGraph (float value, int color);	// FIXME: move logging to common?
+void SCR_DebugGraph (float value);	// FIXME: move logging to common?
 
 //
 // server interface

@@ -15,12 +15,22 @@
 #ifndef _MATRIX_H
 #define _MATRIX_H
 
+#if defined(__GNUC__)
+#define ALIGNED16 __attribute__((aligned(16))) // Cowcat
+#else
+#define ALIGNED16
+#endif
+
 typedef struct Matrix_t
 {
-	float v[16];
+	float ALIGNED16 v[16];
 	int flags;                  // Matrix flags
 	struct Matrix_t *Inverse;   // optional inverse
+
+	#ifdef __VBCC__
 	int _pad_[2]; //16 byte align
+	#endif
+
 } Matrix;
 
 #define OF_11 0

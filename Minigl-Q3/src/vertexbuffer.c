@@ -183,24 +183,24 @@ GLboolean TMA_Check(LockTimeHandle *handle)
 	return GL_FALSE;
 }
 
-#else
-
-#include <inline/timer_protos.h>
-
-int _ppctimer(__reg("r3"), __reg("r4")) =
-	"\tmftbu\t5\n"
-	"\tmtfbl\t6\n"										
-	"\tmftbu\t7\n"		
-	"\tcmpw\t5,7\n"	
-	"\tbne-\t-16\n"
-	"\tstw\t5,3\n"
-	"\tstw\t6,4";
+#else // test
 
 static inline void ReadTBC( struct EClockVal *mark )
 {
-	long tbcUpper0, tbcLower;
+	register ULONG tbcUpper0, tbcUpper1, tbcLower;
 
-	_ppctimer(tbcUpper0, tbcLower);
+	do
+	{
+		__asm volatile
+		(
+			"mftbu %0\n\t"
+			"mftb %1\n\t"
+			"mftbu %2"
+
+			: "=r"(tbcUpper0), "=r"(tbcLower), "=r"(tbcUpper1)
+		);
+
+	} while (tbcUpper0 != tbcUpper1);
 
 	mark->ev_hi = tbcUpper0;
 	mark->ev_lo = tbcLower;
@@ -208,20 +208,23 @@ static inline void ReadTBC( struct EClockVal *mark )
 
 #define READECLOCK(mark) ReadTBC((mark))
 
-static ULONG eFreq = 0;
+static struct Device *TimerBase = NULL;
 
 void TMA_Start(LockTimeHandle *handle)
 {
 	struct EClockVal eval;
-	handle->e_freq = eFreq;
+	extern struct ExecBase *SysBase;
+
+	if (!TimerBase)
+	{
+		TimerBase = (struct Device *)FindName(&SysBase->DeviceList, "timer.device");
+	}
 
 	READECLOCK(&eval);
-	//handle->e_freq = ReadEClock(&eval);
-	//handle->e_freq = READECLOCK(&eval);
-
+	
 	handle->s_hi = eval.ev_hi;
 	handle->s_lo = eval.ev_lo;
-	//handle->e_freq /= 20;
+	handle->e_freq /= 20;
 }
 
 GLboolean TMA_Check(LockTimeHandle *handle)
@@ -250,6 +253,7 @@ GLboolean TMA_Check(LockTimeHandle *handle)
 #endif
 
 #endif
+
 
 void GLBegin(GLcontext context, GLenum mode)
 {
@@ -898,6 +902,7 @@ void GLEnd(GLcontext context)
 		return; //no verts recorded
 	}
 
+	#if 0
 	if(context->ClientState & GLCS_VERTEX)
 	{
 		//assume that a series of glArrayElement commands has been issued
@@ -906,6 +911,7 @@ void GLEnd(GLcontext context)
 		context->CurrentPrimitive = GL_BASE;
 		return;
 	}
+	#endif
 
 	if(context->Texture2D_State[1] == GL_TRUE)
 	{

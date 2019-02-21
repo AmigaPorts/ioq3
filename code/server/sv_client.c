@@ -53,14 +53,12 @@ void SV_GetChallenge( netadr_t from )
 	int		clientChallenge;
 	challenge_t	*challenge;
 	qboolean	wasfound = qfalse;
-	char 		*gameName;
-	qboolean 	gameMismatch;
+	char		*gameName;
+	qboolean	gameMismatch;
 
 	// ignore if we are in single player
-#ifndef DEDICATED
-	if ( Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER || Cvar_VariableValue("ui_singlePlayerActive") )
+	if ( Cvar_VariableValue( "g_gametype" ) == GT_SINGLE_PLAYER || Cvar_VariableValue("ui_singlePlayerActive"))
 		return;
-#endif
 
 	gameName = Cmd_Argv(2);
 
@@ -161,10 +159,9 @@ void SV_GetChallenge( netadr_t from )
 		else
 		{
 			// otherwise send their ip to the authorize server
-
 			const char *game;
 
-			if( com_developer->integer ) // Quake3e - Cowcat
+			if( com_developer->integer ) // ec-/Quake3e
 				Com_Printf( "sending getIpAuthorize for %s\n", NET_AdrToString( from ));
 
 			game = Cvar_VariableString("fs_game");
@@ -284,10 +281,10 @@ Check whether a certain address is banned
 
 static qboolean SV_IsBanned(netadr_t *from, qboolean isexception)
 {
-	int index, addrlen, curbyte, netmask, cmpmask;
-	serverBan_t *curban;
-	byte *addrfrom, *addrban;
-	qboolean differed;
+	int		index, addrlen, curbyte, netmask, cmpmask;
+	serverBan_t	*curban;
+	byte		*addrfrom, *addrban;
+	qboolean	differed;
 	
 	if(from->type == NA_IP)
 		addrlen = sizeof(from->ip);
@@ -429,7 +426,7 @@ void SV_DirectConnect( netadr_t from )
 		{
 			if (( svs.time - cl->lastConnectTime) < (sv_reconnectlimit->integer * 1000))
 			{
-				if( com_developer->integer ) // Quake3e - Cowcat
+				if( com_developer->integer ) // ec-/Quake3e
 					Com_Printf ("%s:reconnect rejected : too soon\n", NET_AdrToString (from));
 
 				return;
@@ -457,7 +454,8 @@ void SV_DirectConnect( netadr_t from )
 	// see if the challenge is valid (LAN clients don't need to challenge)
 	if ( !NET_IsLocalAddress (from) )
 	{
-		int	ping;
+		int		ping;
+		challenge_t	*challengeptr;
 
 		for (i=0 ; i<MAX_CHALLENGES ; i++)
 		{
@@ -474,31 +472,35 @@ void SV_DirectConnect( netadr_t from )
 			return;
 		}
 
-		ping = svs.time - svs.challenges[i].pingTime;
-		Com_Printf( "Client %i connecting with %i challenge ping\n", i, ping );
-		svs.challenges[i].connected = qtrue;
+		challengeptr = &svs.challenges[i];
 
+		if(challengeptr->wasrefused)
+			return; // silently return
+
+		ping = svs.time - challengeptr->pingTime;
+		
 		// never reject a LAN client based on ping
 		if ( !Sys_IsLANAddress( from ) )
 		{
-			if ( sv_minPing->integer && ping < sv_minPing->integer ) // was ->value Quake3e - Cowcat
+			if ( sv_minPing->integer && ping < sv_minPing->integer ) // was ->value ec-/Quake3e
 			{
-				// don't let them keep trying until they get a big delay
 				NET_OutOfBandPrint( NS_SERVER, from, "print\nServer is for high pings only\n" );
 				Com_DPrintf ("Client %i rejected on a too low ping\n", i);
-				// reset the address otherwise their ping will keep increasing
-				// with each connect message and they'd eventually be able to connect
-				svs.challenges[i].adr.port = 0;
+				challengeptr->wasrefused = qtrue;
 				return;
 			}
 
-			if ( sv_maxPing->integer && ping > sv_maxPing->integer ) // was ->value Quake3e - Cowcat
+			if ( sv_maxPing->integer && ping > sv_maxPing->integer ) // was ->value ec-/Quake3e
 			{
 				NET_OutOfBandPrint( NS_SERVER, from, "print\nServer is for low pings only\n" );
 				Com_DPrintf ("Client %i rejected on a too high ping\n", i);
+				challengeptr->wasrefused = qtrue;
 				return;
 			}
 		}
+
+		Com_Printf( "Client %i connecting with %i challenge ping\n", i, ping );
+		challengeptr->wasrefused = qtrue;
 	}
 
 	newcl = &temp;
@@ -540,7 +542,7 @@ void SV_DirectConnect( netadr_t from )
 	// check for privateClient password
 	password = Info_ValueForKey( userinfo, "password" );
 
-	if ( !strcmp( password, sv_privatePassword->string ) )
+	if ( *password && !strcmp( password, sv_privatePassword->string ) )
 		startIndex = 0;
 
 	else
@@ -1245,7 +1247,7 @@ Return the shortest time interval for sending next packet to client
 
 int SV_SendQueuedMessages(void)
 {
-	int i, retval = -1, nextFragT;
+	int	i, retval = -1, nextFragT;
 	client_t *cl;
 	
 	for(i=0; i < sv_maxclients->integer; i++)
@@ -1605,7 +1607,7 @@ void SV_UserinfoChanged( client_t *cl )
 	// if the client is on the same subnet as the server and we aren't running an
 	// internet public server, assume they don't need a rate choke
 	//if ( Sys_IsLANAddress( cl->netchan.remoteAddress ) && com_dedicated->integer != 2 && sv_lanForceRate->integer == 1)
-	if ( cl->netchan.isLANAddress && com_dedicated->integer != 2 && sv_lanForceRate->integer ) // Quake3e - Cowcat
+	if ( cl->netchan.isLANAddress && com_dedicated->integer != 2 && sv_lanForceRate->integer ) // ec-/Quake3e
 	{
 		cl->rate = 99999;	// lans should not rate limit
 	}
@@ -2192,9 +2194,8 @@ void SV_ExecuteClientMessage( client_t *cl, msg_t *msg )
 	// I don't like this hack though, it must have been working fine at some point, suspecting the fix is somewhere else
 	if ( serverId != sv.serverId && !*cl->downloadName && !strstr(cl->lastClientCommandString, "nextdl") )
 	{
-		if ( serverId >= sv.restartedServerId && serverId < sv.serverId )
+		if ( serverId >= sv.restartedServerId && serverId < sv.serverId ) // TTimo - use a comparison here to catch multiple map_restart
 		{
-			// TTimo - use a comparison here to catch multiple map_restart
 			// they just haven't caught the map_restart yet
 			Com_DPrintf("%s : ignoring pre map_restart / outdated client message\n", cl->name);
 			return;
@@ -2202,7 +2203,7 @@ void SV_ExecuteClientMessage( client_t *cl, msg_t *msg )
 
 		// if we can tell that the client has dropped the last
 		// gamestate we sent them, resend it
-		if ( cl->messageAcknowledge > cl->gamestateMessageNum )
+		if ( cl->state != CS_ACTIVE && cl->messageAcknowledge > cl->gamestateMessageNum )
 		{
 			Com_DPrintf( "%s : dropped gamestate, resending\n", cl->name );
 			SV_SendClientGameState( cl );

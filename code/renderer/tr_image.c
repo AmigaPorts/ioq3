@@ -226,12 +226,15 @@ void R_ImageList_f( void )
 				break;
 			#endif
 
-			//case GL_RGBA4: // Cowcat
+			#if !defined(AMIGAOS)  // Cowcat
+			case GL_RGBA4:
+			#endif
 			case GL_RGBA8:
 			case GL_RGBA:
 				format = "RGBA ";
 				// 4 bytes per pixel
 				estSize *= 4;
+				//estSize *= 2; // Cowcat
 				break;
 
 			case GL_LUMINANCE8:
@@ -615,6 +618,98 @@ Upload32
 ===============
 */
 
+#if 0
+
+byte *convertluminance(byte *data, int width, int height)
+{
+	byte *temp = (byte *)ri.Malloc(width*height*2);
+	int i;
+
+	unsigned int *input = (unsigned int *)data;
+	unsigned short *output = (unsigned short*)temp;
+
+	for(i=0; i < width*height; i++)
+	{
+		unsigned int pixel = input[i];
+
+		unsigned int r = pixel & 0xff;
+		unsigned int a = (pixel >> 24 ) & 0xff;
+		
+		output[i] = r | a<<8;
+	}
+
+	return temp;
+}
+
+
+byte *convertrgba4(byte *data, int width, int height)
+{
+	byte *temp = (byte *)ri.Malloc(width*height*2);
+	int i;
+
+	unsigned int *input = (unsigned int *)data;
+	unsigned short *output = (unsigned short*)temp;
+
+	for(i=0; i < width*height; i++)
+	{
+		unsigned int pixel = input[i];
+
+		unsigned int r = pixel & 0xff;
+		unsigned int g = (pixel >> 8 ) & 0xff;
+		unsigned int b = (pixel >> 16 ) & 0xff;
+		unsigned int a = (pixel >> 24 ) & 0xff;
+		
+		r >>= 4; g >>= 4; b >>= 4; a >>= 4; 
+		output[i] = r << 12 | g << 8 | b << 4 | a;
+	}
+
+	return temp;
+}
+
+byte *convertrgb(byte *data, int width, int height)
+{
+	#if 0
+	byte *temp = (byte *)ri.Malloc(width*height*2);
+	int i;
+
+	unsigned int *input = (unsigned int *)data;
+	unsigned short *output = (unsigned short*)temp;
+
+	for(i=0; i < width*height; i++)
+	{
+		unsigned int pixel = input[i];
+
+		unsigned int r = pixel & 0xff;
+		unsigned int g = (pixel >> 8 ) & 0xff;
+		unsigned int b = (pixel >> 16 ) & 0xff;
+		
+		r >>= 3; g >>= 2; b >>= 3; 
+		output[i] = r << 11 | g << 5 | b;
+	}
+
+	return temp;
+
+	#else
+
+	byte *temp = (byte *)ri.Malloc(width*height*3);
+	byte *src = data;
+	byte *dst = temp;
+	int i, j;
+
+	for(i=0; i < width*height; i++)
+	{
+		for(j=0; j < 3; j++)
+			*(dst++) = *(src++);
+		src++;
+	}
+
+	return temp;
+
+	#endif
+	
+}
+#endif
+
 static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qboolean picmip, 
 	qboolean lightMap, int *format, int *pUploadWidth, int *pUploadHeight )
 {
@@ -734,8 +829,8 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 		{
 			if(r_greyscale->integer)
 			{
-				#if 0 // Cowcat
-				if(r_texturebits->integer == 16) || (r_texturebits->integer == 32)
+				#if !defined(AMIGAOS) // Cowcat
+				if( r_texturebits->integer == 16 || r_texturebits->integer == 32 )
 					internalFormat = GL_LUMINANCE8;
 
 				else
@@ -745,7 +840,7 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 
 			else
 			{
-				#if 0 // Cowcat
+				#if !defined(AMIGAOS) // Cowcat
 				if ( glConfig.textureCompression == TC_S3TC_ARB )
 				{
 					internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
@@ -760,10 +855,10 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 				#endif
 					if ( r_texturebits->integer == 16 )
 				{
-					internalFormat = GL_RGB5; // test with RGB - Cowcat
+					internalFormat = GL_RGB5;
 				}
 
-				#if 0 // Cowcat
+				#if !defined(AMIGAOS) // Cowcat
 				else if ( r_texturebits->integer == 32 )
 				{
 					internalFormat = GL_RGB8;
@@ -781,30 +876,30 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 		{
 			if(r_greyscale->integer)
 			{
-				#if 0 // Cowcat
-				if(r_texturebits->integer == 16) || (r_texturebits->integer == 32)
+				#if !defined(AMIGAOS) // Cowcat
+				if( r_texturebits->integer == 16 || r_texturebits->integer == 32 )
 					internalFormat = GL_LUMINANCE8_ALPHA8;
 
 				else
 				#endif
-					internalFormat = GL_LUMINANCE_ALPHA; // test with GL_LUMINANCE - Cowcat
+					internalFormat = GL_LUMINANCE_ALPHA;
 			}
 
 			else
 			{
+				#if !defined(AMIGAOS) // Cowcat
 				if ( r_texturebits->integer == 16 )
 				{
-					internalFormat = /*GL_RGBA4*/ GL_RGBA; // Cowcat
+					internalFormat = GL_RGBA4; 
 				}
 
-				#if 0 // Cowcat
 				else if ( r_texturebits->integer == 32 )
 				{
 					internalFormat = GL_RGBA8;
 				}
-				#endif
 
 				else
+				#endif
 				{
 					internalFormat = GL_RGBA;
 				}
@@ -855,6 +950,26 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 
 	R_LightScaleTexture (scaledBuffer, scaled_width, scaled_height, !mipmap );
 
+	#if 0 // test
+	byte *temp;
+
+	if (internalFormat == GL_RGBA)
+	//if (internalFormat == GL_LUMINANCE)
+	{
+		temp = convertrgba4((byte*)scaledBuffer, width, height);
+		//qglTexImage2D (GL_TEXTURE_2D, 0, MGL_UNSIGNED_SHORT_4_4_4_4, scaled_width, scaled_height, 0, MGL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_BYTE, temp );
+		qglTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, scaled_width, scaled_height, 0, MGL_UNSIGNED_SHORT_4_4_4_4, MGL_UNSIGNED_SHORT_4_4_4_4, temp );
+		
+		//temp = convertluminance((byte*)scaledBuffer, width, height);
+		//qglTexImage2D (GL_TEXTURE_2D, 0, GL_LUMINANCE, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp );
+
+		ri.Free(temp);
+	}
+
+	else
+		qglTexImage2D (GL_TEXTURE_2D, 0, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaledBuffer );
+	#endif
+
 	*pUploadWidth = scaled_width;
 	*pUploadHeight = scaled_height;
 	*format = internalFormat;
@@ -894,8 +1009,10 @@ done:
 
 	if (mipmap) 
 	{
-		//if ( textureFilterAnisotropic ) // Cowcat
-			//qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (GLint)Com_Clamp( 1, maxAnisotropy, r_ext_max_anisotropy->integer ) );
+		#if !defined(AMIGAOS) // Cowcat
+		if ( textureFilterAnisotropic )
+			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (GLint)Com_Clamp( 1, maxAnisotropy, r_ext_max_anisotropy->integer ) );
+		#endif
 
 		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
 		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
@@ -903,8 +1020,10 @@ done:
 
 	else
 	{
-		//if ( textureFilterAnisotropic ) // Cowcat
-			//qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1 ); 
+		#if !defined(AMIGAOS) // Cowcat
+		if ( textureFilterAnisotropic )
+			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1 );
+		#endif
 
 		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
@@ -963,7 +1082,11 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 	image->height = height;
 	
 	if (flags & IMGFLAG_CLAMPTOEDGE)
-		glWrapClampMode = GL_CLAMP /*_TO_EDGE*/; // Cowcat
+		#if !defined(AMIGAOS) // Cowcat
+		glWrapClampMode = GL_CLAMP_TO_EDGE;
+		#else
+		glWrapClampMode = GL_CLAMP;
+		#endif
 
 	else
 		glWrapClampMode = GL_REPEAT;
@@ -1045,7 +1168,7 @@ void R_LoadImage( const char *name, byte **pic, int *width, int *height )
 	int		orgLoader = -1;
 	int		i;
 	char		localName[ MAX_QPATH ];
-	const		char *ext;
+	const char	*ext;
 	char		*altName;
 
 	*pic = NULL;
@@ -1167,8 +1290,7 @@ image_t *R_FindImageFile( const char *name, imgType_t type, imgFlags_t flags )
 		return NULL;
 	}
 
-	//image = R_CreateImage( ( char * ) name, pic, width, height, type, flags, 0 );
-	image = R_CreateImage( /* ( char * ) */ name, pic, width, height, type, flags, 0 ); // Quake3e - Cowcat
+	image = R_CreateImage( ( char * ) name, pic, width, height, type, flags, 0 );
 
 	ri.Free( pic );
 	return image;
@@ -1288,12 +1410,9 @@ static void R_CreateFogImage( void )
 {
 	int	x,y;
 	byte	*data;
-	float	g;
 	float	d;
 
 	data = ri.Hunk_AllocateTempMemory( FOG_S * FOG_T * 4 );
-
-	g = 2.0;
 
 	// S is distance, T is depth
 	for (x=0 ; x<FOG_S ; x++)
@@ -1309,9 +1428,6 @@ static void R_CreateFogImage( void )
 		}
 	}
 
-	// standard openGL clamping doesn't really do what we want -- it includes
-	// the border color at the edges.  OpenGL 1.2 has clamp-to-edge, which does
-	// what we want.
 	tr.fogImage = R_CreateImage("*fog", (byte *)data, FOG_S, FOG_T, IMGTYPE_COLORALPHA, IMGFLAG_CLAMPTOEDGE, 0 );
 	ri.Hunk_FreeTempMemory( data );
 }
@@ -1390,10 +1506,12 @@ void R_CreateBuiltinImages( void )
 	tr.identityLightImage = R_CreateImage("*identityLight", (byte *)data, 8, 8, IMGTYPE_COLORALPHA, IMGFLAG_NONE, 0);
 
 	//for(x=0; x<32; x++)
-	for(x = 0; x < ARRAY_LEN( tr.scratchImage ); x++) // Quake3e - Cowcat
+	for(x = 0; x < ARRAY_LEN( tr.scratchImage ); x++) // ec-/Quake3e
 	{
 		// scratchimage is usually used for cinematic drawing
+		//tr.scratchImage[x] = R_CreateImage("*scratch", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE, 0);
 		tr.scratchImage[x] = R_CreateImage("*scratch", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE, 0);
+		
 		// Quake3e - Cowcat crash if null
 		//tr.scratchImage[x] = R_CreateImage("*scratch", /*NULL*/ (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE, GL_RGB);
 	}
@@ -1545,6 +1663,8 @@ void R_DeleteTextures( void )
 	for ( i=0; i<tr.numImages ; i++ )
 	{
 		qglDeleteTextures( 1, &tr.images[i]->texnum );
+		//Com_Memset( tr.images, 0, sizeof( *tr.images ) );
+
 	}
 
 	Com_Memset( tr.images, 0, sizeof( tr.images ) );

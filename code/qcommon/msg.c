@@ -62,6 +62,36 @@ int __LittleLong(__reg("d0") int) =
 #define LittleShort(x) ((((uint16_t)(x) & 0xff) << 8 ) | ((uint16_t)(x) >> 8))
 #define LittleLong(x) (((uint32_t)(x) << 24 ) | (((uint32_t)(x) & 0xff00) << 8 ) | (((uint32_t)(x) & 0x00ff0000) >> 8 ) | ((uint32_t)(x) >> 24))
 
+#if 0
+#define LittleShort(x) ({ \
+	short res; \
+	__asm__ volatile ("rlwinm %0,%1,24,24,31" \
+			"\n\trlwimi %0,%1,8,16,23" : "=&r" (res) : "r" (x)); \
+	res; })
+
+#define LittleLong(x) ({ \
+	int res; \
+	__asm__ volatile ("rlwinm %0,%1,24,0,31" \
+			"\n\trlwimi %0,%1,8,8,15" \
+			"\n\trlwimi %0,%1,8,24,31" : "=&r" (res) : "r" (x)); \
+	res; })
+
+#define LittleLong2(x)	\
+({ register uint32_t _x;	\
+	__asm__("rlwinm %0,%1,24,0,31" \
+		"\n\trlwimi %0,%1,8,8,15" \
+		"\n\trlwimi %0,%1,8,24,31" : "=&r" (_x) : "r" ((unsigned int) (x)) ); \
+	_x;	\
+})
+
+#define LittleLong3(x) ({ \
+	int res; \
+	__asm__ volatile ("rlwinm %0,%1,24,0,31" \
+			"\n\trlwimi %0,%1,8,8,15" \
+			"\n\trlwimi %0,%1,8,24,31" : "=&r" (res) : "r" (x)); \
+	res; })
+#endif
+
 #endif
 
 static huffman_t msgHuff;
@@ -683,7 +713,7 @@ char *MSG_ReadString( msg_t *msg )
 		c = MSG_ReadByte(msg);		// use ReadByte so -1 is out of bounds
 
 		//if ( c == -1 || c == 0 )
-		if ( c <= 0 ) // Quake3e - Cowcat
+		if ( c <= 0 ) // ec-/Quake3e
 		{
 			break;
 		}
@@ -722,7 +752,7 @@ char *MSG_ReadBigString( msg_t *msg )
 		c = MSG_ReadByte(msg);		// use ReadByte so -1 is out of bounds
 
 		//if ( c == -1 || c == 0 )
-		if ( c <= 0 ) // Quake3e - Cowcat
+		if ( c <= 0 ) // ec-/Quake3e
 		{
 			break;
 		}
@@ -761,7 +791,7 @@ char *MSG_ReadStringLine( msg_t *msg )
 		c = MSG_ReadByte(msg);		// use ReadByte so -1 is out of bounds
 
 		//if (c == -1 || c == 0 || c == '\n')
-		if ( c <= 0 || c == '\n') // Quake3e - Cowcat
+		if ( c <= 0 || c == '\n') // ec-/Quake3e
 		{
 			break;
 		}

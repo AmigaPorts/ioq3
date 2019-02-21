@@ -2025,32 +2025,12 @@ int VM_CallCompiled( vm_t *vm, int *args )
 	
 	// set up the stack frame
 
-	#if 0
-	programStack -= 48;
-
-	*(int *)&image[ programStack + 44] = args[9];
-	*(int *)&image[ programStack + 40] = args[8];
-	*(int *)&image[ programStack + 36] = args[7];
-	*(int *)&image[ programStack + 32] = args[6];
-	*(int *)&image[ programStack + 28] = args[5];
-	*(int *)&image[ programStack + 24] = args[4];
-	*(int *)&image[ programStack + 20] = args[3];
-	*(int *)&image[ programStack + 16] = args[2];
-	*(int *)&image[ programStack + 12] = args[1];
-	*(int *)&image[ programStack + 8 ] = args[0];
-
-	#else // Cowcat
-
 	//programStack -= ( 8 + 4 * MAX_VMMAIN_ARGS );
 	programStack -= ( 8 + 4 * 4 ); //  We only need 4 args - Cowcat
-	//programStack -= ( 8 + 4 * 10 ); //  - Cowcat
 	
 	//for ( arg = 0; arg < MAX_VMMAIN_ARGS ; arg++ )
 	for ( arg = 0; arg < 4 ; arg++ ) // We only need 4 args - Cowcat
-	//for ( arg = 0; arg < 10 ; arg++ ) // - Cowcat
 		*(int *)&image[ programStack + 8 + arg * 4 ] = args[ arg ];
-
-	#endif
 
 	*(int *)&image[ programStack + 4 ] = 0; // return stack
 	*(int *)&image[ programStack ] = -1;	// will terminate the loop on return

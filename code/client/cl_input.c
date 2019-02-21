@@ -673,12 +673,12 @@ usercmd_t CL_CreateCmd( void )
 	{
 		if ( cl_debugMove->integer == 1 )
 		{
-			SCR_DebugGraph( fabs(cl.viewangles[YAW] - oldAngles[YAW]), 0 );
+			SCR_DebugGraph( fabs(cl.viewangles[YAW] - oldAngles[YAW]) );
 		}
 
 		if ( cl_debugMove->integer == 2 )
 		{
-			SCR_DebugGraph( fabs(cl.viewangles[PITCH] - oldAngles[PITCH]), 0 );
+			SCR_DebugGraph( fabs(cl.viewangles[PITCH] - oldAngles[PITCH]) );
 		}
 	}
 
@@ -695,8 +695,7 @@ Create a new usercmd_t structure for this frame
 */
 void CL_CreateNewCommands( void )
 {
-	//usercmd_t	*cmd;
-	int		cmdNum;
+	int	cmdNum;
 
 	// no need to create usercmds until we have a gamestate
 	if ( clc.state < CA_PRIMED )
@@ -719,7 +718,6 @@ void CL_CreateNewCommands( void )
 	cl.cmdNumber++;
 	cmdNum = cl.cmdNumber & CMD_MASK;
 	cl.cmds[cmdNum] = CL_CreateCmd ();
-	//cmd = &cl.cmds[cmdNum]; // needed ? - Cowcat
 }
 
 /*
@@ -766,12 +764,12 @@ qboolean CL_ReadyToSendPacket( void )
 
 	// send every frame for LAN
 	//if ( cl_lanForcePackets->integer && Sys_IsLANAddress( clc.netchan.remoteAddress ) )
-	if ( cl_lanForcePackets->integer && clc.netchan.isLANAddress ) // Quake3e - Cowcat
+	if ( cl_lanForcePackets->integer && clc.netchan.isLANAddress ) // ec-/Quake3e
 	{
 		return qtrue;
 	}
 
-	#if 0 // checkrange now in cl_init/cl.main.c - Quake3e - Cowcat
+	#if 0 // checkrange now in cl_init/cl.main.c - ec-/Quake3e
 
 	// check for exceeding cl_maxpackets
 	if ( cl_maxpackets->integer < 15 ) {

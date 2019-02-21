@@ -1718,6 +1718,7 @@ sfxHandle_t Menu_DefaultKey( menuframework_s *m, int key )
 		case K_AUX6:
 		case K_AUX7:
 		case K_AUX8:
+/* // ec-/quake3e - not used
 		case K_AUX9:
 		case K_AUX10:
 		case K_AUX11:
@@ -1726,6 +1727,7 @@ sfxHandle_t Menu_DefaultKey( menuframework_s *m, int key )
 		case K_AUX14:
 		case K_AUX15:
 		case K_AUX16:
+*/
 		case K_KP_ENTER:
 		case K_ENTER:
 			if (item)

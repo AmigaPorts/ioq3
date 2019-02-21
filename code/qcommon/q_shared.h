@@ -202,6 +202,10 @@ typedef int	clipHandle_t;
 #define NULL ((void *)0)
 #endif
 
+#define STRING(s)		#s
+// expand constants before stringifying them
+#define XSTRING(s)		STRING(s)
+
 #define	MAX_QINT		0x7fffffff
 #define	MIN_QINT		(-MAX_QINT-1)
 
@@ -422,8 +426,7 @@ extern	vec3_t	axisDefault[3];
 
 #define	IS_NAN(x) (((*(int *)&x)&nanmask)==nanmask)
 
-#if idppc // fix that !!! Cowcat
-//#if defined(__GNUC__) && defined (__PPC__)
+#if idppc
 
 static ID_INLINE float Q_rsqrt( float number )
 {
@@ -880,7 +883,9 @@ default values.
 #define CVAR_NONEXISTENT	0x80000000	// Cvar doesn't exist.
 
 // nothing outside the Cvar_*() functions should modify these fields!
-typedef struct cvar_s {
+typedef struct cvar_s cvar_t;
+
+struct cvar_s {
 	char		*name;
 	char		*string;
 	char		*resetString;		// cvar_restart will reset to this value
@@ -894,10 +899,14 @@ typedef struct cvar_s {
 	qboolean	integral;
 	float		min;
 	float		max;
-	struct cvar_s 	*next;
-	struct cvar_s 	*hashNext;
+	char		*description;
 
-} cvar_t;
+	cvar_t 		*next;
+	cvar_t 		*prev;
+	cvar_t 		*hashNext;
+	cvar_t 		*hashPrev;
+	int		hashIndex;
+};
 
 #define	MAX_CVAR_VALUE_STRING	256
 
@@ -1386,3 +1395,4 @@ typedef enum _flag_status {
 
 
 #endif	// __Q_SHARED_H
+

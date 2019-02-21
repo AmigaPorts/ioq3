@@ -1737,7 +1737,6 @@ static void A_DrawTriangles(GLcontext context, int first, int count)
 
 			vbptr += 3;
 			i += 3;
-
 		}
 
 		else
@@ -2019,7 +2018,7 @@ void GLDisableClientState(GLcontext context, GLenum state)
 	{
 		case GL_TEXTURE_COORD_ARRAY:
 			context->ClientState &= ~GLCS_TEXTURE;
-			Swap_TextureCoordPointers(context, GL_FALSE); 
+			Swap_TextureCoordPointers(context, GL_FALSE);
 			break;
 
 		case GL_COLOR_ARRAY:
@@ -2418,7 +2417,7 @@ void GLVertexPointer(GLcontext context, GLint size, GLenum type, GLsizei stride,
 {
 	int w3dStride;
 
-	#if defined(FIXPOINT)
+	#if defined(FIXPOINT) // Cowcat
 
 	if (size < 3 || (type != GL_FLOAT && type != GL_INT))
 
@@ -2455,7 +2454,7 @@ void GLVertexPointer(GLcontext context, GLint size, GLenum type, GLsizei stride,
 
 #endif
 
-	#if defined(FIXPOINT)
+	#if defined(FIXPOINT) // Cowcat
 
 	if(type == GL_INT)
 	{
@@ -2489,12 +2488,12 @@ void GLVertexPointer(GLcontext context, GLint size, GLenum type, GLsizei stride,
 
 	if(context->VertexArrayPipeline == GL_FALSE)
 	{
-		#if defined(FIXPOINT)
+		#if defined(FIXPOINT) // Cowcat
 
 		if(type == GL_INT)
 			GLFlagError(context, 1, GL_INVALID_VALUE);
 
-		#endif //
+		#endif
 
 		Reset_W3D_VertexPointer = GL_TRUE; //not default
 

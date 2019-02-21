@@ -209,7 +209,7 @@ void GL_TexEnv( GLint env ) // Quake3e cleanup
 ** in Q3.
 */
 
-#if defined(__VBCC__) && defined(__PPC__)
+#if defined(__VBCC__) // && defined(__PPC__)
 qboolean smoothshade = qfalse; // Cowcat
 #endif
 
@@ -245,7 +245,7 @@ void GL_State( unsigned long stateBits )
 	{
 		GLenum srcFactor = GL_ONE, dstFactor = GL_ONE;
 
-		#if defined(__VBCC__) && defined(__PPC__) // minigl vbcc blending workaround - Cowcat
+		#if defined(__VBCC__) // && defined(__PPC__) // minigl vbcc blending workaround - Cowcat
 
 		qboolean flat = qfalse;
 
@@ -268,7 +268,7 @@ void GL_State( unsigned long stateBits )
 
 				case GLS_SRCBLEND_ONE:
 					srcFactor = GL_ONE;
-				#if defined(__VBCC__) && defined(__PPC__)
+				#if defined(__VBCC__) // && defined(__PPC__)
 					flat = qtrue;
 				#endif
 					break;
@@ -345,7 +345,7 @@ void GL_State( unsigned long stateBits )
 					break;
 			}
 
-			#if defined(__VBCC__) && defined(__PPC__) // minigl vbcc blending workaround - Cowcat
+			#if defined(__VBCC__) // && defined(__PPC__) // minigl vbcc blending workaround - Cowcat
 
 			// railgun sync - Cowcat
 			if ( flat != smoothcheck && dstFactor == GL_ONE )
@@ -875,7 +875,7 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 
 	// we definately want to sync every frame for the cinematics
 	qglFinish();
-
+	
 	start = 0;
 
 	if ( r_speeds->integer )
@@ -931,11 +931,11 @@ void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int
 		image->width = image->uploadWidth = cols;
 		image->height = image->uploadHeight = rows;
 		//qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, cols, cols, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat
-		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat	
+		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat
+		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat	
 	}
 
 	else

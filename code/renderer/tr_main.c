@@ -77,24 +77,6 @@ int R_CullLocalBox (vec3_t bounds[2])
 		VectorMA( transformed[i], v[0], tr.or.axis[0], transformed[i] );
 		VectorMA( transformed[i], v[1], tr.or.axis[1], transformed[i] );
 		VectorMA( transformed[i], v[2], tr.or.axis[2], transformed[i] );
-
-		#if 0
-		float trans0 = transformed[i][0];
-		float trans1 = transformed[i][1];
-		float trans2 = transformed[i][2];
-		
-		trans0 =  v[0] * tr.or.axis[0][0] + trans0 ;
-		trans1 =  v[0] * tr.or.axis[0][1] + trans1 ;
-		trans2 =  v[0] * tr.or.axis[0][2] + trans2 ;
-
-		trans0 =  v[1] * tr.or.axis[1][0] + trans0 ;
-		trans1 =  v[1] * tr.or.axis[1][1] + trans1 ;
-		trans2 =  v[1] * tr.or.axis[1][2] + trans2 ;
-
-		transformed[i][0] =  v[2] * tr.or.axis[2][0] + trans0 ;
-		transformed[i][1] =  v[2] * tr.or.axis[2][1] + trans1 ;
-		transformed[i][2] =  v[2] * tr.or.axis[2][2] + trans2 ;
-		#endif
 	}
 
 	// check against frustum planes
@@ -309,6 +291,7 @@ void myGlMultMatrix( const float *a, const float *b, float *out )
 	}
 }
 
+
 /*
 =================
 R_RotateForEntity
@@ -514,6 +497,7 @@ Set up the culling frustum planes for the current view using the results we got 
 the projection matrix.
 =================
 */
+
 void R_SetupFrustum (viewParms_t *dest, float xmin, float xmax, float ymax, float zProj, float stereoSep)
 {
 	vec3_t	ofsorigin;
@@ -526,8 +510,11 @@ void R_SetupFrustum (viewParms_t *dest, float xmin, float xmax, float ymax, floa
 		VectorCopy(dest->or.origin, ofsorigin);
 
 		length = sqrt(xmax * xmax + zProj * zProj);
+		
 		oppleg = xmax / length;
 		adjleg = zProj / length;
+
+		//Com_Printf("oppleg %f adjlep %f\n", oppleg, adjleg);
 
 		VectorScale(dest->or.axis[0], oppleg, dest->frustum[0].normal);
 		VectorMA(dest->frustum[0].normal, adjleg, dest->or.axis[1], dest->frustum[0].normal);
@@ -664,17 +651,39 @@ Sets the z-component transformation part in the projection matrix
 ===============
 */
 
-#if defined(AMIGAOS) && defined(__PPC__) // Cowcat
+
+#if defined(AMIGAOS) && defined(__PPC__) && defined (__VBCC__) // Cowcat
 
 extern float SGN(float a);
 
 #else
 
+#if defined(__PPC__) && defined(__GNUC__)
+static inline double _fsel ( double t, double a, double b)
+{
+	double res;
+	__asm__("fsel %0,%1,%2,%3" : "=f" (res) : "f" (t), "f" (a), "f" (b));
+	return res;
+}
+#endif
+
 static inline float SGN(float a)
 {
+	#if !defined (__PPC__)
+
 	if( a > 0.0F ) return (1.0F);
 	if( a < 0.0F ) return (-1.0F);
+
 	return (0.0F);
+
+	#else
+
+	if( a == 0.f )
+		return 0.f;
+
+	return _fsel(a, 1.0f, -1.0f);
+
+	#endif
 }
 
 #endif
@@ -686,18 +695,6 @@ void R_SetupProjectionZ(viewParms_t *dest)
 {
 	float zNear, zFar, depth;
 	
-	zNear	= r_znear->value;
-	zFar	= dest->zFar;	
-	//depth = zFar - zNear;
-	depth	= 1.0f / (zFar - zNear); // Cowcat
-
-	dest->projectionMatrix[2] = 0;
-	dest->projectionMatrix[6] = 0;
-	dest->projectionMatrix[10] = -( zFar + zNear ) * depth; // 
-	dest->projectionMatrix[14] = -2 * zFar * zNear * depth; //
-	//dest->projectionMatrix[10] = -( zFar + zNear ) / depth;
-	//dest->projectionMatrix[14] = -2 * zFar * zNear / depth;
-
 	if( dest->isPortal ) // from ioq3 xbox360 - fixes for mirrors
 	{
 		float	plane[4];
@@ -705,6 +702,7 @@ void R_SetupProjectionZ(viewParms_t *dest)
 
 		vec4_t	q, c;
 
+		// transform portal plane into camera space
 		plane[0] = dest->portalPlane.normal[0];
 		plane[1] = dest->portalPlane.normal[1];
 		plane[2] = dest->portalPlane.normal[2];
@@ -715,6 +713,8 @@ void R_SetupProjectionZ(viewParms_t *dest)
 		plane2[2] = -DotProduct (dest->or.axis[0], plane);
 		plane2[3] = DotProduct (plane, dest->or.origin) - plane[3];
 
+		// Lengyel, Eric. "Modifying the Projection Matrix to Perform Oblique Near-plane Clipping".
+		// Terathon Software 3D Graphics Library, 2004. http://www.terathon.com/code/oblique.html
 		q[0] = (SGN(plane2[0]) + dest->projectionMatrix[8]) / dest->projectionMatrix[0];
 		q[1] = (SGN(plane2[1]) + dest->projectionMatrix[9]) / dest->projectionMatrix[5];
 		q[2] = -1.0f;
@@ -726,6 +726,21 @@ void R_SetupProjectionZ(viewParms_t *dest)
 		dest->projectionMatrix[6] = c[1];
 		dest->projectionMatrix[10] = c[2] + 1.0f;
 		dest->projectionMatrix[14] = c[3];
+	}
+
+	else 
+	{
+		zNear	= r_znear->value;
+		zFar	= dest->zFar;	
+		//depth = zFar - zNear;
+		depth	= 1.0f / (zFar - zNear); // Cowcat
+
+		dest->projectionMatrix[2] = 0;
+		dest->projectionMatrix[6] = 0;
+		dest->projectionMatrix[10] = -( zFar + zNear ) * depth; // 
+		dest->projectionMatrix[14] = -2 * zFar * zNear * depth; //
+		//dest->projectionMatrix[10] = -( zFar + zNear ) / depth;
+		//dest->projectionMatrix[14] = -2 * zFar * zNear / depth;
 	}
 }
 
@@ -1027,7 +1042,7 @@ static qboolean IsMirror( const drawSurf_t *drawSurf, int entityNum )
 **
 ** Determines if a surface is completely offscreen.
 */
-static qboolean SurfIsOffscreen( const drawSurf_t *drawSurf ) // not used vec4_t clipDest[128] ) - Quake3e
+static qboolean SurfIsOffscreen( const drawSurf_t *drawSurf ) // not used vec4_t clipDest[128] ) - ec-/Quake3e
 {
 	float		shortest = 100000000;
 	int		entityNum;
@@ -1134,7 +1149,7 @@ Returns qtrue if another view has been rendered
 */
 qboolean R_MirrorViewBySurface (drawSurf_t *drawSurf, int entityNum)
 {
-	//vec4_t	clipDest[128]; // Quake3e - Cowcat
+	//vec4_t	clipDest[128]; // Quake3e
 	viewParms_t	newParms;
 	viewParms_t	oldParms;
 	orientation_t	surface, camera;
@@ -1152,7 +1167,7 @@ qboolean R_MirrorViewBySurface (drawSurf_t *drawSurf, int entityNum)
 	}
 
 	// trivially reject portal/mirror
-	if ( SurfIsOffscreen( drawSurf ) ) // clipDest not used  - Quake3e - Cowcat
+	if ( SurfIsOffscreen( drawSurf ) ) // clipDest not used  - Quake3e
 	{
 		return qfalse;
 	}
@@ -1627,7 +1642,7 @@ void R_RenderView (viewParms_t *parms)
 
 	firstDrawSurf = tr.refdef.numDrawSurfs;
 
-	//tr.viewCount++; // oops ! - Cowcat
+	tr.viewCount++; // needed ? - Cowcat
 
 	// set viewParms.world
 	R_RotateForViewer ();

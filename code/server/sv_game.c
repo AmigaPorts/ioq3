@@ -215,17 +215,14 @@ qboolean SV_inPVSIgnorePortals( const vec3_t p1, const vec3_t p2)
 {
 	int	leafnum;
 	int	cluster;
-	//int	area1, area2;
 	byte	*mask;
 
 	leafnum = CM_PointLeafnum (p1);
 	cluster = CM_LeafCluster (leafnum);
-	//area1 = CM_LeafArea (leafnum); // Cowcat
 	mask = CM_ClusterPVS (cluster);
 
 	leafnum = CM_PointLeafnum (p2);
 	cluster = CM_LeafCluster (leafnum);
-	//area2 = CM_LeafArea (leafnum); // Cowcat
 
 	if ( mask && (!(mask[cluster>>3] & (1<<(cluster&7)) ) ) )
 		return qfalse;
@@ -339,9 +336,6 @@ SV_GameSystemCalls
 The module is making a system call
 ====================
 */
-
-//#undef VMA
-//#define VMA(x) ((void *) args[x])
 
 intptr_t SV_GameSystemCalls( intptr_t *args )
 {
@@ -506,7 +500,9 @@ intptr_t SV_GameSystemCalls( intptr_t *args )
 
 			if ( !sv.entityParsePoint && !s[0] ) {
 				return qfalse;
-			} else {
+			}
+
+			else {
 				return qtrue;
 			}
 		}
@@ -659,8 +655,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args )
 
 	case BOTLIB_EA_ACTION:
 		botlib_export->ea.EA_Action( args[1], args[2] );
-		//break;
-		return 0; // fix - Cowcat
+		return 0;
 
 	case BOTLIB_EA_GESTURE:
 		botlib_export->ea.EA_Gesture( args[1] );
@@ -1053,8 +1048,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args )
 		Com_Error( ERR_DROP, "Bad game system trap: %ld", (long int) args[0] );
 	}
 	
-	//return -1;
-	return 0; // fix - Cowcat
+	return 0;
 }
 
 /*
@@ -1147,6 +1141,7 @@ void SV_InitGameProgs( void )
 	if ( var ) {
 		bot_enable = var->integer;
 	}
+
 	else {
 		bot_enable = 0;
 	}

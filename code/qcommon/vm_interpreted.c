@@ -1164,7 +1164,7 @@ nextInstruction2:
 			goto nextInstruction;
 
 		case OP_CVFI:
-			*opStack = (int) *(float *)opStack; 
+			*opStack = (int) *(float *)opStack;
 			goto nextInstruction;
 
 		case OP_SEX8:

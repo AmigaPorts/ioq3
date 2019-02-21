@@ -109,7 +109,8 @@ void S_Base_SoundInfo(void)
 
 	else
 	{
-		Com_Printf("%5d stereo\n", dma.channels - 1);
+		//Com_Printf("%5d stereo\n", dma.channels - 1); //
+		Com_Printf("%5d channels\n", dma.channels); // new Cowcat
 		Com_Printf("%5d samples\n", dma.samples);
 		Com_Printf("%5d samplebits\n", dma.samplebits);
 		Com_Printf("%5d submission_chunk\n", dma.submission_chunk);
@@ -1074,11 +1075,11 @@ void S_Base_RawSamples( int stream, int samples, int rate, int width, int s_chan
 
 	rawsamples = s_rawsamples[stream];
 
-	intVolume = 256 * volume;
+	intVolume = 256 * volume * s_volume->value; // new Cowcat
 
 	if ( s_rawend[stream] < s_soundtime )
 	{
-		Com_DPrintf( "S_RawSamples: resetting minimum: %i < %i\n", s_rawend[stream], s_soundtime );
+		Com_DPrintf( "S_Base_RawSamples: resetting minimum: %i < %i\n", s_rawend[stream], s_soundtime );
 		s_rawend[stream] = s_soundtime;
 	}
 
@@ -1172,7 +1173,7 @@ void S_Base_RawSamples( int stream, int samples, int rate, int width, int s_chan
 
 	if ( s_rawend[stream] > s_soundtime + MAX_RAW_SAMPLES )
 	{
-		Com_DPrintf( "S_RawSamples: overflowed %i > %i\n", s_rawend[stream], s_soundtime );
+		Com_DPrintf( "S_Base_RawSamples: overflowed %i > %i\n", s_rawend[stream], s_soundtime );
 	}
 }
 
@@ -1456,6 +1457,7 @@ void S_Update_(void)
 	endtime = (endtime + dma.submission_chunk-1) & ~(dma.submission_chunk-1);
 
 	// never mix more than the complete buffer
+	
 	samps = dma.samples >> (dma.channels-1);
 
 	if (endtime - s_soundtime > samps)
@@ -1561,33 +1563,17 @@ void S_UpdateBackgroundTrack( void )
 	byte		raw[30000];	// just enough to fit in a mac stack frame
 	int		fileBytes;
 	int		r;
-	//static float	musicVolume = 0.5f;
 
 	if(!s_backgroundStream)
 	{
 		return;
 	}
 
-	#if 0
-
-	// graeme see if this is OK
-	musicVolume = (musicVolume + (s_musicVolume->value * 2))/4.0f;
-
-	// don't bother playing anything if musicvolume is 0
-	if ( musicVolume <= 0 )
-	{
-		return;
-	}
-
-	#else // test - Cowcat
-
 	// don't bother playing anything if musicvolume is 0
 	if ( s_musicVolume->value <= 0 )
 	{
 		return;
 	}
-
-	#endif
 	
 	// see how many samples should be copied into the raw buffer
 	if ( s_rawend[0] < s_soundtime )

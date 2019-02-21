@@ -213,7 +213,8 @@ static void MD5Update(struct MD5Context *ctx, unsigned char const *buf,
  * Final wrapup - pad to 64-byte boundary with the bit pattern 
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
-static void MD5Final(struct MD5Context *ctx, unsigned char *digest)
+//static 
+void MD5Final(struct MD5Context *ctx, unsigned char *digest)
 {
     unsigned count;
     unsigned char *p;
@@ -253,7 +254,7 @@ static void MD5Final(struct MD5Context *ctx, unsigned char *digest)
     
     if (digest!=NULL)
 	    memcpy(digest, ctx->buf, 16);
-    memset(ctx, 0, sizeof(ctx));	/* In case it's sensitive */
+    memset(ctx, 0, sizeof(*ctx));	/* In case it's sensitive */
 }
 
 

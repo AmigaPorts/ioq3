@@ -551,7 +551,8 @@ vmHeader_t *VM_LoadQVM( vm_t *vm, qboolean alloc, qboolean unpure )
 			return NULL;
 		}
 
-		Com_Memset( vm->dataBase, 0, dataLength );
+		//Com_Memset( vm->dataBase, 0, dataLength );
+		Com_Memset(vm->dataBase, 0, vm->dataAlloc); // Cowcat test
 	}
 
 	// copy the intialized data

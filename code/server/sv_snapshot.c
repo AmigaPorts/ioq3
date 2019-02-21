@@ -322,7 +322,7 @@ static int QDECL SV_QsortEntityNumbers( const void *a, const void *b )
 #else
 
 // Cowcat (fixes nasty crashes on maps with portals)
-static void SV_SortEntityNumbers( entityNum_t *num, const int size ) // Quake3e
+static void SV_SortEntityNumbers( entityNum_t *num, const int size ) // ec-/Quake3e
 {
 	entityNum_t tmp;
 
@@ -341,14 +341,12 @@ static void SV_SortEntityNumbers( entityNum_t *num, const int size ) // Quake3e
 		}
 	}
 	
-
+	// consistency check for delta encoding
 	for( i = 1; i < size ; i++)
 	{
 		if( num[i-1] >= num[i] )
 			Com_Error( ERR_DROP, "%s: invalid entity number %i", __func__, num[i] );
 	}
-
-	
 }
 
 #endif
@@ -364,6 +362,7 @@ static void SV_AddEntToSnapshot( svEntity_t *svEnt, sharedEntity_t *gEnt, snapsh
 	// if we have already added this entity to this snapshot, don't add again
 	if ( svEnt->snapshotCounter == sv.snapshotCounter )
 	{
+		//Com_Printf ("WARNING: entity already added\n");
 		return;
 	}
 	#endif
@@ -554,7 +553,7 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 				}
 			}
 
-			eNums->unordered = qtrue; // Quake3e
+			eNums->unordered = qtrue; // ec-/Quake3e
 			SV_AddEntitiesVisibleFromPoint( ent->s.origin2, frame, eNums, qtrue );
 		}
 
@@ -631,7 +630,7 @@ static void SV_BuildClientSnapshot( client_t *client )
 
 	// add all the entities directly visible to the eye, which
 	// may include portal entities that merge other viewpoints
-	entityNumbers.unordered = qfalse; // Quake3e
+	entityNumbers.unordered = qfalse; // ec-/Quake3e
 	SV_AddEntitiesVisibleFromPoint( org, frame, &entityNumbers, qfalse );
 
 	// if there were portals visible, there may be out of order entities
@@ -645,7 +644,7 @@ static void SV_BuildClientSnapshot( client_t *client )
 
 	#else
 
-	if(entityNumbers.unordered) // Quake3e - optimization
+	if(entityNumbers.unordered) // ec-/Quake3e - optimization
 	{
 		SV_SortEntityNumbers( &entityNumbers.snapshotEntities[0], entityNumbers.numSnapshotEntities);
 	}

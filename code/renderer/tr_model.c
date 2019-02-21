@@ -202,7 +202,7 @@ model_t *R_AllocModel( void )
 {
 	model_t *mod;
 
-	if ( tr.numModels >= MAX_MOD_KNOWN ) // was == Quake3e - Cowcat
+	if ( tr.numModels >= MAX_MOD_KNOWN ) // was == ec-/Quake3e
 	{
 		return NULL;
 	}

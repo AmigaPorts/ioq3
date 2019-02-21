@@ -171,9 +171,9 @@ OBJS = \
 	  \
 	  $(B)/amiga_main.o \
 	  $(B)/amiga_input.o \
+	  $(B)/amiga_mhandler.o \
    	  $(B)/amiga_snd.o \
 	  $(B)/amiga_glimp.o \
-	  $(B)/amiga_qgl.o \
 	  $(B)/amiga_shared.o
 ##
 
@@ -296,7 +296,7 @@ OBJQAGAME = \
 
 ##
 
-QUAKE3 = $(B)/quake3-68k-7-vbcc
+QUAKE3 = $(B)/quake3-68k-8-vbcc
 Q3UI = $(BUI)/ui68k.dll
 CGAME = $(BCG)/cgame68k.dll
 QAGAME = $(BQAG)/qagame68k.dll
@@ -613,6 +613,8 @@ $(B)/jcapistd.o:  code/jpeg-6b/jcapistd.c
 	$(DO_CC)
 
 $(B)/amiga_input.o:  code/amiga/amiga_input.c
+	$(DO_CC)
+$(B)/amiga_mhandler.o:  code/amiga/amiga_mhandler.c
 	$(DO_CC)
 $(B)/amiga_main.o:  code/amiga/amiga_main.c
 	$(DO_CC)

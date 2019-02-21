@@ -307,7 +307,6 @@ static byte	*fdFile;
 
 int readInt( void )
 {
-	//int i = fdFile[fdOffset]+(fdFile[fdOffset+1]<<8)+(fdFile[fdOffset+2]<<16)+(fdFile[fdOffset+3]<<24);
 	int i = ( (unsigned int)fdFile[fdOffset] | ((unsigned int)fdFile[fdOffset+1]<<8) |
 		((unsigned int)fdFile[fdOffset+2]<<16) | ((unsigned int)fdFile[fdOffset+3]<<24) );
 	fdOffset += 4;
@@ -411,8 +410,7 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font)
 			font->glyphs[i].s2		= readFloat();
 			font->glyphs[i].t2		= readFloat();
 			font->glyphs[i].glyph		= readInt();
-			//Com_Memcpy(font->glyphs[i].shaderName, &fdFile[fdOffset], 32);
-			//fdOffset += 32;
+			
 			Q_strncpyz(font->glyphs[i].shaderName, (const char *)&fdFile[fdOffset], sizeof(font->glyphs[i].shaderName));
 			fdOffset += sizeof(font->glyphs[i].shaderName);
 		}

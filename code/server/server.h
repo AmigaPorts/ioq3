@@ -28,29 +28,29 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 //=============================================================================
 
-#define	PERS_SCORE		0		// !!! MUST NOT CHANGE, SERVER AND
+#define PERS_SCORE		0		// !!! MUST NOT CHANGE, SERVER AND
 						// GAME BOTH REFERENCE !!!
 
-#define	MAX_ENT_CLUSTERS	16
+#define MAX_ENT_CLUSTERS	16
 
 #ifdef USE_VOIP
 #define VOIP_QUEUE_LENGTH 64
 
 typedef struct voipServerPacket_s
 {
-	int 	generation;
-	int 	sequence;
-	int 	frames;
-	int 	len;
-	int 	sender;
-	byte 	data[1024];
+	int	generation;
+	int	sequence;
+	int	frames;
+	int	len;
+	int	sender;
+	byte	data[1024];
 
 } voipServerPacket_t;
 #endif
 
 typedef struct svEntity_s {
-	struct worldSector_s 	*worldSector;
-	struct svEntity_s 	*nextEntityInWorldSector;
+	struct worldSector_s	*worldSector;
+	struct svEntity_s	*nextEntityInWorldSector;
 	
 	entityState_t		baseline;		// for delta compression of initial sighting
 	int			numClusters;		// if -1, use headnode instead
@@ -77,7 +77,7 @@ typedef struct {
 
 	// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=475
 	// the serverId associated with the current checksumFeed (always <= serverId)
-	int       	checksumFeedServerId;	
+	int		checksumFeedServerId;	
 	int		snapshotCounter;	// incremented for each snapshot built
 	int		timeResidual;		// <= 1000 / sv_frame->value
 	int		nextFrameTime;		// when time > nextFrameTime, process world
@@ -126,8 +126,8 @@ typedef enum {
 } clientState_t;
 
 typedef struct netchan_buffer_s {
-	msg_t           	msg;
-	byte            	msgBuffer[MAX_MSGLEN];
+	msg_t			msg;
+	byte			msgBuffer[MAX_MSGLEN];
 
 #ifdef LEGACY_PROTOCOL
 	char			clientCommandString[MAX_STRING_CHARS];	// valid command string for SV_Netchan_Encode
@@ -159,8 +159,8 @@ typedef struct client_s {
 	// downloading
 	char			downloadName[MAX_QPATH]; // if not empty string, we are downloading
 	fileHandle_t		download;		// file being downloaded
- 	int			downloadSize;		// total bytes (can't use EOF because of paks)
- 	int			downloadCount;		// bytes sent
+	int			downloadSize;		// total bytes (can't use EOF because of paks)
+	int			downloadCount;		// bytes sent
 	int			downloadClientBlock;	// last block we sent to the client, awaiting ack
 	int			downloadCurrentBlock;	// current block number
 	int			downloadXmitBlock;	// last block we xmited
@@ -175,7 +175,7 @@ typedef struct client_s {
 	int			lastConnectTime;	// svs.time when connection started
 	int			lastSnapshotTime;	// svs.time of last sent snapshot
 	qboolean		rateDelayed;		// true if nextSnapshotTime was set based on rate instead of snapshotMsec
-#ifdef DEBUG // Quake3e
+#ifdef DEBUG // ec-/Quake3e
 	int			timeoutCount;		// must timeout a few frames in a row so debugging doesn't break
 #endif
 	clientSnapshot_t	frames[PACKET_BACKUP];	// updates can be delta'd from here
@@ -183,25 +183,25 @@ typedef struct client_s {
 	int			rate;			// bytes / second
 	int			snapshotMsec;		// requests a snapshot every snapshotMsec unless rate choked
 	int			pureAuthentic;
-	qboolean  		gotCP; 			// TTimo - additional flag to distinguish between a bad pure checksum, and no cp command at all
+	qboolean		gotCP;			// TTimo - additional flag to distinguish between a bad pure checksum, and no cp command at all
 	netchan_t		netchan;
 	// TTimo
 	// queuing outgoing fragmented messages to send them properly, without udp packet bursts
 	// in case large fragmented messages are stacking up
 	// buffer them into this queue, and hand them out to netchan as needed
-	netchan_buffer_t 	*netchan_start_queue;
-	netchan_buffer_t 	**netchan_end_queue;
+	netchan_buffer_t	*netchan_start_queue;
+	netchan_buffer_t	**netchan_end_queue;
 
 #ifdef USE_VOIP
-	qboolean 		hasVoip;
-	qboolean 		muteAllVoip;
-	qboolean 		ignoreVoipFromClient[MAX_CLIENTS];
-	voipServerPacket_t 	*voipPacket[VOIP_QUEUE_LENGTH];
-	int 			queuedVoipPackets;
+	qboolean		hasVoip;
+	qboolean		muteAllVoip;
+	qboolean		ignoreVoipFromClient[MAX_CLIENTS];
+	voipServerPacket_t	*voipPacket[VOIP_QUEUE_LENGTH];
+	int			queuedVoipPackets;
 #endif
 
 	int			oldServerTime;
-	qboolean		csUpdated[MAX_CONFIGSTRINGS+1];	 // Cowcat check this
+	qboolean		csUpdated[MAX_CONFIGSTRINGS];
 
 #ifdef LEGACY_PROTOCOL
 	qboolean		compat;
@@ -215,11 +215,11 @@ typedef struct client_s {
 // MAX_CHALLENGES is made large to prevent a denial
 // of service attack that could cycle all of them
 // out before legitimate users connected
-#define	MAX_CHALLENGES		2048
+#define MAX_CHALLENGES		2048
 
-#define	MAX_CHALLENGES_MULTI	(MAX_CHALLENGES	/ 2)
+#define MAX_CHALLENGES_MULTI	(MAX_CHALLENGES / 2)
 
-#define	AUTHORIZE_TIMEOUT	5000
+#define AUTHORIZE_TIMEOUT	5000
 
 typedef struct {
 	netadr_t	adr;
@@ -234,7 +234,7 @@ typedef struct {
 } challenge_t;
 
 
-#define	MAX_MASTERS	8			// max recipients for heartbeat packets
+#define MAX_MASTERS	8			// max recipients for heartbeat packets
 
 
 // this structure will be cleared only when the game dll changes
@@ -277,7 +277,7 @@ extern	serverStatic_t	svs;		// persistant server info across maps
 extern	server_t	sv;		// cleared each map
 extern	vm_t		*gvm;		// game virtual machine
 
-#define	MAX_MASTER_SERVERS	5
+#define MAX_MASTER_SERVERS	5
 
 extern	cvar_t	*sv_fps;
 extern	cvar_t	*sv_timeout;
@@ -395,10 +395,10 @@ void SV_SendClientSnapshot( client_t *client );
 // sv_game.c
 //
 int		SV_NumForGentity( sharedEntity_t *ent );
-sharedEntity_t 	*SV_GentityNum( int num );
-playerState_t 	*SV_GameClientNum( int num );
+sharedEntity_t	*SV_GentityNum( int num );
+playerState_t	*SV_GameClientNum( int num );
 svEntity_t	*SV_SvEntityForGentity( sharedEntity_t *gEnt );
-sharedEntity_t 	*SV_GEntityForSvEntity( svEntity_t *svEnt );
+sharedEntity_t	*SV_GEntityForSvEntity( svEntity_t *svEnt );
 void		SV_InitGameProgs ( void );
 void		SV_ShutdownGameProgs ( void );
 void		SV_RestartGameProgs( void );
@@ -417,9 +417,10 @@ int		SV_BotLibShutdown( void );
 int		SV_BotGetSnapshotEntity( int client, int ent );
 int		SV_BotGetConsoleMessage( int client, char *buf, int size );
 
-int BotImport_DebugPolygonCreate(int color, int numPoints, vec3_t *points);
-void BotImport_DebugPolygonDelete(int id);
+int	BotImport_DebugPolygonCreate(int color, int numPoints, vec3_t *points);
+void	BotImport_DebugPolygonDelete(int id);
 
+void	SV_BotInitBotLib(void);
 //============================================================
 //
 // high level object sorting to reduce interaction tests
@@ -477,7 +478,6 @@ void SV_ClipToEntity( trace_t *trace, const vec3_t start, const vec3_t mins, con
 void SV_Netchan_Transmit( client_t *client, msg_t *msg);
 int SV_Netchan_TransmitNextFragment( client_t *client );
 qboolean SV_Netchan_Process( client_t *client, msg_t *msg );
-
 void SV_Netchan_FreeQueue( client_t *client);
 
 

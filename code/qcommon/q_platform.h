@@ -417,11 +417,11 @@ float FloatSwap (const float *f);
 
 // Cowcat
 //platform string
-//#ifdef NDEBUG
+#ifdef NDEBUG
 #define PLATFORM_STRING OS_STRING "-" ARCH_STRING
-//#else
-//#define PLATFORM_STRING OS_STRING "-" ARCH_STRING "-debug"
-//#endif
+#else
+#define PLATFORM_STRING OS_STRING "-" ARCH_STRING "-debug"
+#endif
 
 #endif
 

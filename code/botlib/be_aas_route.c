@@ -453,13 +453,13 @@ void AAS_CreateReversedReachability(void)
 		if (settings->numreachableareas > 128) // Quake3a fix - Cowcat
 			botimport.Print(PRT_WARNING, "area %d has more than 128 reachabilities\n", i);
 
-
 		//create reversed links for the reachabilities
 		for (n = 0; n < settings->numreachableareas && n < 128; n++)
 		{
 			//reachability link
 			reach = &aasworld.reachability[settings->firstreachablearea + n];
 			//
+			
 			revlink = (aas_reversedlink_t *) ptr;
 			ptr += sizeof(aas_reversedlink_t);
 			//
@@ -468,6 +468,7 @@ void AAS_CreateReversedReachability(void)
 			revlink->next = aasworld.reversedreachability[reach->areanum].first;
 			aasworld.reversedreachability[reach->areanum].first = revlink;
 			aasworld.reversedreachability[reach->areanum].numlinks++;
+
 		} //end for
 
 	} //end for

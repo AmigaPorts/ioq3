@@ -291,7 +291,7 @@ void Cmd_Exec_f( void )
 	
 	Cbuf_InsertText (f);
 
-	#ifdef DELAY_WRITECONFIG // Quake3e - test Cowcat
+	#ifdef DELAY_WRITECONFIG // ec-/Quake3e
 
 	if ( !Q_stricmp( filename, Q3CONFIG_CFG ) )
 	{	
@@ -879,7 +879,7 @@ Cmd_CompleteCfgName
 void Cmd_CompleteCfgName( char *args, int argNum )
 {
 	if( argNum == 2 ) {
-		Field_CompleteFilename( "", "cfg", qfalse );
+		Field_CompleteFilename( "", "cfg", qfalse, qtrue );
 	}
 }
 

@@ -39,8 +39,6 @@ int demo_protocols[] = { 67, 66, 0 };
 #define MIN_COMHUNKMEGS			56
 #define DEF_COMHUNKMEGS			64
 #define DEF_COMZONEMEGS			24
-#define XSTRING(x)			STRING(x)
-#define STRING(x)			#x
 #define DEF_COMHUNKMEGS_S		XSTRING(DEF_COMHUNKMEGS)
 #define DEF_COMZONEMEGS_S		XSTRING(DEF_COMZONEMEGS)
 
@@ -163,7 +161,7 @@ void QDECL Com_Printf( const char *fmt, ... )
 	if ( rd_buffer )
 	{
 		//if ((strlen (msg) + strlen(rd_buffer)) > (rd_buffersize - 1))
-		if ( len + strlen(rd_buffer) > (rd_buffersize - 1) ) // Quake3e optimization - Cowcat
+		if ( len + strlen(rd_buffer) > (rd_buffersize - 1) ) // ec-/Quake3e optimization
 		{
 			rd_flush(rd_buffer);
 			*rd_buffer = 0;
@@ -225,7 +223,7 @@ void QDECL Com_Printf( const char *fmt, ... )
 		if ( logfile && FS_Initialized())
 		{
 			//FS_Write(msg, strlen(msg), logfile);
-			FS_Write(msg, len, logfile); // Quake3e optimization - Cowcat
+			FS_Write(msg, len, logfile); // ec-/Quake3e optimization
 		}
 	}
 }
@@ -363,10 +361,8 @@ void QDECL Com_Error( int code, const char *fmt, ... )
 		if ( com_cl_running && com_cl_running->integer )
 		{
 			CL_Disconnect( qtrue );
-			VM_Forced_Unload_Start();
 			CL_FlushMemory( );
 			VM_Forced_Unload_Done();
-			com_errorEntered = qfalse;
 			CL_CDDialog();
 		}
 
@@ -377,6 +373,7 @@ void QDECL Com_Error( int code, const char *fmt, ... )
 		}
 
 		FS_PureServerSetLoadedPaks("", "");
+		com_errorEntered = qfalse;
 		longjmp (abortframe, -1);
 	}
 
@@ -528,7 +525,6 @@ void Com_StartupVariable( const char *match )
 {
 	int	i;
 	char	*s;
-	cvar_t	*cv;
 
 	for (i=0 ; i < com_numConsoleLines ; i++)
 	{
@@ -580,7 +576,7 @@ qboolean Com_AddStartupCommands( void )
 		}
 
 		// set commands already added with Com_StartupVariable
-		if ( !Q_stricmpn( com_consoleLines[i], "set", 3 ) )
+		if ( !Q_stricmpn( com_consoleLines[i], "set", 4 ) )
 		{
 			continue;
 		}
@@ -912,7 +908,7 @@ all big things are allocated on the hunk.
 ==============================================================================
 */
 
-#define	ZONEID	0x1d4a11
+#define	ZONEID		0x1d4a11
 #define MINFRAGMENT	64
 
 typedef struct zonedebug_s {
@@ -1064,9 +1060,6 @@ void Z_Free( void *ptr )
 		block->size += other->size;
 		block->next = other->next;
 		block->next->prev = block;
-
-		//if (other == zone->rover) // fix - Cowcat
-			//zone->rover = block;
 	}
 }
 
@@ -1499,7 +1492,7 @@ void Com_Meminfo_f( void )
 {
 	memblock_t	*block;
 	int		zoneBytes, zoneBlocks;
-	int		smallZoneBytes, smallZoneBlocks;
+	int		smallZoneBytes;
 	int		botlibBytes, rendererBytes;
 	int		unused;
 
@@ -1545,14 +1538,12 @@ void Com_Meminfo_f( void )
 	}
 
 	smallZoneBytes = 0;
-	smallZoneBlocks = 0;
 
 	for (block = smallzone->blocklist.next ; ; block = block->next)
 	{
 		if ( block->tag )
 		{
 			smallZoneBytes += block->size;
-			smallZoneBlocks++;
 		}
 
 		if (block->next == &smallzone->blocklist)
@@ -1597,7 +1588,7 @@ void Com_Meminfo_f( void )
 
 	Com_Printf( "%8i unused highwater\n", unused );
 	Com_Printf( "\n" );
-	Com_Printf( "%8i bytes in %i zone blocks\n", zoneBytes, zoneBlocks	);
+	Com_Printf( "%8i bytes in %i zone blocks\n", zoneBytes, zoneBlocks );
 	Com_Printf( "        %8i bytes in dynamic botlib\n", botlibBytes );
 	Com_Printf( "        %8i bytes in dynamic renderer\n", rendererBytes );
 	Com_Printf( "        %8i bytes in dynamic other\n", zoneBytes - ( botlibBytes + rendererBytes ) );
@@ -1626,16 +1617,15 @@ void Com_TouchMemory( void )
 
 	j = hunk_low.permanent >> 2;
 
-	for ( i = 0 ; i < j ; i+=64 ) // only need to touch each page	
+	for ( i = 0 ; i < j ; i+=64 )		// only need to touch each page	
 	{
-				
 		sum += ((int *)s_hunkData)[i];
 	}
 
 	i = ( s_hunkTotal - hunk_high.permanent ) >> 2;
 	j = hunk_high.permanent >> 2;
 
-	for (  ; i < j ; i+=64 ) // only need to touch each page
+	for (  ; i < j ; i+=64 )		// only need to touch each page
 	{
 		sum += ((int *)s_hunkData)[i];
 	}
@@ -2387,7 +2377,7 @@ sysEvent_t Com_GetSystemEvent( void )
 	return ev;
 }
 
-#else // test Quake3e - Cowcat
+#else // ec-/Quake3e
 
 #define MAX_QUEUED_EVENTS  128
 #define MASK_QUEUED_EVENTS ( MAX_QUEUED_EVENTS - 1 )
@@ -2888,7 +2878,8 @@ Change to a new mod properly with cleaning up cvars before switching.
 ==================
 */
 
-#if 0 // called from files.c - disabled - Cowcat 
+#if !defined(AMIGAOS) // called from files.c - disabled until bugfix Amiga render - Cowcat
+
 void Com_GameRestart(int checksumFeed, qboolean disconnect)
 {
 	// make sure no recursion can be triggered
@@ -2906,13 +2897,13 @@ void Com_GameRestart(int checksumFeed, qboolean disconnect)
 			if(disconnect)
 				CL_Disconnect(qfalse);
 				
-			//CL_Shutdown("Game directory changed", disconnect, qfalse); // Cowcat
+			CL_Shutdown("Game directory changed", disconnect, qfalse);
 		}
 
 		FS_Restart(checksumFeed);
 	
 		// Clean out any user and VM created cvars
-		//Cvar_Restart(qtrue); // Cowcat check !
+		Cvar_Restart(qtrue);
 		Com_ExecuteCfg();
 
 		if(disconnect)
@@ -2959,7 +2950,7 @@ void Com_ReadCDKey( const char *filename )
 	char		buffer[33];
 	char		fbuffer[MAX_OSPATH];
 
-	sprintf(fbuffer, "%s/q3key", filename);
+	Com_sprintf(fbuffer, sizeof(fbuffer), "%s/q3key", filename);
 
 	FS_SV_FOpenFileRead( fbuffer, &f );
 
@@ -2996,7 +2987,7 @@ void Com_AppendCDKey( const char *filename )
 	char		buffer[33];
 	char		fbuffer[MAX_OSPATH];
 
-	sprintf(fbuffer, "%s/q3key", filename);
+	Com_sprintf(fbuffer, sizeof(fbuffer), "%s/q3key", filename);
 
 	FS_SV_FOpenFileRead( fbuffer, &f );
 
@@ -3037,7 +3028,7 @@ static void Com_WriteCDKey( const char *filename, const char *ikey )
 	mode_t		savedumask;
 #endif
 
-	sprintf(fbuffer, "%s/q3key", filename);
+	Com_sprintf(fbuffer, sizeof(fbuffer), "%s/q3key", filename);
 
 	Q_strncpyz( key, ikey, 17 );
 
@@ -3143,10 +3134,7 @@ void Com_Init( char *commandLine )
 
 	com_standalone = Cvar_Get ("com_standalone", "0", CVAR_ROM);
 	com_basegame = Cvar_Get ("com_basegame", BASEGAME, CVAR_INIT);
-	com_homepath = Cvar_Get ("com_homepath", "", CVAR_INIT);
-
-	if(!com_basegame->string[0])
-		Cvar_ForceReset("com_basegame");
+	com_homepath = Cvar_Get ("com_homepath", "", CVAR_INIT|CVAR_PROTECTED);
 
 	FS_InitFilesystem ();
 
@@ -3374,6 +3362,7 @@ void Com_WriteConfig_f( void )
 
 	Q_strncpyz( filename, Cmd_Argv(1), sizeof( filename ) );
 	COM_DefaultExtension( filename, sizeof( filename ), ".cfg" );
+
 	Com_Printf( "Writing %s.\n", filename );
 	Com_WriteConfigToFile( filename );
 }
@@ -3496,9 +3485,11 @@ void Com_Frame( void )
 	timeBeforeClient = 0;
 	timeAfter = 0;
 
-	#ifndef DELAY_WRITECONFIG // Quake3e - test Cowcat
+	#ifndef DELAY_WRITECONFIG // ec-/Quake3e
+
 	// write config file if anything changed
 	Com_WriteConfiguration(); 
+
 	#endif
 
 	//
@@ -3567,7 +3558,7 @@ void Com_Frame( void )
 	
 	} while(Com_TimeVal(minMsec));
 
-	IN_Frame(); // test Cowcat
+	IN_Frame();
 
 	lastTime = com_frameTime;
 	com_frameTime = Com_EventLoop();
@@ -3675,7 +3666,7 @@ void Com_Frame( void )
 	if ( com_showtrace->integer )
 	{
 		extern	int c_traces, c_brush_traces, c_patch_traces;
-		extern	int	c_pointcontents;
+		extern	int c_pointcontents;
 
 		Com_Printf ("%4i traces  (%ib %ip) %4i points\n", c_traces, c_brush_traces, c_patch_traces, c_pointcontents);
 		c_traces = 0;
@@ -3707,42 +3698,6 @@ void Com_Shutdown (void)
 	}
 
 }
-
-//------------------------------------------------------------------------
-
-
-/*
-=====================
-Q_acos
-
-the msvc acos doesn't always return a value between -PI and PI:
-
-int i;
-i = 1065353246;
-acos(*(float*) &i) == -1.#IND0
-
-	This should go in q_math but it is too late to add new traps
-	to game and ui
-=====================
-*/
-#if 0 // Cowcat
-float Q_acos(float c)
-{
-	float angle;
-
-	angle = acos(c);
-
-	if (angle > M_PI) {
-		return (float)M_PI;
-	}
-
-	if (angle < -M_PI) {
-		return (float)M_PI;
-	}
-
-	return angle;
-}
-#endif
 
 /*
 ===========================================
@@ -3906,15 +3861,15 @@ void Field_CompleteKeyname( void )
 Field_CompleteFilename
 ===============
 */
-void Field_CompleteFilename( const char *dir, const char *ext, qboolean stripExt )
+void Field_CompleteFilename( const char *dir, const char *ext, qboolean stripExt, qboolean allowNonPureFilesOnDisk )
 {
 	matchCount = 0;
 	shortestMatch[ 0 ] = 0;
 
-	FS_FilenameCompletion( dir, ext, stripExt, FindMatches );
+	FS_FilenameCompletion( dir, ext, stripExt, FindMatches, allowNonPureFilesOnDisk );
 
 	if( !Field_Complete( ) )
-		FS_FilenameCompletion( dir, ext, stripExt, PrintMatches );
+		FS_FilenameCompletion( dir, ext, stripExt, PrintMatches, allowNonPureFilesOnDisk );
 }
 
 /*

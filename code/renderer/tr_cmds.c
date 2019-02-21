@@ -93,7 +93,7 @@ R_IssueRenderCommands
 */
 
 //void R_IssueRenderCommands( qboolean runPerformanceCounters )
-void R_IssueRenderCommands( void ) // Quake3e
+void R_IssueRenderCommands( void ) // ec-/Quake3e
 {
 	renderCommandList_t	*cmdList;
 
@@ -134,7 +134,7 @@ void R_IssuePendingRenderCommands(void)
 		return;
 
 	//R_IssueRenderCommands( qfalse );
-	R_IssueRenderCommands(); // Quake3e
+	R_IssueRenderCommands(); // ec-/Quake3e
 }
 
 /*
@@ -537,10 +537,10 @@ void RE_EndFrame( int *frontEndMsec, int *backEndMsec )
 
 	cmd->commandId = RC_SWAP_BUFFERS;
 
-	R_PerformanceCounters(); // Quake3e 
+	R_PerformanceCounters(); // ec-/Quake3e 
 
 	//R_IssueRenderCommands( qtrue );
-	R_IssueRenderCommands(); // Quake3e 
+	R_IssueRenderCommands(); // ec-/Quake3e 
 
 	R_InitNextFrame();
 

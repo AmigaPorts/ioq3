@@ -36,7 +36,7 @@ It is safe to actually issue drawing commands here if you don't want to use the 
 
 */
 
-#if defined(__VBCC__) && defined(__PPC__)
+#if defined(__VBCC__) // && defined(__PPC__)
 extern qboolean smoothshade; // Cowcat
 #endif
 
@@ -231,7 +231,7 @@ static void RB_SurfaceSprite( void )
 
 	RB_AddQuadStamp( backEnd.currentEntity->e.origin, left, up, backEnd.currentEntity->e.shaderRGBA );
 
-	#if defined(__VBCC__) && defined(__PPC__) // minigl vbcc blending workaround - see backend/GL_State - Cowcat
+	#if defined(__VBCC__) // && defined(__PPC__) // minigl vbcc blending workaround - see backend/GL_State - Cowcat
 
 	#ifdef STANDALONE // only for OpenArena
 	qglShadeModel(GL_SMOOTH); // minigl blending workaround - see backend/GL_State - Cowcat
@@ -605,7 +605,7 @@ static void RB_SurfaceRailCore( void )
 
 	DoRailCore( start, end, right, len, r_railCoreWidth->integer );
 	
-	#if defined(__VBCC__) && defined(__PPC__) // minigl vbcc blending workaround - see backend/GL_State - Cowcat
+	#if defined(__VBCC__) // && defined(__PPC__) // minigl vbcc blending workaround - see backend/GL_State - Cowcat
 
 	#ifndef STANDALONE
 	qglShadeModel(GL_SMOOTH); 
@@ -663,13 +663,11 @@ static void RB_SurfaceLightningBolt( void )
 * This means that we don't have to worry about zero length or enormously long vectors.
 */
 
-#if !defined(__GNUC__)
 #if defined(__VBCC__) && defined(__PPC__) // Cowcat
 
 float __asm_frsqrte(__reg("f1") float) = "\tfrsqrte\t1,1";
 #define __frsqrte(x) __asm_frsqrte(x)
 
-#endif
 #endif
 
 void VectorArrayNormalize(vec4_t *normals, unsigned int count)
@@ -708,9 +706,6 @@ void VectorArrayNormalize(vec4_t *normals, unsigned int count)
 		#endif
 
 			y1 = y0 + half * y0 * (one - (B * y0 * y0));
-			//float y2 = y0 * y0;
-			//y2 = -(y2 * B - one);
-			//y1 = y0 + half * y0 * y2;
 
             		x = x * y1;
             		y = y * y1;

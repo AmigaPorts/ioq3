@@ -37,6 +37,7 @@ struct Library *Warp3DPPCBase = NULL;
 #else
 struct Library *Warp3DBase = NULL;
 #endif
+
 struct Library *CyberGfxBase = NULL;
 
 
@@ -79,7 +80,6 @@ GLboolean MGLInit(void)
 #ifdef TRIGTABLES
 	MGL_SINCOS_Init();
 #endif
-
 
 	Init_ArrayToElements_Warpper(); //11-04-02
 

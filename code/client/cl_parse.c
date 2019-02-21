@@ -736,9 +736,6 @@ void CL_ParseDownload ( msg_t *msg )
 			FS_SV_Rename ( clc.downloadTempName, clc.downloadName );
 		}
 
-		*clc.downloadTempName = *clc.downloadName = 0;
-		Cvar_Set( "cl_downloadName", "" );
-
 		// send intentions now
 		// We need this because without it, we would hold the last nextdl and then start
 		// loading right away.  If we take a while to load, the server is happily trying

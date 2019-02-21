@@ -47,6 +47,8 @@ void MiniGL_Init(void)
 	*/
 }
 
+#endif
+
 void MiniGL_Term(void)
 {
 	/*
@@ -60,7 +62,6 @@ void MiniGL_Term(void)
 	}
 	*/
 }
-#endif
 
 void QGL_Shutdown(void)
 {
@@ -74,3 +75,4 @@ void QGL_Init(const char *name)
 	//MiniGL_Init();
 	MGLInit();
 }
+

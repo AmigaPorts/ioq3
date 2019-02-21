@@ -87,8 +87,8 @@ void *tex_Alloc(ULONG size)
 {
 	ULONG *x;
 	Allocated_Size += size+4;
-	x=(ULONG *)malloc(size+4);
-	//x = (ULONG *)AllocVecPPC(size+4, /*MEMF_CACHEOFF|MEMF_WRITETHROUGH|*/ MEMF_ANY|MEMF_CLEAR, 0); // Cowcat test
+	x = (ULONG *)malloc(size+4);
+	//x = (ULONG *)AllocVecPPC(size+4, MEMF_PUBLIC|MEMF_CLEAR, 0);
 	*x = size;
 
 	if (Allocated_Size > Peak_Size)
@@ -104,7 +104,7 @@ void tex_Free(void *chunk)
 	Allocated_Size -= *mem;
 	Allocated_Size -= 4;
 	free(mem);
-	//FreeVecPPC(mem); // Cowcat test
+	//FreeVecPPC(mem);
 }
 
 #if 0 // not used
@@ -132,6 +132,7 @@ void GLDeleteTextures(GLcontext context, GLsizei n, const GLuint *textures)
 
 		if (context->w3dTexBuffer[j])
 		{
+			//W3D_BindTexture(context->w3dContext, j, NULL); // bugfix ? - Cowcat
 			W3D_FreeTexObj(context->w3dContext, context->w3dTexBuffer[j]);
 			context->w3dTexBuffer[j] = NULL;
 		}
@@ -187,6 +188,7 @@ void tex_FreeTextures(GLcontext context)
 	{
 		if (context->w3dTexBuffer[i])
 		{
+			//W3D_BindTexture(context->w3dContext, i, NULL); // bugfix ? - Cowcat
 			W3D_FreeTexObj(context->w3dContext, context->w3dTexBuffer[i]);
 		}
 
@@ -629,6 +631,8 @@ void tex_ConvertTexture(GLcontext context)
 
 //These formats need no conversion:
 
+#ifdef EIGHTBIT_TEXTURES // Cowcat
+
 void EIGHT_EIGHT (GLcontext context, GLubyte *input, UWORD *output, int width, int height)
 {
 	int i, j;
@@ -645,6 +649,8 @@ void EIGHT_EIGHT (GLcontext context, GLubyte *input, UWORD *output, int width, i
 		CORRECT_ALIGN
 	}
 }
+
+#endif
 
 void L8A8_L8A8(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
 {
@@ -1065,6 +1071,25 @@ ULONG MGLConvert(GLcontext context, const GLvoid *inputp, UWORD *output, int wid
 
 			break;
 
+		#if 0
+		case GL_RGB8: // Cowcat
+
+			switch(format)
+			{
+				case GL_RGB:
+					RGB_RGB(context, (GLubyte *)input, output, width, height);
+					//return W3D_R8G8B8;
+					return context->w3dFormat;
+
+				case GL_RGBA:
+					RGBA_RGB(context, (GLubyte *)input, output, width, height);
+					//return W3D_R8G8B8A8;
+					return context->w3dFormat;
+			}
+
+			break;
+		#endif
+
 		case 4:
 		case GL_RGBA:
 
@@ -1116,7 +1141,7 @@ ULONG MGLConvert(GLcontext context, const GLvoid *inputp, UWORD *output, int wid
 			break;
 	}
 	
-	//return 0; /* ERROR */ // glhexen2 fixes - Cowcat
+	return 0; /* ERROR */ // glhexen2 fixes - Cowcat
 }
 
 void GLTexImage2DNoMIP(GLcontext context, GLenum gltarget, GLint level,
@@ -1249,7 +1274,7 @@ void GLTexImage2D(GLcontext context, GLenum gltarget, GLint level, GLint interna
 
 	useFormat = MGLConvert(context, pixels, (UWORD *)target, width, height, internalformat, format);
 
-	//if(!useFormat) return; /* ERROR */ // glhexen2 fixes - Cowcat
+	if(!useFormat) return; /* ERROR */ // glhexen2 fixes - Cowcat
 
 	/*
 	** Create a new W3D_Texture if none was present, using the converted
@@ -1397,7 +1422,7 @@ void GLTexImage2DNoMIP(GLcontext context, GLenum gltarget, GLint level, GLint in
 
 	useFormat = MGLConvert(context, pixels, (UWORD *)target, width, height, internalformat, format);
 
-	//if(!useFormat) return; /* ERROR */ // glhexen2 fixes - Cowcat
+	if(!useFormat) return; /* ERROR */ // glhexen2 fixes - Cowcat
 
 	/*
 	** Create a new W3D_Texture if none was present, using the converted
@@ -1629,6 +1654,7 @@ void GLTexSubImage2DNoMIP (GLcontext context, GLenum target, GLint level, GLint 
 			break;
 
 		case GL_RGB:
+		//case GL_RGB8: // Cowcat
 		case 3:
 			sourceunit = 3;
 			break;

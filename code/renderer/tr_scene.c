@@ -119,7 +119,7 @@ void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts
 	if ( !tr.registered )
 		return;
 
-	#if 0 // Quake3e - render default shader instead of spam - Cowcat
+	#if 0 // ec-/Quake3e - render default shader instead of spam
 	if ( !hShader )
 	{
 		ri.Printf( PRINT_WARNING, "WARNING: RE_AddPolyToScene: NULL poly shader\n");

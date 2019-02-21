@@ -244,7 +244,7 @@ void ProjectDlightTexture_altivec( void )
 		backEnd.pc.c_dlightIndexes += numIndexes;
 	}
 }
-
+	
 void RB_CalcDiffuseColor_altivec( unsigned char *colors )
 {
 	int		i;
@@ -316,6 +316,92 @@ void RB_CalcDiffuseColor_altivec( unsigned char *colors )
 		vec_ste((vector unsigned int)jVecChar,0,(unsigned int *)&colors[i*4]);	// store color
 	}
 }
+
+
+#if 0
+void VectorArrayNormalize_Altivec(vec4_t *normals, unsigned int count)
+{
+	#if 0
+
+	float half = 0.5;
+        float one  = 1.0;
+        float *components = (float *)normals;
+
+	do
+	{
+            		float x, y, z;
+            		float B, y0, y1;
+            
+            		x = components[0];
+            		y = components[1];
+            		z = components[2];
+            		components += 4;
+
+            		B = x*x + y*y + z*z;
+
+		#ifdef __GNUC__            
+            		asm("frsqrte %0,%1" : "=f" (y0) : "f" (B));
+		#else
+			y0 = __frsqrte(B);
+		#endif
+
+			y1 = y0 + half * y0 * (one - (B * y0 * y0));
+
+            		x = x * y1;
+            		y = y * y1;
+            		components[-4] = x;
+            		z = z * y1;
+            		components[-3] = y;
+            		components[-2] = z;
+
+        	} while(count--);
+    	}
+
+	#endif
+
+	/*
+	vector float zero = 0;
+	vector float half = 0.5;
+	vector float one = 1.0;
+	vector float estimate = vec_rsqrte(v);
+
+	vector float estimateSquared = vec_madd(estimate, estimate, zero);
+	vector float halfestimate = vec_madd(estimate, oneHalf, zero);
+	return vec_madd(vec_nmsub(v, estimateSquared, one), halfEstimate, estimate);
+	*/
+
+	vector float half = (vector float)vec_splat_u32(0.5);
+        vector float one  = (vector float)vec_splat_u32(1.0f);
+        float *components = (float *)normals;
+
+	do
+	{
+            		vector float x, y, z;
+			vector float y0, y1, B;
+ 
+            		x = (vector float)vec_splat_u32(components[0]);
+            		y = (vector float)vec_splat_u32(components[1]);
+            		z = (vector float)vec_splat_u32(components[2]);
+			
+            		components += 4;
+
+            		B = x*x + y*y + z*z;
+
+			y0 = vec_rsqrte(B);
+
+			y1 = y0 + half * y0 * (one - (B * y0 * y0));
+
+            		x = x * y1;
+            		y = y * y1;
+            		components[-4] = x;
+            		z = z * y1;
+            		components[-3] = y;
+            		components[-2] = z;
+
+
+        } while(count--);
+}
+#endif
 
 void LerpMeshVertexes_altivec(md3Surface_t *surf, float backlerp)
 {

@@ -2373,7 +2373,7 @@ static shader_t *GeneratePermanentShader( void )
 	int		i, b;
 	int		size, hash;
 
-	if ( tr.numShaders >= MAX_SHADERS ) // was == Quake3e - Cowcat
+	if ( tr.numShaders >= MAX_SHADERS ) // was == ec-/Quake3e
 	{
 		ri.Printf( PRINT_WARNING, "WARNING: GeneratePermanentShader - MAX_SHADERS hit\n");
 		return tr.defaultShader;
@@ -2415,7 +2415,7 @@ static shader_t *GeneratePermanentShader( void )
 		{
 			size = newShader->stages[i]->bundle[b].numTexMods * sizeof( texModInfo_t );
 			
-			if(size) // Quake3e - Cowcat
+			if(size) // ec-/Quake3e
 			{
 				newShader->stages[i]->bundle[b].texMods = ri.Hunk_Alloc( size, h_low );
 				Com_Memcpy( newShader->stages[i]->bundle[b].texMods, stages[i].bundle[b].texMods, size );

@@ -285,7 +285,7 @@ vidmode_t r_vidModes[] =
 	{ "Mode 11: 856x480 (wide)",	856,	480,	1 }
 };
 
-static int s_numVidModes = ( sizeof( r_vidModes ) / sizeof( r_vidModes[0] ) );
+static int s_numVidModes = ARRAY_LEN( r_vidModes );
 
 qboolean R_GetModeInfo( int *width, int *height, float *windowAspect, int mode )
 {
@@ -815,7 +815,7 @@ void GL_SetDefaultState( void )
 
 	// the vertex array is always enabled, but the color and texture
 	// arrays are enabled and disabled around the compiled vertex array call
-	//qglEnableClientState (GL_VERTEX_ARRAY); // Cowcat
+	qglEnableClientState (GL_VERTEX_ARRAY);
 
 	//
 	// make sure our GL state vector is set correctly
@@ -828,9 +828,6 @@ void GL_SetDefaultState( void )
 	qglEnable( GL_SCISSOR_TEST );
 	qglDisable( GL_CULL_FACE );
 	qglDisable( GL_BLEND );
-
-	//glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST); // test - Cowcat
-
 }
 
 
@@ -941,6 +938,7 @@ void GfxInfo_f( void )
 		ri.Printf( PRINT_ALL, "HACK: using vertex lightmap approximation\n" );
 	}
 
+	#if 0 // Cowcat
 	if ( glConfig.hardwareType == GLHW_RAGEPRO )
 	{
 		ri.Printf( PRINT_ALL, "HACK: ragePro approximations\n" );
@@ -950,6 +948,7 @@ void GfxInfo_f( void )
 	{
 		ri.Printf( PRINT_ALL, "HACK: riva128 approximations\n" );
 	}
+	#endif
 
 	if ( r_finish->integer )
 	{
@@ -1242,6 +1241,11 @@ void RE_Shutdown( qboolean destroyWindow )
 		GLimp_Shutdown();
 
 		Com_Memset( &glConfig, 0, sizeof(glConfig) );
+
+		textureFilterAnisotropic = qfalse;
+		maxAnisotropy = 0;
+		displayAspect = 0.0f;
+
 		Com_Memset( &glState, 0, sizeof(glState) );
 	}
 
@@ -1313,6 +1317,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp )
 	re.LightForPoint = R_LightForPoint;
 	re.AddLightToScene = RE_AddLightToScene;
 	re.AddAdditiveLightToScene = RE_AddAdditiveLightToScene;
+
 	re.RenderScene = RE_RenderScene;
 
 	re.SetColor = RE_SetColor;

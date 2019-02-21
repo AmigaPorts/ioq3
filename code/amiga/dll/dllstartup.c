@@ -5,12 +5,22 @@
 
 #define __DLL_LIB_BUILD
 
+#ifdef __VBCC__
 #pragma amiga-align
+#elif defined(WARPUP)
+#pragma pack(2)
+#endif
+
 #include <exec/exec.h>
 #include <proto/exec.h>
 #include <proto/dos.h>
 #include <clib/alib_protos.h>
+
+#ifdef __VBCC__
 #pragma default-align
+#elif defined(WARPUP)
+#pragma pack(0)
+#endif
 
 #include <string.h>
 #include <stdio.h>
@@ -95,11 +105,28 @@ int main(int argc, char **argv)
 	* Create a (public) message port
 	*/
 
+	#ifndef __GNUC__
+
 	myport = CreatePort(PortName,0);
 
+	#else // Cowcat
+
+	myport = CreateMsgPort();
+	myport->mp_Node.ln_Name = PortName;
+	myport->mp_Node.ln_Pri = 0;
+	AddPort(myport);
+
+	#endif
+
 	if (!myport)
+	{
+		#ifdef __GNUC__
+		RemPort(myport);
+		#endif
+		
 		//_Exit(0l);
 		return 0;
+	}
 
 	/*
 	** Loop until DLL expunges (that is if a CloseMessage leads to opencount==0)
@@ -168,7 +195,16 @@ int main(int argc, char **argv)
 	/*
 	* Delete public port
 	*/
+	#ifndef __GNUC__
+
 	DeletePort(myport);
+
+	#else
+
+	RemPort(myport);
+	DeleteMsgPort(myport);
+
+	#endif
 
 	/*
 	* Call DLL specific destructor
@@ -178,3 +214,4 @@ int main(int argc, char **argv)
 	//return 0L;
 	return 0;
 }
+

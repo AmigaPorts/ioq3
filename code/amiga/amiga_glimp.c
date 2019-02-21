@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifdef __VBCC__
 #pragma amiga-align
 #elif defined(WARPUP)
-#pragma pack(2)
+#pragma pack(push,2)
 #endif
 
 #include <exec/exec.h>
@@ -36,11 +36,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <intuition/intuition.h>
 #include <graphics/gfx.h>
 #include <cybergraphx/cybergraphics.h>
+#include <clib/alib_protos.h>
 #include <proto/exec.h>
 #include <proto/intuition.h>
 #include <proto/cybergraphics.h>
-//#include <dos/dos.h>
-//#include <proto/dos.h> // for Delay - new Cowcat
 
 #ifdef __PPC__
 #if defined(__GNUC__)
@@ -54,13 +53,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifdef __VBCC__
 #pragma default-align
 #elif defined (WARPUP)
-#pragma pack()
+#pragma pack(pop)
 #endif
 
 #include <mgl/gl.h>
-
-//struct GLContext_t *context = 0;
-//GLboolean old_context = GL_FALSE;
 
 extern qboolean mouse_active;
 extern int mx, my;
@@ -75,9 +71,9 @@ cvar_t *r_perspective_fast; //
 
 extern cvar_t *in_nograb;
 
-static unsigned short *mousePtr = 0;
+unsigned short *mousePtr = 0;
 
-extern struct MsgPort *Sys_EventPort;
+struct MsgPort *Sys_EventPort = 0;
 
 struct Window *win = NULL;
 
@@ -95,7 +91,45 @@ void GLW_RestoreGamma(void) {}
 
 UWORD *ElementIndex; // new Cowcat
 
-static qboolean GLW_StartDriverAndSetMode( const char *drivername, int mode, int colorbits, qboolean fullscreen )
+extern qboolean mouse_avail;
+extern qboolean mhandler;
+qboolean windowmode; // mousehandler check on IN_Frame
+
+void MousePointerDisable(void)
+{
+	if( mouse_avail )
+	{
+		//Com_Printf("mousepointerdisable\n");
+
+		#ifdef __PPC__
+		mousePtr = (unsigned short *)AllocVecPPC( 8, MEMF_CHIP|MEMF_CLEAR, 0 );
+		#else
+		mousePtr = (unsigned short *)AllocVec( 8, MEMF_CHIP|MEMF_CLEAR);
+		#endif
+
+		SetPointer( win, mousePtr, 0, 0, 0, 0 );
+	}
+}
+
+void MousePointerEnable(void)
+{
+	if( mouse_avail ) 
+	{
+		//Com_Printf("mousepointerenable\n");
+
+		ClearPointer(win);
+
+		#ifdef __PPC__
+		FreeVecPPC(mousePtr);
+		#else
+		FreeVec(mousePtr);
+		#endif
+		
+		mousePtr = 0;
+	}
+}
+
+static qboolean GLW_StartDriverAndSetMode( int mode, int colorbits, qboolean fullscreen )
 {
 	BOOL useStencil = /*TRUE*/ FALSE;
 	int depth;
@@ -107,14 +141,6 @@ static qboolean GLW_StartDriverAndSetMode( const char *drivername, int mode, int
 		ri.Printf(PRINT_ALL, " invalid mode\n");
 		return qfalse;
 	}
-	
-	if (glConfig.hardwareType == GLHW_3DFX_2D3D)
-		useStencil = FALSE;
-	
-	//if (colorbits != 16)
-		//colorbits = 24;
-
-	//colorbits = 16; // Cowcat
 
 	depth = r_colorbits->integer;
 
@@ -122,6 +148,43 @@ static qboolean GLW_StartDriverAndSetMode( const char *drivername, int mode, int
 		depth = 16;
 	
 	ri.Printf( PRINT_ALL, " %d %d %s\n", glConfig.vidWidth, glConfig.vidHeight, fullscreen ? "fullscreen" : "windowed" );
+
+	r_vertexbuffersize  = Cvar_Get("r_vertexbuffersize", "4096", CVAR_ARCHIVE);
+	r_glbuffers  = Cvar_Get("r_glbuffers", "3", CVAR_ARCHIVE);
+	r_guardband  = Cvar_Get("r_guardband", "0", CVAR_ARCHIVE);
+	r_closeworkbench = Cvar_Get("r_closeworkbench", "0", CVAR_ARCHIVE);
+	r_perspective_fast = Cvar_Get("r_perspective_fast", "0", CVAR_ARCHIVE);
+
+	mglChoosePixelDepth(depth); // default 16
+
+	if(!fullscreen)
+	{
+		mglChooseWindowMode(GL_TRUE);
+		Cvar_Set("r_glbuffers", "2");
+	}
+
+	else
+	{	
+		mglChooseWindowMode(GL_FALSE);
+		Cvar_Set("r_glbuffers", "3");
+
+		if (r_closeworkbench->value)
+			mglProposeCloseDesktop(GL_TRUE);	
+	}
+
+	mglChooseNumberOfBuffers( (int)r_glbuffers->value );
+
+	if(r_guardband->value)
+	{
+		mglChooseGuardBand(GL_TRUE);
+		ri.Printf(PRINT_ALL, "guardband on\n");
+	}
+
+	else
+	{
+		mglChooseGuardBand(GL_FALSE);
+		ri.Printf(PRINT_ALL, "guardband off\n");
+	}
 
 	/*
 	** surgeon: The highest number of verts is 4096
@@ -145,23 +208,11 @@ static qboolean GLW_StartDriverAndSetMode( const char *drivername, int mode, int
 	** max 4096 verts in total (tightly packed)
 	*/
 
-	#if 0
-	if(old_context)
-	{
-		ri.Printf(PRINT_ALL, "Deleting old context \n");
+	mglChooseVertexBufferSize( (int)r_vertexbuffersize->value ); // 2048 - 4096 - 16384 //
 
-		mglDeleteContext();
-		old_context = GL_FALSE;
-	}
-	#endif
+	ri.Printf(PRINT_ALL, "vertexbuffersize %d\n", (int)r_vertexbuffersize->value );
 
-	//MGLInit(); // now in amiga_qgl.c/ QGL_init - 
-
-	r_vertexbuffersize  = Cvar_Get("r_vertexbuffersize", "4096", CVAR_ARCHIVE);
-	r_glbuffers  = Cvar_Get("r_glbuffers", "3", CVAR_ARCHIVE);
-	r_perspective_fast = Cvar_Get("r_perspective_fast", "0", CVAR_ARCHIVE);
-
-	#if 0 // no multitexture in this version - Cowcat
+	#if 0 // no multitexture for this version - Cowcat
 
 	//base the size on #of polygons to store
 	gl_mtexbuffersize = ri.Cvar_Get("gl_mtexbuffersize", "4096", CVAR_ARCHIVE);
@@ -173,59 +224,27 @@ static qboolean GLW_StartDriverAndSetMode( const char *drivername, int mode, int
 		mglChooseMtexBufferSize( (int)gl_mtexbuffersize->value * 4);
 	#endif
 	
-	mglChoosePixelDepth(depth); // default 16
-	mglChooseVertexBufferSize( (int)r_vertexbuffersize->value ); // 2048 - 4096 - 16384 //
-
-	if(!fullscreen)
-	{
-		mglChooseWindowMode(GL_TRUE);
-		mglChooseNumberOfBuffers(2);
-		Cvar_Set("r_glbuffers", "2");
-	}
-
-	else
-	{	
-		mglChooseWindowMode(GL_FALSE);
-		mglChooseNumberOfBuffers(3);
-		Cvar_Set("r_glbuffers", "3");
-	}
-
-	r_guardband  = Cvar_Get("r_guardband", "0", CVAR_ARCHIVE);
-
-	if(r_guardband->value)
-	{
-		mglChooseGuardBand(GL_TRUE);
-		ri.Printf(PRINT_ALL, "guardband on\n");
-	}
-
-	else
-	{
-		mglChooseGuardBand(GL_FALSE);
-		ri.Printf(PRINT_ALL, "guardband off\n");
-	}
-
 	ElementIndex = malloc( sizeof(UWORD)*(int)r_vertexbuffersize->value ); // new Cowcat
 
-	//old_context = (NULL == mglCreateContext(0, 0, glConfig.vidWidth, glConfig.vidHeight) ? GL_FALSE : GL_TRUE);
-
 	if(!mglCreateContext(0, 0, glConfig.vidWidth, glConfig.vidHeight))
-	//if(!old_context)
 	{
 		return qfalse;
 	}
 
-	mglGetWindowHandle(); // update buffers;
+	//mglGetWindowHandle(); // wake up ???????? - Cowcat
 
-	if (fullscreen && r_glbuffers->value == 3)
+	if (fullscreen) // && r_glbuffers->value == 3)
 	{
 	    	mglEnableSync(GL_FALSE);
 		ri.Printf(PRINT_ALL, "triplebuffer enabled\n");
 		ri.Printf(PRINT_ALL, "sync disabled\n");
+		windowmode = qfalse;
 	}
 
 	else
 	{
 	    	mglEnableSync(GL_TRUE);
+		windowmode = qtrue;
 	}
 
 	mglLockMode(MGL_LOCK_SMART);
@@ -238,21 +257,8 @@ static qboolean GLW_StartDriverAndSetMode( const char *drivername, int mode, int
 		mglEnableSync(GL_TRUE);
 	*/
 
-	#if 1
-	win = mglGetWindowHandle();
-
-	//ModifyIDCMP((struct Window *)mglGetWindowHandle(), IDCMP_RAWKEY|IDCMP_MOUSEMOVE|IDCMP_MOUSEBUTTONS|IDCMP_DELTAMOVE);
-	ModifyIDCMP(win, IDCMP_RAWKEY|IDCMP_MOUSEMOVE|IDCMP_MOUSEBUTTONS|IDCMP_DELTAMOVE);
-	ReportMouse(TRUE, win);
-	#endif
-
-	//Sys_EventPort = ((struct Window *)mglGetWindowHandle())->UserPort;
-	Sys_EventPort = win->UserPort;
-
-	ri.Printf(PRINT_ALL, "... Sys_EventPort at %p\n", Sys_EventPort);
-	
 	glConfig.colorBits = depth; // colorbits;
-	glConfig.depthBits = 16;
+	glConfig.depthBits = 0; // 16 - Cowcat
 	glConfig.stencilBits = 0;
 
 	/*
@@ -278,52 +284,42 @@ static qboolean GLW_StartDriverAndSetMode( const char *drivername, int mode, int
 		ri.Printf(PRINT_ALL, "GL_Perspective_Correction_hint: fast\n");
 	}
 	//
-
-	r_closeworkbench = Cvar_Get("r_closeworkbench", "0", CVAR_ARCHIVE);
-
-	if (fullscreen && r_closeworkbench->value)
-		mglProposeCloseDesktop(GL_TRUE);
-
-	// clear windowmode - Cowcat
-
+	
+	// clear - Cowcat
+	
 	qglClearColor(0,0,0,1);
 	qglClear(GL_COLOR_BUFFER_BIT);
-	
+	//qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	//mglSwitchDisplay();
+
 	return qtrue;
 }
 	
 
 static void GLW_Shutdown(void)
 {
-	//if(old_context == GL_TRUE)
-
-	//mglSwitchDisplay(); // new - Cowcat
-	//Delay(50); // new Cowcat
-
 	mglDeleteContext();
 
-	//old_context = GL_FALSE;
+	MGLTerm();
 
-	//MGLTerm(); // now in amigaqgl.c/QGL_Shutdown
-
-	Sys_EventPort = 0;
+	Sys_EventPort = NULL;
 }
 
-static qboolean GLW_LoadOpenGL(const char *name)
+static qboolean GLW_LoadOpenGL()
 {
 	qboolean fullscreen;
 	
-	if (QGL_Init(name))
+	if ( MGLInit() )
 	{
 		fullscreen = r_fullscreen->integer;
 		
-		if (!GLW_StartDriverAndSetMode(name, r_mode->integer, r_colorbits->integer, fullscreen))
+		if (!GLW_StartDriverAndSetMode(r_mode->integer, r_colorbits->integer, fullscreen))
 		{
 			if (r_mode->integer != 3)
 			{
-				if (!GLW_StartDriverAndSetMode(name, 3, r_colorbits->integer, fullscreen))
+				if (!GLW_StartDriverAndSetMode(3, r_colorbits->integer, fullscreen))
 				{
-					QGL_Shutdown();
+					MGLTerm();
 					return qfalse;
 				}
 			}
@@ -334,18 +330,17 @@ static qboolean GLW_LoadOpenGL(const char *name)
 
 	ri.Printf(PRINT_ALL, "failed\n");
 
-	QGL_Shutdown();
+	MGLTerm();
 	
 	return qfalse;
 }
 
 void GLW_StartOpenGL(void)
 {
-	GLW_LoadOpenGL("minigl.library");
+	GLW_LoadOpenGL();
 }
 
 #if 0 // Cowcat
-
 static void stub_glMultiTexCoord2fARB(GLenum target, GLfloat s, GLfloat t)
 {
 	glMultiTexCoord2fARB(target, s, t);
@@ -365,8 +360,6 @@ static void stub_glUnlockArraysEXT()
 {
 	glUnlockArrays();
 }
-
-
 #endif
 
 static void GLW_InitExtensions( void )
@@ -427,9 +420,9 @@ static void GLW_InitExtensions( void )
 
 	// GL_ARB_multitexture
 
-	#if 0  // no multitexture working in this version - Cowcat
+	#if 0  // Cowcat
 
-	if ( strstr( glConfig.extensions_string, "GL_MGL_ARB_multitexture" )  ) // Cowcat _mgl_
+	if ( strstr( glConfig.extensions_string, "GL_MGL_ARB_multitexture" )  ) // minigl has no support for varray multitexture
 	{
 		if ( r_ext_multitexture->integer )
 		{
@@ -537,47 +530,35 @@ void GLimp_Init(void)
 	GLW_InitExtensions();
 	GLW_InitGamma();
 
-	#if 1
-	if (glConfig.isFullscreen)
-	{
-		// Clear the mouse pointer in fullscreen mode
-		#ifdef __PPC__
-		mousePtr = (unsigned short *)AllocVecPPC( 8, MEMF_CHIP|MEMF_CLEAR, 0 );
-		#else
-		mousePtr = (unsigned short *)AllocVec( 8, MEMF_CHIP|MEMF_CLEAR);
-		#endif
+	IN_Init(); // was in amiga_main/sys_init ---
+	
+	win = mglGetWindowHandle();
 
-		if (mousePtr) 
-			SetPointer( win, mousePtr, 0, 0, 0, 0 );
-	}
-	#endif
+	ModifyIDCMP(win, IDCMP_RAWKEY|IDCMP_MOUSEBUTTONS|IDCMP_MOUSEMOVE|IDCMP_DELTAMOVE);
+	win->Flags |= WFLG_REPORTMOUSE;
 
-}
+	Sys_EventPort = win->UserPort;
+
+	ri.Printf(PRINT_ALL, "... Sys_EventPort at %p\n", Sys_EventPort);
+
+	if(r_fullscreen->integer)
+		MousePointerDisable();
+}		
 
 void GLimp_Shutdown(void)
 {
-	#if 1
-	if (mousePtr)
-	{
-		ClearPointer(win);
+	if (mhandler) 
+		MouseHandlerOff();
 
-		#ifdef __PPC__
-		FreeVecPPC(mousePtr);
-		#else
-		FreeVec(mousePtr);
-		#endif
-		
-		mousePtr = 0;
-	}
-	#endif
+	MousePointerEnable();
+
+	IN_Shutdown(); //
 
 	GLW_RestoreGamma();
+
+	free(ElementIndex); // Cowcat
+
 	GLW_Shutdown();
-	free(ElementIndex); // new Cowcat
-	QGL_Shutdown();
-	
-	//memset( &glConfig, 0, sizeof( glConfig ) ); // now done in r_init/RE_Shutdown
-	//memset( &glState, 0, sizeof( glState ) );
 }
 
 #if 0 // Cowcat
@@ -597,9 +578,11 @@ void GLimp_EndFrame(void)
 		mglEnableSync(r_finish->integer);
 		r_finish->modified = qfalse;
 	}
-	
+
 	//mglUnlockDisplay(); // why if we are using SMART lock ? - Cowcat
 	mglSwitchDisplay();
+
+	//qglClear( GL_COLOR_BUFFER_BIT ); // test
 
 	/*
 	if (!r_fullscreen->integer && !in_nograb->integer)
@@ -617,23 +600,43 @@ void GLimp_EndFrame(void)
 		}
 	}
 	*/
+
+	#if 0 // that goes to IN_Frame - left for reference - Cowcat
+
+	static qboolean mousein;
+
+	if ( !r_fullscreen->integer ) // Cowcat windowmode mousehandler juggling
+	{
+		if( cls.cgameStarted == qtrue ) // only done at the time of playing
+		{
+			if( !( Key_GetCatcher( ) & (KEYCATCH_UI | KEYCATCH_CONSOLE) ) )
+			{
+				if(!mousein)
+				{
+					//ri.Printf(PRINT_ALL, "mousein\n");
+
+					win->Flags |= WFLG_REPORTMOUSE;
+
+					MousePointerDisable();
+					MouseHandler();
+					mousein = qtrue;
+				}
+			}
+
+			else if( mousein )
+			{
+				//ri.Printf(PRINT_ALL, "mouseoff\n");
+
+				if ( Key_GetCatcher( ) & KEYCATCH_CONSOLE )
+					win->Flags &= ~WFLG_REPORTMOUSE;
+
+				MousePointerEnable();
+				MouseHandlerOff();
+				mousein = qfalse;
+			}
+		}
+	}
+
+	#endif
 }
 
-void install_grabs (void)
-{
-	//mglGrabFocus(GL_TRUE);
-	mouse_active = qfalse;
-
-	//ModifyIDCMP(win, IDCMP_RAWKEY|IDCMP_MOUSEMOVE|IDCMP_MOUSEBUTTONS|IDCMP_DELTAMOVE);
-}
-
-void uninstall_grabs (void)
-{
-	//mglGrabFocus(GL_FALSE);
-	mx = 0;
-	my = 0;
-	mouse_active = qtrue;
-
-	//ModifyIDCMP(win, IDCMP_RAWKEY|IDCMP_MOUSEBUTTONS);
-	
-}

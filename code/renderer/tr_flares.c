@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "../qcommon/cm_local.h" // added Cowcat
 
-#if defined(__VBCC__) && defined(__PPC__)
+#if defined(__VBCC__) // && defined(__PPC__)
 extern qboolean smoothshade; // Cowcat
 #endif
 
@@ -86,10 +86,10 @@ typedef struct flare_s
 	int		radius;			// leilei - dynamic light flares
 } flare_t;
 
-#define		MAX_FLARES	256 // was 128 - Cowcat
+#define	MAX_FLARES	256
 
-flare_t		r_flareStructs[MAX_FLARES];
-flare_t		*r_activeFlares, *r_inactiveFlares;
+flare_t	r_flareStructs[MAX_FLARES];
+flare_t	*r_activeFlares, *r_inactiveFlares;
 
 int flareCoeff;
 
@@ -224,7 +224,7 @@ void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t 
 	f->windowX = backEnd.viewParms.viewportX + window[0];
 	f->windowY = backEnd.viewParms.viewportY + window[1];
 
-	f->radius = radii / 3; // leilei - 
+	f->radius = radii / 3; // leilei - added
 
 	f->eyeZ = eye[2];
 }
@@ -284,7 +284,7 @@ void RB_AddDlightFlares( void )
 			j = 0;
 
 		//RB_AddFlare( (void *)l, j, l->origin, l->color, NULL );
-		RB_AddFlare( (void *)l, j, l->origin, l->color, NULL, l->radius * 0.6);
+		RB_AddFlare( (void *)l, j, l->origin, l->color, NULL, l->radius * 0.6); 
 	}
 }
 
@@ -616,7 +616,7 @@ void RB_RenderFlares (void)
 			  backEnd.viewParms.viewportY, backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight,
 			  -99999, 99999 );
 
-	#if defined(__VBCC__) && defined(__PPC__) // minigl vbcc workaround - Cowcat
+	#if defined(__VBCC__) // && defined(__PPC__) // minigl vbcc workaround - Cowcat
 
 	qglShadeModel(GL_SMOOTH); 
 	smoothshade = qtrue; //

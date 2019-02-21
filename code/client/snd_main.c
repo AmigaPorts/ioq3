@@ -491,7 +491,7 @@ void S_Init( void )
 	s_backend = Cvar_Get( "s_backend", "", CVAR_ROM );
 	s_muteWhenMinimized = Cvar_Get( "s_muteWhenMinimized", "0", CVAR_ARCHIVE );
 
-	cv = Cvar_Get( "s_initsound", "0", 0 ); // was 1 - Cowcat
+	cv = Cvar_Get( "s_initsound", "1", 0 );
 
 	if( !cv->integer )
 	{

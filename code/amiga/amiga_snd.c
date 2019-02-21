@@ -23,10 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../client/client.h"
 #include "../client/snd_local.h"
 
+#undef NULL
+
 #ifdef __VBCC__
 #pragma amiga-align
 #elif defined(WARPUP)
-#pragma pack(2)
+#pragma pack(push,2)
 #endif
 
 #include <proto/exec.h>
@@ -46,12 +48,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifdef __VBCC__
 #pragma default-align
 #elif defined (WARPUP)
-#pragma pack()
+#pragma pack(pop)
 #endif
 
 /* Implemented 100% on recycled Quake 2 code */
-
-#include "snd_68k.h"
 
 #if 0 // Cowcat - actually snd_68k.h is this callback function manually converted to hexadecimal from a 68k vbcc compiled object...
 ULONG callback(__reg("a0") struct Hook *hook, __reg("a2") struct AHIAudioCtrl *actrl, __reg("a1") struct AHIEffChannelInfo *info)
@@ -60,6 +60,10 @@ ULONG callback(__reg("a0") struct Hook *hook, __reg("a2") struct AHIAudioCtrl *a
   	return 0;
 }
 #endif
+
+static unsigned short callback[] = {
+	0x48e7, 0x0020, 0x2448, 0x2029, 0x000c, 0x2540, 0x0010, 0x7000, 0x245f, 0x4e75
+};
 
 
 // pragma(2) here ? 
@@ -92,8 +96,6 @@ static UBYTE *dmabuf = NULL;
 static int buflen;
 
 #define MINBUFFERSIZE 4*16384
-
-//extern ULONG callback(struct Hook *hook, struct AHIAudioCtrl *actrl, struct AHIEffChannelInfo *info);
 
 struct Hook EffHook = 
 {
@@ -211,13 +213,13 @@ qboolean SNDDMA_Init(void)
 	}
 
 	AHI_GetAudioAttrs(AHI_INVALID_ID, actrl, 
-				AHIDB_MaxPlaySamples, 	&playsamples,
+				AHIDB_MaxPlaySamples, 	(ULONG)&playsamples,
 				AHIDB_BufferLen, 	256, 
 				AHIDB_Name, 		(ULONG)&name,
-				AHIDB_AudioID,		&mode, 
+				AHIDB_AudioID,		(ULONG)&mode, 
 				TAG_END);
 			
-	AHI_ControlAudio(actrl, AHIC_MixFreq_Query, &mixfreq, TAG_END);
+	AHI_ControlAudio(actrl, AHIC_MixFreq_Query, (ULONG)&mixfreq, TAG_END);
 			
 	buflen = playsamples * speed / mixfreq;
 

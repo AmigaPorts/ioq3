@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifdef __VBCC__
 #pragma amiga-align
 #elif defined(WARPUP)
-#pragma pack(2)
+#pragma pack(push,2)
 #endif
 
 #include <devices/timer.h>
@@ -41,10 +41,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <proto/intuition.h>
 #include <proto/keymap.h>
 
+#ifdef __PPC__
+#if defined(__GNUC__)
+#include <powerpc/powerpc.h>
+#include <powerpc/powerpc_protos.h>
+#else
+#include <powerpc/powerpc.h>
+#include <proto/powerpc.h>
+#endif 
+#endif
+
 #ifdef __VBCC__
 #pragma default-align
 #elif defined (WARPUP)
-#pragma pack()
+#pragma pack(pop)
 #endif
 
 static cvar_t *in_mouse	 = NULL;
@@ -53,31 +63,30 @@ cvar_t *in_joystick      = NULL;
 cvar_t *in_joystickDebug = NULL;
 cvar_t *joy_threshold    = NULL;
 
-extern cvar_t *r_fullscreen;
-
 qboolean mouse_avail;
 qboolean mouse_active = qtrue;
 int mx = 0, my = 0;
 
 struct Library *KeymapBase = 0;
-//struct KeymapIFace *IKeymap = 0;
+
+extern struct Window *win;
+extern qboolean windowmode;
 
 void IN_ProcessEvents(void);
 
-void IN_ActivateMouse( void ) 
+void IN_ActivateMouse( qboolean isFullscreen ) 
 {
 	if (!mouse_avail)
 		return;
-		
+
 	if (!mouse_active)
 	{
 		install_grabs();
-			
 		mouse_active = qtrue;
 	}
 }
 
-void IN_DeactivateMouse( void ) 
+void IN_DeactivateMouse( qboolean isFullscreen ) 
 {
 	if (!mouse_avail)
 		return;
@@ -85,28 +94,91 @@ void IN_DeactivateMouse( void )
 	if (mouse_active)
 	{
 		uninstall_grabs();
-
 		mouse_active = qfalse;
 	}
 }
 
-
 void IN_Frame (void) 
 {
 	// IN_JoyMove(); // FIXME: disable if on desktop?
-	IN_ActivateMouse();
+
+	#if 0
+
+	qboolean loading;
+
+	// If not DISCONNECTED (main menu) or ACTIVE (in game), we're loading
+	loading = ( clc.state != CA_DISCONNECTED && clc.state != CA_ACTIVE );
+
+	// update isFullscreen since it might of changed since the last vid_restart
+	cls.glconfig.isFullscreen = Cvar_VariableIntegerValue( "r_fullscreen" ) != 0;
+
+	if( !cls.glconfig.isFullscreen && ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) )
+	{
+		// Console is down in windowed mode
+		IN_DeactivateMouse( cls.glconfig.isFullscreen );
+	}
+
+	else if( !cls.glconfig.isFullscreen && loading )
+	{
+		// Loading in windowed mode
+		IN_DeactivateMouse( cls.glconfig.isFullscreen );
+	}
+
+	else
+		IN_ActivateMouse( cls.glconfig.isFullscreen );
+
+	#else 
+
+	// Cowcat windowmode mousehandler juggling
+
+	static qboolean mousein;
+	qboolean loading;
+
+	if ( windowmode ) 
+	{
+		loading = ( clc.state != CA_DISCONNECTED && clc.state != CA_ACTIVE );
+
+		if( cls.cgameStarted == qtrue || loading )
+		{
+			if( !( Key_GetCatcher( ) & (KEYCATCH_UI | KEYCATCH_CONSOLE | KEYCATCH_CGAME) ) )
+			{
+				if(!mousein)
+				{
+					//Com_Printf("mousein\n");
+
+					win->Flags |= WFLG_REPORTMOUSE;
+
+					MousePointerDisable();
+					MouseHandler();
+					mousein = qtrue;
+				}
+			}
+
+			else if( mousein )
+			{
+				//Com_Printf("mouseoff\n");
+
+				if ( Key_GetCatcher( ) & KEYCATCH_CONSOLE )
+					win->Flags &= ~WFLG_REPORTMOUSE;
+
+				MousePointerEnable();
+				MouseHandlerOff();
+				mousein = qfalse;
+			}
+		}
+	}
+	
+	#endif
 
 	IN_ProcessEvents( );
 }
+
 
 void IN_Init(void) 
 {
 	if (!KeymapBase)
 		KeymapBase = OpenLibrary("keymap.library", 0);
-		
-	//if (KeymapBase && !IKeymap)
-		//IKeymap = (struct KeymapIFace *)GetInterface(KeymapBase, "main", 1, NULL);
-		
+
 	Com_Printf ("\n------- Input Initialization -------\n");
 
 	// mouse variables
@@ -116,15 +188,10 @@ void IN_Init(void)
 	in_nograb = Cvar_Get ("in_nograb", "0", 0);
 
 	in_joystick = Cvar_Get ("in_joystick", "0", CVAR_ARCHIVE|CVAR_LATCH);
-  
 	in_joystickDebug = Cvar_Get ("in_debugjoystick", "0", CVAR_TEMP);
 	joy_threshold = Cvar_Get ("joy_threshold", "0.15", CVAR_ARCHIVE); // FIXME: in_joythreshold
 
-	if (in_mouse->value)
-		mouse_avail = qtrue;
-
-	else
-		mouse_avail = qfalse;
+	mouse_avail = (in_mouse->value != 0);
 
 	//IN_StartupJoystick( ); // bk001130 - from cvs1.17 (mkv)
 
@@ -134,14 +201,6 @@ void IN_Init(void)
 void IN_Shutdown(void)
 {
 	mouse_avail = qfalse;
-	
-	/*
-	if (IKeymap)
-	{
-		//DropInterface((struct Interface *)IKeymap);
-		IKeymap = 0;
-	}
-	*/
 
 	if (KeymapBase)
 	{
@@ -150,8 +209,13 @@ void IN_Shutdown(void)
 	}
 }
 
+void IN_Restart(void)
+{
+	IN_Init();
+}
+
 static unsigned char scantokey[128] =
-	{
+{
 	'`','1','2','3','4','5','6','7',                                 // 7
 	'8','9','0','-','=','\\',0,K_INS,                                // f
 	'q','w','e','r','t','y','u','i',                                 // 17
@@ -170,13 +234,7 @@ static unsigned char scantokey[128] =
 	0,0,0,0,0,0,0,0                                                  // 7f
 };
 
-static int XLateKey(struct IntuiMessage *ev)
-{
-	//Com_Printf("Xlate %d\n", ev->Code);
-	return scantokey[ev->Code&0x7f];
-}
-
-static qboolean keyDown(UWORD /*uint16*/ code)
+static qboolean keyDown(UWORD code)
 {
 	if (code & IECODE_UP_PREFIX)
 		return qfalse;
@@ -184,15 +242,18 @@ static qboolean keyDown(UWORD /*uint16*/ code)
 	return qtrue;
 }
 
+#if !defined(__PPC__)
 
-//void Sys_HandleEvents(void)
+static int XLateKey(struct IntuiMessage *ev)
+{
+	//Com_Printf("Xlate %d\n", ev->Code);
+	return scantokey[ev->Code&0x7f];
+}
+
 void IN_ProcessEvents(void)
 {
 	struct IntuiMessage *imsg;
-	//uint32 msgTime;
-	//int xlated;
 	struct InputEvent ie;
-	//int16 res;
 	WORD res;
 	char buf[20];
 
@@ -212,6 +273,7 @@ void IN_ProcessEvents(void)
 				//if (IKeymap) // Cowcat
 				{
 					//Com_Printf ("key encoded %d %d\n", imsg->Code, imsg->Qualifier);
+					//Com_Printf ("key encoded $%04x $%04lx\n", imsg->Code, imsg->Qualifier);
 
 					ie.ie_Class = IECLASS_RAWKEY;
 					ie.ie_SubClass = 0;
@@ -290,12 +352,132 @@ void IN_ProcessEvents(void)
 				}
 		}
 
-		if (Sys_EventPort)
-			ReplyMsg((struct Message *)imsg);
-
-		else	
-			return;
-		
+		ReplyMsg((struct Message *)imsg);
 	}
 }
+
+#else // trying to reduce WOS context switches 
+
+#pragma pack(push,2)
+struct MsgStruct
+{
+	ULONG Class;
+	UWORD Code;
+	UWORD Qualifier;
+	WORD MouseX;
+	WORD MouseY;
+	int rawkey;
+};
+#pragma pack(pop)
+
+int GetEvents(void *port, void *msgarray, int arraysize)
+{
+	extern int GetMessages68k();
+	struct PPCArgs args;
+
+	args.PP_Code = (APTR)GetMessages68k;
+	args.PP_Offset = 0;
+	args.PP_Flags = 0;
+	args.PP_Stack = NULL;
+	args.PP_StackSize = 0;
+	args.PP_Regs[PPREG_A0] = (ULONG)msgarray;
+	args.PP_Regs[PPREG_A1] = (ULONG)port;
+	args.PP_Regs[PPREG_D0] = arraysize;
+
+	Run68K(&args);
+
+	return args.PP_Regs[PPREG_D0];
+}
+
+void IN_ProcessEvents(void)
+{
+	struct InputEvent ie;
+	WORD res;
+	int i;
+
+	if(Sys_EventPort)
+	{
+		struct MsgStruct events[50];
+
+		int messages = GetEvents(Sys_EventPort, events, 50);
+
+		//if (messages > 0)
+			//Com_Printf("messages %d\n", messages);
+
+		for (i = 0; i < messages; i++)
+		{
+			const ULONG msgTime = 0; //Sys_Milliseconds();
+
+			if (events[i].Class == IDCMP_RAWKEY)
+			{
+				int key = scantokey[ events[i].Code & 0x7f ];
+
+				{
+					if (key == '`') 
+					{
+						key = K_CONSOLE;
+						res = 0;
+					}
+
+					else
+						res = 1;
+
+				}
+
+				Com_QueueEvent(msgTime, SE_KEY, key, keyDown(events[i].Code), 0, NULL);
+
+				if (res == 1)
+				{
+					Com_QueueEvent(msgTime, SE_CHAR, events[i].rawkey, 0, 0, NULL);
+				}
+
+			}
+				
+			if (events[i].Class == IDCMP_MOUSEMOVE)
+			{
+				if (mouse_active)
+				{
+					mx = events[i].MouseX;
+					my = events[i].MouseY;
+					Com_QueueEvent(msgTime, SE_MOUSE, mx, my, 0, NULL);
+				}
+			}
+
+			if (events[i].Class == IDCMP_MOUSEBUTTONS)
+			{
+				switch (events[i].Code & ~IECODE_UP_PREFIX)
+				{
+					case IECODE_LBUTTON:
+						Com_QueueEvent(msgTime, SE_KEY, K_MOUSE1, keyDown(events[i].Code), 0, NULL);
+						break;
+
+					case IECODE_RBUTTON:
+						Com_QueueEvent(msgTime, SE_KEY, K_MOUSE2, keyDown(events[i].Code), 0, NULL);
+						break;
+
+					case IECODE_MBUTTON:
+						Com_QueueEvent(msgTime, SE_KEY, K_MOUSE3, keyDown(events[i].Code), 0, NULL);
+						break;
+				}
+			}
+		}
+	}
+}
+
+#endif
+
+void install_grabs (void)
+{
+	//mglGrabFocus(GL_TRUE);
+	mouse_active = qfalse;
+}
+
+void uninstall_grabs (void)
+{
+	//mglGrabFocus(GL_FALSE);
+	mx = 0;
+	my = 0;
+	mouse_active = qtrue;
+}
+
 

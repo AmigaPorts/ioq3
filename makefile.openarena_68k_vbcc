@@ -11,7 +11,6 @@ DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
 LIBS  = -lm060 -lmglQ3 -lposix -lamiga
 
 OBJS = \
-	$(B)/amiga_snd.o \
 	$(B)/snd_adpcm.o \
 	$(B)/snd_dma.o \
 	$(B)/snd_mem.o \
@@ -167,14 +166,15 @@ OBJS = \
 	  $(B)/jutils.o \
 	  $(B)/jcapistd.o \
 	  \
-	  $(B)/amiga_input.o \
 	  $(B)/amiga_main.o \
+	  $(B)/amiga_input.o \
+	  $(B)/amiga_mhandler.o \
+	  $(B)/amiga_snd.o \
 	  $(B)/amiga_glimp.o \
-	  $(B)/amiga_qgl.o \
 	  $(B)/amiga_shared.o
 ##
 
-QUAKE3 = $(B)/openarena-68k-r4
+QUAKE3 = $(B)/openarena-68k-r5
 
 all: $(QUAKE3)
 
@@ -480,6 +480,8 @@ $(B)/jcapistd.o:  code/jpeg-6b/jcapistd.c
 
 $(B)/amiga_input.o:  code/amiga/amiga_input.c
 	$(DO_CC)
+$(B)/amiga_mhandler.o:  code/amiga/amiga_mhandler.c
+	$(DO_CC)
 $(B)/amiga_main.o:  code/amiga/amiga_main.c
 	$(DO_CC)
 $(B)/amiga_syscon.o:  code/amiga/amiga_syscon.c
@@ -490,11 +492,7 @@ $(B)/amiga_qgl.o:  code/amiga/amiga_qgl.c
 	$(DO_CC)
 $(B)/amiga_shared.o:  code/amiga/amiga_shared.c
 	$(DO_CC)
-
 $(B)/amiga_snd.o:  code/amiga/amiga_snd.c
-	$(DO_CC)
-
-$(B)/amiga_ahi68k.o:  code/amiga/amiga_ahi68k.c
 	$(DO_CC)
 
 $(B)/snd_adpcm.o:  code/client/snd_adpcm.c

@@ -163,15 +163,13 @@ void S_TransferPaintBuffer(int endtime)
 	int		*p;
 	int		step;
 	int		val;
+	int		i;
 	unsigned long	*pbuf;
 
 	pbuf = (unsigned long *)dma.buffer;
 
 	if ( s_testsound->integer )
 	{
-		int	i;
-		int	count;
-
 		// write a fixed sine wave
 		count = (endtime - s_paintedtime);
 
@@ -189,6 +187,7 @@ void S_TransferPaintBuffer(int endtime)
 	{	// general case
 		p = (int *) paintbuffer;
 		count = (endtime - s_paintedtime) * dma.channels;
+
 		out_mask = dma.samples - 1; 
 		out_idx = s_paintedtime * dma.channels & out_mask;
 		step = 3 - dma.channels;
@@ -314,8 +313,8 @@ static void S_PaintChannelFrom16_scalar( channel_t *ch, const sfx_t *sc, int cou
 			{
 				chunk = chunk->next;
 
-				if(!chunk)
-					chunk = sc->soundData;
+				//if(!chunk)
+					//chunk = sc->soundData;
 
 				samples = chunk->sndChunk;
 				sampleOffset = 0;

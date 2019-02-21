@@ -413,7 +413,7 @@ static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int s
 				search->ai_addrlen = sadr_len;
 
 			memcpy(sadr, search->ai_addr, search->ai_addrlen);
-			freeaddrinfo(res); // Cowcat search ??
+			freeaddrinfo(res);
 			
 			return qtrue;
 		}
@@ -975,7 +975,6 @@ SOCKET NET_IPSocket( char *net_interface, int port, int *err )
 {
 	SOCKET			newsocket;
 	struct sockaddr_in	address;
-	//qboolean		_true = qtrue;
 	ioctlarg_t		_true = 1;
 	int			i = 1;
 
@@ -1466,12 +1465,10 @@ void NET_OpenSocks( int port )
 NET_GetLocalAddress
 =====================
 */
-void NET_AddLocalAddress(char *ifname, struct sockaddr *addr, struct sockaddr *netmask)
+static void NET_AddLocalAddress(char *ifname, struct sockaddr *addr, struct sockaddr *netmask)
 {
 	int 		addrlen;
 	sa_family_t	family;
-
-	//Com_Printf("%s %p %p %p\n", __FUNCTION__, ifname, addr, netmask);
 
 	// only add addresses that have all required info.
 	if(!addr || !netmask || !ifname)
@@ -1534,12 +1531,14 @@ void NET_GetLocalAddress(void)
 
 #else
 
-void NET_GetLocalAddress( void ) // changed here - Cowcat
+static void NET_GetLocalAddress( void )
 {
 	char			hostname[256];
 	struct addrinfo		hint;
 	struct addrinfo 	*res = NULL;
 	
+	numIP = 0;
+
 	if(gethostname( hostname, 256 ) == SOCKET_ERROR)
 		return;
 

@@ -95,7 +95,7 @@ void Netchan_Setup(netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, int 
 	chan->incomingSequence = 0;
 	chan->outgoingSequence = 1;
 	chan->challenge = challenge;
-	chan->isLANAddress = Sys_IsLANAddress( adr ); // Quake3e - Cowcat
+	chan->isLANAddress = Sys_IsLANAddress( adr ); // ec-/Quake3e
 
 #ifdef LEGACY_PROTOCOL
 	chan->compat = compat;
@@ -643,12 +643,12 @@ void QDECL NET_OutOfBandPrint( netsrc_t sock, netadr_t adr, const char *format, 
 
 	va_start( argptr, format );
 	//Q_vsnprintf( string+4, sizeof(string)-4, format, argptr );
-	len = Q_vsnprintf( string+4, sizeof(string)-4, format, argptr ) + 4; // Quake3e - Cowcat
+	len = Q_vsnprintf( string+4, sizeof(string)-4, format, argptr ) + 4; // ec-/Quake3e
 	va_end( argptr );
 
 	// send the datagram
 	//NET_SendPacket( sock, strlen( string ), string, adr );
-	NET_SendPacket( sock, len, string, adr ); // Quake3e - Cowcat
+	NET_SendPacket( sock, len, string, adr ); // ec-/Quake3e
 }
 
 

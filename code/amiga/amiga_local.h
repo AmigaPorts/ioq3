@@ -31,8 +31,11 @@ void Sys_SetDefaultCDPath(const char *path);
 // Input subsystem
 
 void IN_Init (void);
+void IN_Restart (void);
+//void IN_Init (struct Window *win);
 void IN_Frame (void);
 void IN_Shutdown (void);
+//void IN_Shutdown (struct Window *win);
 void install_grabs(void);
 void uninstall_grabs(void);
 
@@ -45,5 +48,9 @@ void QGL_EnableLogging( qboolean enable );
 void QGL_Shutdown( void );
 
 extern struct MsgPort *Sys_EventPort;
+void MousePointerEnable(void);
+void MousePointerDisable(void);
+void MouseHandler(void);
+void MouseHandlerOff(void);
 
 #endif

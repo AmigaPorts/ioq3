@@ -41,7 +41,7 @@ This is just for OpenGL conformance testing, it should never be the fastest
 ================
 */
 
-#if 0
+#if 1
 static void APIENTRY R_ArrayElementDiscrete( GLint index )
 {
 	qglColor4ubv( tess.svars.colors[ index ] );
@@ -70,14 +70,16 @@ R_DrawStripElements
 ===================
 */
 
-#ifdef AMIGAOS
+//#ifdef AMIGAOS
 
 extern UWORD *ElementIndex; // amiga_glimp.c
+//static UWORD ElementIndex[4096];
+//static UWORD ElementIndex[SHADER_MAX_INDEXES];
 
 static void R_DrawStripElementsAmiga( int numIndexes, const glIndex_t *indexes )
 {
 	int		i;
-	int 	 	last0, last1, last2;
+	int		last0, last1, last2;
 	qboolean	even;
 
 	if ( numIndexes <= 0 )
@@ -85,12 +87,11 @@ static void R_DrawStripElementsAmiga( int numIndexes, const glIndex_t *indexes )
 
 	unsigned int VertexPointer = 0;
 
-	int indexes0 = (UWORD)indexes[0];
-	int indexes1 = (UWORD)indexes[1];
-	int indexes2 = (UWORD)indexes[2];
+	int indexes0 = indexes[0];
+	int indexes1 = indexes[1];
+	int indexes2 = indexes[2];
 
 	// prime the strip
-
 	ElementIndex[VertexPointer++] = indexes0;
 	ElementIndex[VertexPointer++] = indexes1;
 	ElementIndex[VertexPointer++] = indexes2;
@@ -103,9 +104,9 @@ static void R_DrawStripElementsAmiga( int numIndexes, const glIndex_t *indexes )
 
 	for ( i = 3; i < numIndexes; i += 3 )
 	{
-		indexes0 = (UWORD)indexes[i+0];
-		indexes1 = (UWORD)indexes[i+1];
-		indexes2 = (UWORD)indexes[i+2];
+		indexes0 = indexes[i+0];
+		indexes1 = indexes[i+1];
+		indexes2 = indexes[i+2];
 
 		// odd numbered triangle in potential strip
 		if ( !even )
@@ -127,6 +128,7 @@ static void R_DrawStripElementsAmiga( int numIndexes, const glIndex_t *indexes )
 			if ( ( last2 == indexes1 ) && ( last0 == indexes0 ) )
 			{
 				ElementIndex[VertexPointer++] = indexes2;
+				even = qfalse;
 			}
 
 			// otherwise we're done with this strip so finish it and start
@@ -134,17 +136,14 @@ static void R_DrawStripElementsAmiga( int numIndexes, const glIndex_t *indexes )
 			else
 			{
 		startnewstrip:
-				//qglEnd();
-				//qglBegin( GL_TRIANGLE_STRIP );
 
-				qglDrawElements( GL_TRIANGLE_STRIP, VertexPointer, GL_INDEX_TYPE, ElementIndex  );
-				
+				qglDrawElements( GL_TRIANGLE_STRIP, VertexPointer, GL_INDEX_TYPE, ElementIndex );
+
 				VertexPointer = 0;
 
 				ElementIndex[VertexPointer++] = indexes0;
 				ElementIndex[VertexPointer++] = indexes1;
 				ElementIndex[VertexPointer++] = indexes2;
-				
 			}
 
 			even = qfalse;
@@ -154,20 +153,20 @@ static void R_DrawStripElementsAmiga( int numIndexes, const glIndex_t *indexes )
 		last0 = indexes0;
 		last1 = indexes1;
 		last2 = indexes2;
-		
+
 	}
 
-	//qglEnd();
-	qglDrawElements( GL_TRIANGLE_STRIP, VertexPointer, GL_INDEX_TYPE, ElementIndex  );
-
+	qglDrawElements( GL_TRIANGLE_STRIP, VertexPointer, GL_INDEX_TYPE, ElementIndex );
 }
 
-#else // old way - Cowcat
+//#else // old way - Cowcat
 
+/*
 static void APIENTRY R_ArrayElement( GLint index ) 
 {
 	qglArrayElement(index);
 }
+*/
 
 static void R_DrawStripElements( int numIndexes, const glIndex_t *indexes, void ( APIENTRY *element )(GLint) )
 {
@@ -249,7 +248,7 @@ static void R_DrawStripElements( int numIndexes, const glIndex_t *indexes, void 
 	qglEnd();
 }
 
-#endif
+//#endif
 
 /*
 ==================
@@ -320,13 +319,25 @@ void R_DrawElements( int numIndexes, const glIndex_t *indexes )
 	if ( primitives == 1 )
 	{
 		#ifndef AMIGAOS
+
 		R_DrawStripElements( numIndexes, indexes, R_ArrayElement );
+
 		#else
+
 		R_DrawStripElementsAmiga( numIndexes, indexes );
+
 		#endif
 
 		return;
 	}
+
+	if ( primitives == 3 )
+	{
+		//qglDisableClientState (GL_VERTEX_ARRAY); // Cowcat
+		R_DrawStripElements( numIndexes, indexes, R_ArrayElementDiscrete );
+		return;
+	}
+
 
 	// anything else will cause no drawing
 
@@ -503,7 +514,7 @@ void RB_BeginSurface( shader_t *shader, int fogNum )
 	tess.dlightBits = 0;		// will be OR'd in by surface functions
 	tess.xstages = state->stages;
 	tess.numPasses = state->numUnfoggedPasses;
-	tess.currentStageIteratorFunc = state->optimalStageIteratorFunc; // disable test -quake3e - Cowcat
+	tess.currentStageIteratorFunc = state->optimalStageIteratorFunc;
 
 	tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset;
 
@@ -525,7 +536,7 @@ t1 = most downstream according to spec
 */
 static void DrawMultitextured( shaderCommands_t *input, int stage )
 {
-#if 0 // Cowcat
+#if !defined(AMIGAOS) // Cowcat
 
 	shaderStage_t	*pStage;
 
@@ -547,7 +558,7 @@ static void DrawMultitextured( shaderCommands_t *input, int stage )
 	//
 	GL_SelectTexture( 0 );
 
-	qglTexCoordPointer( 2, GL_FLOAT, 0, input->svars.texcoords[0] ); // Cowcat
+	qglTexCoordPointer( 2, GL_FLOAT, 0, input->svars.texcoords[0] );
 
 	R_BindAnimatedImage( &pStage->bundle[0] );
 
@@ -1225,8 +1236,6 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 {
 	int stage;
 
-	//glLockArrays(0, input->numVertexes); // Cowcat
-
 	for ( stage = 0; stage < MAX_SHADER_STAGES; stage++ )
 	{
 		shaderStage_t *pStage = tess.xstages[stage];
@@ -1248,12 +1257,14 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 		//
 		// do multitexture
 		//
+		#if !defined(AMIGAOS) // Cowcat
 		if ( pStage->bundle[1].image[0] != 0 )
 		{
 			DrawMultitextured( input, stage );
 		}
 
 		else
+		#endif
 		{
 			if ( !setArraysOnce )
 			{
@@ -1271,7 +1282,6 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 			// draw
 			//
 			R_DrawElements( input->numIndexes, input->indexes );
-			
 		}
 
 		// allow skipping out to show just lightmaps during development
@@ -1295,7 +1305,7 @@ void RB_StageIteratorGeneric( void )
 	shader = input->shader;
 
 	/*
-	if(input->numVertexes == 0)
+	if(!input->numVertexes)
 	{
 		ri.Printf( PRINT_ALL, "numvertexes 0\n");
 		return;
@@ -1322,11 +1332,13 @@ void RB_StageIteratorGeneric( void )
 	GL_Cull( shader->cullType );
 
 	// set polygon offset if necessary
+	#if !defined(AMIGAOS)
 	if ( shader->polygonOffset )
 	{
 		qglEnable( GL_POLYGON_OFFSET_FILL );
-		//qglPolygonOffset( r_offsetFactor->value, r_offsetUnits->value ); // Cowcat
+		qglPolygonOffset( r_offsetFactor->value, r_offsetUnits->value );
 	}
+	#endif
 
 	//
 	// if there is only a single pass then we can enable color
@@ -1334,7 +1346,6 @@ void RB_StageIteratorGeneric( void )
 	// to avoid compiling those arrays since they will change
 	// during multipass rendering
 	//
-
 	if ( tess.numPasses > 1 || shader->multitextureEnv )
 	{
 		setArraysOnce = qfalse;
@@ -1347,10 +1358,10 @@ void RB_StageIteratorGeneric( void )
 	{
 		setArraysOnce = qtrue;
 
-		qglEnableClientState( GL_COLOR_ARRAY);
+		qglEnableClientState( GL_COLOR_ARRAY );
 		qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors );
 
-		qglEnableClientState( GL_TEXTURE_COORD_ARRAY);
+		qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
 		qglTexCoordPointer( 2, GL_FLOAT, 0, tess.svars.texcoords[0] );
 	}
 
@@ -1359,9 +1370,9 @@ void RB_StageIteratorGeneric( void )
 	//
 	qglVertexPointer (3, GL_FLOAT, 16, input->xyz); // padded for SIMD 
 
-	qglEnableClientState (GL_VERTEX_ARRAY); // Cowcat
+	//qglEnableClientState ( GL_VERTEX_ARRAY ); // Cowcat
 
-	#if 0 // Cowcat - lock at IterateStagesGeneric...
+	#if 0 // Cowcat
 	if (qglLockArraysEXT)
 	{
 		qglLockArraysEXT(0, input->numVertexes);
@@ -1369,11 +1380,11 @@ void RB_StageIteratorGeneric( void )
 	}
 	#endif
 
-	glLockArrays(0, input->numVertexes); // better in IterateStagesGeneric ? Cowcat
+	glLockArrays(0, input->numVertexes); // Cowcat
+
 	//
 	// enable color and texcoord arrays after the lock if necessary
 	//
-
 	if ( !setArraysOnce )
 	{
 		qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
@@ -1412,15 +1423,17 @@ void RB_StageIteratorGeneric( void )
 	#endif
 
 	glUnlockArrays(); // Cowcat
-	qglDisableClientState (GL_VERTEX_ARRAY); // Cowcat
+	//qglDisableClientState (GL_VERTEX_ARRAY); // Cowcat
 
 	//
 	// reset polygon offset
 	//
+	#if !defined(AMIGAOS)
 	if ( shader->polygonOffset )
 	{
 		qglDisable( GL_POLYGON_OFFSET_FILL );
 	}
+	#endif
 }
 
 
@@ -1463,11 +1476,11 @@ void RB_StageIteratorVertexLitTexture( void )
 	//
 	qglEnableClientState( GL_COLOR_ARRAY);
 	qglEnableClientState( GL_TEXTURE_COORD_ARRAY);
-	qglEnableClientState (GL_VERTEX_ARRAY); // Cowcat
+	//qglEnableClientState (GL_VERTEX_ARRAY); // Cowcat
 
 	qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors );
 	qglTexCoordPointer( 2, GL_FLOAT, 16, tess.texCoords[0][0] );
-	qglVertexPointer (3, GL_FLOAT, 16, input->xyz);
+	qglVertexPointer (2, GL_FLOAT, 16, input->xyz);
 
 	#if 0 // Cowcat
 	if ( qglLockArraysEXT ) // Cowcat
@@ -1516,7 +1529,7 @@ void RB_StageIteratorVertexLitTexture( void )
 	#endif
 
 	glUnlockArrays(); // Cowcat
-	qglDisableClientState (GL_VERTEX_ARRAY); // Cowcat
+	//qglDisableClientState (GL_VERTEX_ARRAY); // Cowcat
 }
 
 //define REPLACE_MODE
@@ -1553,8 +1566,6 @@ void RB_StageIteratorLightmappedMultitexture( void )
 	//
 	GL_State( GLS_DEFAULT );
 
-	#if 0 // Cowcat
-
 	qglVertexPointer( 3, GL_FLOAT, 16, input->xyz );
 
 #ifdef REPLACE_MODE
@@ -1565,7 +1576,6 @@ void RB_StageIteratorLightmappedMultitexture( void )
 	qglEnableClientState( GL_COLOR_ARRAY );
 	qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.constantColor255 );
 #endif
-	#endif
 
 	//
 	// select base stage
@@ -1602,10 +1612,9 @@ void RB_StageIteratorLightmappedMultitexture( void )
 	//
 	// lock arrays
 	//
-	//if ( qglLockArraysEXT )
+	if ( qglLockArraysEXT )
 	{
-		//qglLockArraysEXT(0, input->numVertexes);
-		glLockArrays(0, input->numVertexes);
+		qglLockArraysEXT(0, input->numVertexes);
 		//GLimp_LogComment( "glLockArraysEXT\n" );
 	}
 
@@ -1616,7 +1625,7 @@ void RB_StageIteratorLightmappedMultitexture( void )
 	//
 	qglDisable( GL_TEXTURE_2D );
 
-	qglDisableClientState( GL_TEXTURE_COORD_ARRAY ); // Cowcat
+	qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
 
 	GL_SelectTexture( 0 );
 
@@ -1644,15 +1653,12 @@ void RB_StageIteratorLightmappedMultitexture( void )
 	//
 	// unlock arrays
 	//
-	#if 0 // Cowcat
 	if ( qglUnlockArraysEXT )
 	{
 		qglUnlockArraysEXT();
 		//GLimp_LogComment( "glUnlockArraysEXT\n" );
 	}
-	#endif
 
-	glUnlockArrays(); // Cowcat
 #endif
 
 }
@@ -1721,7 +1727,7 @@ void RB_EndSurface( void )
 
 	// clear shader so we can tell we don't have any unclosed surfaces
 	tess.numIndexes = 0;
-	//tess.numVertexes = 0; // needed ? - Cowcat
+	tess.numVertexes = 0; // needed ? - Cowcat
 
 	//GLimp_LogComment( "----------\n" ); // Cowcat
 }

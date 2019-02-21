@@ -71,7 +71,6 @@ keyname_t keynames[] =
 
 	{"CAPSLOCK", K_CAPSLOCK},
 
-	
 	{"F1", K_F1},
 	{"F2", K_F2},
 	{"F3", K_F3},
@@ -120,6 +119,7 @@ keyname_t keynames[] =
 	{"JOY14", K_JOY14},
 	{"JOY15", K_JOY15},
 	{"JOY16", K_JOY16},
+/* // not used - ec-/Quake3e
 	{"JOY17", K_JOY17},
 	{"JOY18", K_JOY18},
 	{"JOY19", K_JOY19},
@@ -136,7 +136,7 @@ keyname_t keynames[] =
 	{"JOY30", K_JOY30},
 	{"JOY31", K_JOY31},
 	{"JOY32", K_JOY32},
-
+*/
 	{"AUX1", K_AUX1},
 	{"AUX2", K_AUX2},
 	{"AUX3", K_AUX3},
@@ -145,6 +145,7 @@ keyname_t keynames[] =
 	{"AUX6", K_AUX6},
 	{"AUX7", K_AUX7},
 	{"AUX8", K_AUX8},
+/* // not used - ec-/Quake3e
 	{"AUX9", K_AUX9},
 	{"AUX10", K_AUX10},
 	{"AUX11", K_AUX11},
@@ -153,6 +154,7 @@ keyname_t keynames[] =
 	{"AUX14", K_AUX14},
 	{"AUX15", K_AUX15},
 	{"AUX16", K_AUX16},
+*/
 
 	{"KP_HOME",		K_KP_HOME },
 	{"KP_UPARROW",		K_KP_UPARROW },
@@ -177,6 +179,7 @@ keyname_t keynames[] =
 	
 	{"SEMICOLON", ';'},	// because a raw semicolon seperates commands
 
+/* // not used - ec-/Quake3e
 	{"WORLD_0", K_WORLD_0},
 	{"WORLD_1", K_WORLD_1},
 	{"WORLD_2", K_WORLD_2},
@@ -273,6 +276,7 @@ keyname_t keynames[] =
 	{"WORLD_93", K_WORLD_93},
 	{"WORLD_94", K_WORLD_94},
 	{"WORLD_95", K_WORLD_95},
+*/
 
 	{"WINDOWS", K_SUPER},
 	{"COMPOSE", K_COMPOSE},
@@ -838,7 +842,7 @@ void Message_Key( int key )
 			else
 				Com_sprintf( buffer, sizeof( buffer ), "say \"%s\"\n", chatField.buffer );
 
-			CL_AddReliableCommand( buffer, qfalse ); // Cowcat
+			CL_AddReliableCommand( buffer, qfalse );
 		}
 
 		Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_MESSAGE );
@@ -894,7 +898,8 @@ to be configured even if they don't have defined names.
 int Key_StringToKeynum( char *str )
 {
 	keyname_t	*kn;
-	
+	int		n;
+
 	if ( !str || !str[0] )
 	{
 		return -1;
@@ -906,14 +911,11 @@ int Key_StringToKeynum( char *str )
 	}
 
 	// check for hex code
-	if ( strlen( str ) == 4 )
-	{
-		int n = Com_HexStrToInt( str );
+	n = Com_HexStrToInt( str );
 
-		if ( n >= 0 )
-		{
-			return n;
-		}
+	if ( n >= 0 && n < MAX_KEYS )
+	{
+		return n;
 	}
 
 	// scan for a text match
@@ -1638,11 +1640,10 @@ void CL_LoadConsoleHistory( void )
 		return;
 	}
 
-	//if( consoleSaveBufferSize <= MAX_CONSOLE_SAVE_BUFFER &&
-	if( consoleSaveBufferSize < MAX_CONSOLE_SAVE_BUFFER && // test Cowcat
+	if( consoleSaveBufferSize < MAX_CONSOLE_SAVE_BUFFER &&
 		FS_Read( consoleSaveBuffer, consoleSaveBufferSize, f ) == consoleSaveBufferSize )
 	{
-		consoleSaveBuffer[consoleSaveBufferSize] = '\0'; // test Cowcat
+		consoleSaveBuffer[consoleSaveBufferSize] = '\0';
 		text_p = consoleSaveBuffer;
 
 		for( i = COMMAND_HISTORY - 1; i >= 0; i-- )
