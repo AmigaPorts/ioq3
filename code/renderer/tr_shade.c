@@ -72,9 +72,7 @@ R_DrawStripElements
 
 //#ifdef AMIGAOS
 
-extern UWORD *ElementIndex; // amiga_glimp.c
-//static UWORD ElementIndex[4096];
-//static UWORD ElementIndex[SHADER_MAX_INDEXES];
+static UWORD ElementIndex[4096];
 
 static void R_DrawStripElementsAmiga( int numIndexes, const glIndex_t *indexes )
 {

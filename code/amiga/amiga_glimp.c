@@ -89,8 +89,6 @@ void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned 
 void GLW_InitGamma(void) {}
 void GLW_RestoreGamma(void) {}
 
-UWORD *ElementIndex; // new Cowcat
-
 extern qboolean mouse_avail;
 extern qboolean mhandler;
 qboolean windowmode; // mousehandler check on IN_Frame
@@ -223,8 +221,6 @@ static qboolean GLW_StartDriverAndSetMode( int mode, int colorbits, qboolean ful
 	else
 		mglChooseMtexBufferSize( (int)gl_mtexbuffersize->value * 4);
 	#endif
-	
-	ElementIndex = malloc( sizeof(UWORD)*(int)r_vertexbuffersize->value ); // new Cowcat
 
 	if(!mglCreateContext(0, 0, glConfig.vidWidth, glConfig.vidHeight))
 	{
@@ -555,8 +551,6 @@ void GLimp_Shutdown(void)
 	IN_Shutdown(); //
 
 	GLW_RestoreGamma();
-
-	free(ElementIndex); // Cowcat
 
 	GLW_Shutdown();
 }
