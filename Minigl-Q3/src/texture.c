@@ -14,15 +14,6 @@
 
 #include "sysinc.h"
 
-/*
-#pragma amiga-align
-#ifdef __PPC__
-#include <powerpc/powerpc.h>
-#include <proto/powerpc.h>
-#include <powerpc/memoryPPC.h>
-#endif
-#pragma default-align
-*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -88,7 +79,6 @@ void *tex_Alloc(ULONG size)
 	ULONG *x;
 	Allocated_Size += size+4;
 	x = (ULONG *)malloc(size+4);
-	//x = (ULONG *)AllocVecPPC(size+4, MEMF_PUBLIC|MEMF_CLEAR, 0);
 	*x = size;
 
 	if (Allocated_Size > Peak_Size)
@@ -104,7 +94,6 @@ void tex_Free(void *chunk)
 	Allocated_Size -= *mem;
 	Allocated_Size -= 4;
 	free(mem);
-	//FreeVecPPC(mem);
 }
 
 #if 0 // not used
@@ -1071,25 +1060,6 @@ ULONG MGLConvert(GLcontext context, const GLvoid *inputp, UWORD *output, int wid
 
 			break;
 
-		#if 0
-		case GL_RGB8: // Cowcat
-
-			switch(format)
-			{
-				case GL_RGB:
-					RGB_RGB(context, (GLubyte *)input, output, width, height);
-					//return W3D_R8G8B8;
-					return context->w3dFormat;
-
-				case GL_RGBA:
-					RGBA_RGB(context, (GLubyte *)input, output, width, height);
-					//return W3D_R8G8B8A8;
-					return context->w3dFormat;
-			}
-
-			break;
-		#endif
-
 		case 4:
 		case GL_RGBA:
 
@@ -1654,7 +1624,6 @@ void GLTexSubImage2DNoMIP (GLcontext context, GLenum target, GLint level, GLint 
 			break;
 
 		case GL_RGB:
-		//case GL_RGB8: // Cowcat
 		case 3:
 			sourceunit = 3;
 			break;

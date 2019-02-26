@@ -160,8 +160,6 @@ GLboolean TMA_Check(LockTimeHandle *handle)
 
 #else
 
-#if 1
-
 void TMA_Start(LockTimeHandle *handle)
 {
 	GetSysTimePPC(&(handle->StartTime));
@@ -182,75 +180,6 @@ GLboolean TMA_Check(LockTimeHandle *handle)
 
 	return GL_FALSE;
 }
-
-#else // test
-
-static inline void ReadTBC( struct EClockVal *mark )
-{
-	register ULONG tbcUpper0, tbcUpper1, tbcLower;
-
-	do
-	{
-		__asm volatile
-		(
-			"mftbu %0\n\t"
-			"mftb %1\n\t"
-			"mftbu %2"
-
-			: "=r"(tbcUpper0), "=r"(tbcLower), "=r"(tbcUpper1)
-		);
-
-	} while (tbcUpper0 != tbcUpper1);
-
-	mark->ev_hi = tbcUpper0;
-	mark->ev_lo = tbcLower;
-}
-
-#define READECLOCK(mark) ReadTBC((mark))
-
-static struct Device *TimerBase = NULL;
-
-void TMA_Start(LockTimeHandle *handle)
-{
-	struct EClockVal eval;
-	extern struct ExecBase *SysBase;
-
-	if (!TimerBase)
-	{
-		TimerBase = (struct Device *)FindName(&SysBase->DeviceList, "timer.device");
-	}
-
-	READECLOCK(&eval);
-	
-	handle->s_hi = eval.ev_hi;
-	handle->s_lo = eval.ev_lo;
-	handle->e_freq /= 20;
-}
-
-GLboolean TMA_Check(LockTimeHandle *handle)
-{
-	struct EClockVal eval;
-	ULONG ticks;
-
-	READECLOCK(&eval);
-
-	if (eval.ev_hi == handle->s_hi)
-	{
-		ticks = eval.ev_lo - handle->s_lo;
-	}
-
-	else
-	{
-		ticks = (~0)-handle->s_lo + eval.ev_lo;
-	}
-
-	if (ticks > handle->e_freq)
-		return GL_TRUE;
-
-	else
-		return GL_FALSE;
-}
-#endif
 
 #endif
 
@@ -891,7 +820,6 @@ void GLArrayElement(GLcontext context, GLint i)
 	context->ElementIndex[context->VertexBufferPointer++] = (UWORD)i;
 }
 
-
 void GLEnd(GLcontext context)
 {
 	//LOG(1, glEnd, "");
@@ -902,7 +830,7 @@ void GLEnd(GLcontext context)
 		return; //no verts recorded
 	}
 
-	#if 0
+	#if 0 // disabled just for Q3 engines - Cowcat
 	if(context->ClientState & GLCS_VERTEX)
 	{
 		//assume that a series of glArrayElement commands has been issued

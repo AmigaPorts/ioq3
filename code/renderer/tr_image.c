@@ -234,7 +234,6 @@ void R_ImageList_f( void )
 				format = "RGBA ";
 				// 4 bytes per pixel
 				estSize *= 4;
-				//estSize *= 2; // Cowcat
 				break;
 
 			case GL_LUMINANCE8:
@@ -618,97 +617,6 @@ Upload32
 ===============
 */
 
-#if 0
-
-byte *convertluminance(byte *data, int width, int height)
-{
-	byte *temp = (byte *)ri.Malloc(width*height*2);
-	int i;
-
-	unsigned int *input = (unsigned int *)data;
-	unsigned short *output = (unsigned short*)temp;
-
-	for(i=0; i < width*height; i++)
-	{
-		unsigned int pixel = input[i];
-
-		unsigned int r = pixel & 0xff;
-		unsigned int a = (pixel >> 24 ) & 0xff;
-		
-		output[i] = r | a<<8;
-	}
-
-	return temp;
-}
-
-
-byte *convertrgba4(byte *data, int width, int height)
-{
-	byte *temp = (byte *)ri.Malloc(width*height*2);
-	int i;
-
-	unsigned int *input = (unsigned int *)data;
-	unsigned short *output = (unsigned short*)temp;
-
-	for(i=0; i < width*height; i++)
-	{
-		unsigned int pixel = input[i];
-
-		unsigned int r = pixel & 0xff;
-		unsigned int g = (pixel >> 8 ) & 0xff;
-		unsigned int b = (pixel >> 16 ) & 0xff;
-		unsigned int a = (pixel >> 24 ) & 0xff;
-		
-		r >>= 4; g >>= 4; b >>= 4; a >>= 4; 
-		output[i] = r << 12 | g << 8 | b << 4 | a;
-	}
-
-	return temp;
-}
-
-byte *convertrgb(byte *data, int width, int height)
-{
-	#if 0
-	byte *temp = (byte *)ri.Malloc(width*height*2);
-	int i;
-
-	unsigned int *input = (unsigned int *)data;
-	unsigned short *output = (unsigned short*)temp;
-
-	for(i=0; i < width*height; i++)
-	{
-		unsigned int pixel = input[i];
-
-		unsigned int r = pixel & 0xff;
-		unsigned int g = (pixel >> 8 ) & 0xff;
-		unsigned int b = (pixel >> 16 ) & 0xff;
-		
-		r >>= 3; g >>= 2; b >>= 3; 
-		output[i] = r << 11 | g << 5 | b;
-	}
-
-	return temp;
-
-	#else
-
-	byte *temp = (byte *)ri.Malloc(width*height*3);
-	byte *src = data;
-	byte *dst = temp;
-	int i, j;
-
-	for(i=0; i < width*height; i++)
-	{
-		for(j=0; j < 3; j++)
-			*(dst++) = *(src++);
-		src++;
-	}
-
-	return temp;
-
-	#endif
-	
-}
-#endif
 
 static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qboolean picmip, 
 	qboolean lightMap, int *format, int *pUploadWidth, int *pUploadHeight )
@@ -949,26 +857,6 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 	}
 
 	R_LightScaleTexture (scaledBuffer, scaled_width, scaled_height, !mipmap );
-
-	#if 0 // test
-	byte *temp;
-
-	if (internalFormat == GL_RGBA)
-	//if (internalFormat == GL_LUMINANCE)
-	{
-		temp = convertrgba4((byte*)scaledBuffer, width, height);
-		//qglTexImage2D (GL_TEXTURE_2D, 0, MGL_UNSIGNED_SHORT_4_4_4_4, scaled_width, scaled_height, 0, MGL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_BYTE, temp );
-		qglTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, scaled_width, scaled_height, 0, MGL_UNSIGNED_SHORT_4_4_4_4, MGL_UNSIGNED_SHORT_4_4_4_4, temp );
-		
-		//temp = convertluminance((byte*)scaledBuffer, width, height);
-		//qglTexImage2D (GL_TEXTURE_2D, 0, GL_LUMINANCE, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp );
-
-		ri.Free(temp);
-	}
-
-	else
-		qglTexImage2D (GL_TEXTURE_2D, 0, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaledBuffer );
-	#endif
 
 	*pUploadWidth = scaled_width;
 	*pUploadHeight = scaled_height;

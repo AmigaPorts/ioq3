@@ -1,13 +1,13 @@
 #
-B = ioquake3_objs
-BUI = ioquake3_objs/q3_ui
-BCG = ioquake3_objs/cgame
-BQAG = ioquake3_objs/qagame
+B = ioquake3_objs_68k
+BUI = $(B)/q3_ui
+BCG = $(B)/cgame
+BQAG = $(B)/qagame
 
 CC = vc +aos68k
 INCLUDES = -ISystem:PosixLib/include
 
-CFLAGS = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -DAMIGAOS -DBOTLIB -DUSE_LOCAL_HEADERS -DDLL -DNO_VM_COMPILED
+CFLAGS = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -DAMIGAOS -DNDEBUG -DBOTLIB -DUSE_LOCAL_HEADERS -DDLL -DNO_VM_COMPILED
 
 DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
 

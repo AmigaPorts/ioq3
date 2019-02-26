@@ -95,73 +95,11 @@ qboolean Sys_LowPhysicalMemory() // It is always true - Cowcat
 	//return (avail <= MEM_THRESHOLD) ? qtrue : qfalse;
 }
 
-#if 0
-
-extern char *FS_BuildOSPath( const char *base, const char *game, const char *qpath );
-
-//void *Sys_LoadDll( const char *name, char *fqpath, intptr_t(**entryPoint)(int, ...), intptr_t(*systemcalls)(intptr_t, ...) ) 
-void *Sys_LoadDll( const char *name, char *fqpath, intptr_t(**entryPoint)(int, int, int, int ), intptr_t(*systemcalls)(intptr_t, ...) ) // Cowcat
-//void *Sys_LoadDll( const char *name, char *fqpath, 
-	//intptr_t(**entryPoint)(int, int, int, int, int, int, int, int, int, int, int, int, int ), intptr_t(*systemcalls)(intptr_t*) ) // Cowcat
-{
-#ifdef DLL
-
-	char	fname[MAX_OSPATH];
-	char	curpath[MAX_OSPATH];
-	char	*basepath;
-	char	*pwdpath;
-	char	*gamedir;
-	char	*cdpath;
-	char	*fn;
-	void	*libHandle;
-	void	(*dllEntry)( intptr_t (*syscallptr)(intptr_t, ...) );
-	//void	(*dllEntry)( intptr_t (*syscallptr)(intptr_t*) ); // new
-
-	fname[0] = 0;
-	
-	getcwd(curpath, sizeof(curpath));
-
-	pwdpath = Sys_Cwd();
-	basepath = Cvar_VariableString( "fs_basepath" );
-	gamedir = Cvar_VariableString( "fs_game" );
-	cdpath = Cvar_VariableString( "fs_cdpath" );
-
-	fn = FS_BuildOSPath( pwdpath, gamedir, name );
-	Com_Printf( "Sys_LoadDll(%s)... \n", fn );
-	libHandle = dllLoadLibrary(fn, name);
-
-	if (!libHandle)
-		return NULL;
-
-	dllEntry = dllGetProcAddress(libHandle, "dllEntry");
-	*entryPoint = dllGetProcAddress(libHandle, "vmMain");
-
-	if (!*entryPoint || !dllEntry)
-	{
-		dllFreeLibrary(libHandle);
-		return NULL;
-	}
-	
-	dllEntry(systemcalls);
-
-	if (libHandle)
-		Q_strncpyz(fqpath, fn, MAX_QPATH);
-
-	return libHandle;
-
-#else
-
-	return NULL;
-
-#endif
-}
-
-#else
 
 #ifdef DLL
 char *Sys_GetDLLName( const char *name )
 {
-	return va("%s.sp." ARCH_STRING DLL_EXT, name);
+	return va("%s" ARCH_STRING DLL_EXT, name);
 }
 #endif
 
@@ -214,7 +152,6 @@ void *Sys_LoadDll( const char *name, char *fqpath, intptr_t(**entryPoint)(int, i
 #endif
 }
 
-#endif
 
 void Sys_UnloadDll(void *dllHandle)
 {

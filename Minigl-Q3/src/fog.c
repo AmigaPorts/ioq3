@@ -67,7 +67,6 @@ void GLFogf(GLcontext context, GLenum pname, GLfloat param)
 }
 
 
-
 void GLFogfv(GLcontext context, GLenum pname, GLfloat *param)
 {
 	context->FogDirty = GL_TRUE;
@@ -124,16 +123,6 @@ void GLFogfv(GLcontext context, GLenum pname, GLfloat *param)
 	}
 }
 
-/*
-#ifdef __PPC__
-
-float __asm_fog_Clamp(__reg("f1") float) = "\tfabs\t1,1";
-#define fog_Clamp(x) __asm_fog_Clamp(x)
-
-
-#else
-*/
-
 static float fog_Clamp(float f)
 {	
 	if (f > 1.0)
@@ -145,19 +134,12 @@ static float fog_Clamp(float f)
 	return f;
 }
 
-//#endif
-
-//#include <math.h>
-
 void fog_Set(GLcontext context)
 {
 	ULONG error;
 
 	context->w3dFog.fog_start = fog_Clamp(-1.0 / ((context->FogStart) * (CurrentP->v[OF_43]) + (CurrentP->v[OF_44])));
 	context->w3dFog.fog_end   = fog_Clamp(-1.0 / ((context->FogEnd)   * (CurrentP->v[OF_43]) + (CurrentP->v[OF_44])));
-
-	//if(context->w3dFog.fog_start <= context->w3dFog.fog_end)
-		//context->w3dFog.fog_start = context->w3dFog.fog_end + 1e-7; // test Cowcat
 
 	error = W3D_SetFogParams(context->w3dContext, &(context->w3dFog), context->w3dFogMode);
 

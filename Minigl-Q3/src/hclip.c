@@ -621,6 +621,7 @@ These expressions test the length of the triangle-sides in 3D space and is in es
 	}
 }
 
+
 void GLFrontFace(GLcontext context, GLenum mode)
 {
 	int 	facing;
@@ -657,15 +658,12 @@ void GLFrontFace(GLcontext context, GLenum mode)
 	   	context->CurrentCullSign = sign;
 
 		//Surgeon <--
-
 	}
 
 	else
 	{
 		GLFlagError(context->GLC, 1, GL_INVALID_ENUM);
 	}
-
-	//MGLUpdateHardwareCull(context, 0); // Cowcat
 }
 
 void GLCullFace(GLcontext context, GLenum mode)

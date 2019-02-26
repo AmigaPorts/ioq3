@@ -2063,7 +2063,7 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 				{
 					if(context->VertexBuffer[idx[i]].outcode == 0)
 					{
-						context->VertexBuffer[idx[i]].outcode	= 1;
+						context->VertexBuffer[idx[i]].outcode = 1;
 						E_ToScreen(context, idx[i]);
 					}
 				}
@@ -2142,7 +2142,7 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 
 //added 27-05-02
 
-//static PolyBuffer clipbuffer2[MGL_MAXVERTS*6>>2]; // Cowcat
+//static PolyBuffer clipbuffer2[MGL_MAXVERTS*4>>2]; // Cowcat
 //#define CBUF2 clipbuffer2 //
 
 static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWORD *idx)
@@ -2150,7 +2150,7 @@ static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWO
 	int	i;
 	ULONG	local_and, local_or;
 	ULONG	error;
-	static UWORD trichain[MGL_MAXVERTS*6]; // was 4 - increased (6) for some Q3 mods - Cowcat
+	static UWORD trichain[MGL_MAXVERTS*4]; // was 4 - increased (6) for some Q3 mods - Cowcat
 	GLuint	visible;
 	int	cnum, free, chainverts;
 	int	offs = context->ArrayPointer.transformed;
@@ -2232,8 +2232,6 @@ static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWO
 	chainverts = 0;
 	cnum = 0;
 
-	#if 1
-
 	for(i=0; i<count; i+=3)
 	{
 		local_and = vbase[idx[i]].outcode & vbase[idx[i+1]].outcode & vbase[idx[i+2]].outcode;
@@ -2293,74 +2291,6 @@ static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWO
 			}
 		}
 	}
-
-	#else
-
-	for(i=0; i<count; i+=3)
-	{
-		ULONG idx0 = idx[i];
-		ULONG idx1 = idx[i+1];
-		ULONG idx2 = idx[i+2];
-
-		local_and = vbase[idx0].outcode & vbase[idx1].outcode & vbase[idx2].outcode;
-		local_or = vbase[idx0].outcode | vbase[idx1].outcode | vbase[idx2].outcode;
-
-		if(local_and)
-			continue;
-
-		if (local_or == 0)
-		{
-			if(context->CullFace_State == GL_FALSE)
-			{
-				trichain[chainverts]   = idx0;
-				trichain[chainverts+1] = idx1;
-				trichain[chainverts+2] = idx2;
-				chainverts += 3;
-			}
-
-			else
-			{
-				if(E_CheckTri(context, &vbase[idx0], &vbase[idx1], &vbase[idx2]) == GL_TRUE)
-				{
-					trichain[chainverts]   = idx0;
-					trichain[chainverts+1] = idx1;
-					trichain[chainverts+2] = idx2;
-					chainverts += 3;
-				}
-			}
-		}
-
-		else
-		{
-			if(context->CullFace_State == GL_FALSE || (local_or & MGL_CLIP_NEGW))
-			{
-				visible = GL_TRUE;
-			}
-
-			else
-			{
-				visible = hc_DecideFrontface(context, &(vbase[idx0]), &(vbase[idx1]), &(vbase[idx2]));
-			}
-
-			if(visible)
-			{
-				static PolyBuffer clip;
-
-				clip.verts[0] = offs+idx0;
-				clip.verts[1] = offs+idx1;
-				clip.verts[2] = offs+idx2;
-
-				Convert(context, &vbase[idx0], idx0);
-				Convert(context, &vbase[idx1], idx1);
-				Convert(context, &vbase[idx2], idx2);
-
-				cnum += AE_ClipTriangle(context, &clip, &CBUF[cnum], &free, local_or);
-				//cnum += AE_ClipTriangle(context, &clip, &CBUF2[cnum], &free, local_or); // Cowcat
-			}
-		}
-	}
-
-	#endif
 
 	if(chainverts)
 	{
@@ -2487,7 +2417,6 @@ static void E_DrawTriangles(GLcontext context, const int count, const UWORD*idx)
 				Convert(context, &context->VertexBuffer[idx[i+2]], idx[i+2]);
 
 				cnum += AE_ClipTriangle(context, &clip, &CBUF[cnum], &free, local_or);
-				//cnum += AE_ClipTriangle(context, &clip, &CBUF2[cnum], &free, local_or); // test Cowcat
 			}
 		}
 	}
@@ -2513,7 +2442,6 @@ static void E_DrawTriangles(GLcontext context, const int count, const UWORD*idx)
 		do
 		{
 			p = &CBUF[i];
-			//p = &CBUF2[i]; // test Cowcat
 	
 			for(j=0; j<p->numverts; j++)
 			{
@@ -2749,6 +2677,7 @@ static INLINE void PostDrawUnlock(GLcontext context)
 
 	#endif
 }
+
 
 void GLLockArrays(GLcontext context, GLuint first, GLsizei count)
 {

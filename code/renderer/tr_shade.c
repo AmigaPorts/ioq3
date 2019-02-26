@@ -151,7 +151,6 @@ static void R_DrawStripElementsAmiga( int numIndexes, const glIndex_t *indexes )
 		last0 = indexes0;
 		last1 = indexes1;
 		last2 = indexes2;
-
 	}
 
 	qglDrawElements( GL_TRIANGLE_STRIP, VertexPointer, GL_INDEX_TYPE, ElementIndex );
@@ -331,7 +330,6 @@ void R_DrawElements( int numIndexes, const glIndex_t *indexes )
 
 	if ( primitives == 3 )
 	{
-		//qglDisableClientState (GL_VERTEX_ARRAY); // Cowcat
 		R_DrawStripElements( numIndexes, indexes, R_ArrayElementDiscrete );
 		return;
 	}
@@ -532,9 +530,12 @@ t0 = most upstream according to spec
 t1 = most downstream according to spec
 ===================
 */
+
+#if !defined(AMIGAOS) // Cowcat
+
 static void DrawMultitextured( shaderCommands_t *input, int stage )
 {
-#if !defined(AMIGAOS) // Cowcat
+
 
 	shaderStage_t	*pStage;
 
@@ -591,10 +592,8 @@ static void DrawMultitextured( shaderCommands_t *input, int stage )
 	qglDisable( GL_TEXTURE_2D );
 
 	GL_SelectTexture( 0 );
-#endif
 }
-
-
+#endif
 
 /*
 ===================
@@ -1305,7 +1304,7 @@ void RB_StageIteratorGeneric( void )
 	/*
 	if(!input->numVertexes)
 	{
-		ri.Printf( PRINT_ALL, "numvertexes 0\n");
+		//ri.Printf( PRINT_ALL, "numvertexes 0\n");
 		return;
 	}
 	*/
@@ -1344,6 +1343,7 @@ void RB_StageIteratorGeneric( void )
 	// to avoid compiling those arrays since they will change
 	// during multipass rendering
 	//
+
 	if ( tess.numPasses > 1 || shader->multitextureEnv )
 	{
 		setArraysOnce = qfalse;

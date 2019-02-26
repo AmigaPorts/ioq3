@@ -6,7 +6,7 @@ CC68K = vc +aos68k -c99 -O2 -speed -cpu=68060
 
 ALTIVEC = -D__VECTOR__
 
-CFLAGS = -O2 -noixemul -fomit-frame-pointer -ffast-math -fno-strict-aliasing -DAMIGAOS -DBOTLIB -DUSE_LOCAL_HEADERS -DSTANDALONE $(ALTIVEC) # -DNO_VM_COMPILED
+CFLAGS = -O2 -noixemul -fomit-frame-pointer -ffast-math -fno-strict-aliasing -DAMIGAOS -DNDEBUG -DBOTLIB -DUSE_LOCAL_HEADERS -DSTANDALONE $(ALTIVEC) # -DNO_VM_COMPILED
 
 DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
 DO_CC68K = $(CC68K) -o $@ -c $<
