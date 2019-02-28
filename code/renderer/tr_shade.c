@@ -99,7 +99,7 @@ static void R_DrawStripElementsAmiga( int numIndexes, const glIndex_t *indexes )
 	last2 = indexes2;
 	
 	even = qfalse;
-
+	
 	for ( i = 3; i < numIndexes; i += 3 )
 	{
 		indexes0 = indexes[i+0];
@@ -152,9 +152,10 @@ static void R_DrawStripElementsAmiga( int numIndexes, const glIndex_t *indexes )
 		last1 = indexes1;
 		last2 = indexes2;
 	}
-
+	
 	qglDrawElements( GL_TRIANGLE_STRIP, VertexPointer, GL_INDEX_TYPE, ElementIndex );
 }
+
 
 //#else // old way - Cowcat
 

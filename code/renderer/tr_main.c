@@ -514,8 +514,6 @@ void R_SetupFrustum (viewParms_t *dest, float xmin, float xmax, float ymax, floa
 		oppleg = xmax / length;
 		adjleg = zProj / length;
 
-		//Com_Printf("oppleg %f adjlep %f\n", oppleg, adjleg);
-
 		VectorScale(dest->or.axis[0], oppleg, dest->frustum[0].normal);
 		VectorMA(dest->frustum[0].normal, adjleg, dest->or.axis[1], dest->frustum[0].normal);
 

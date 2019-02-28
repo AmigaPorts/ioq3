@@ -49,10 +49,11 @@ _rint:
 	.global _SGN
 
 _SGN:
-	lfs	f5,zero(r2)
-	fcmpu	cr0,f1,f5	# if (a == 0.f)
+	#lfs	f5,zero(r2)
+	fsubs	f4,f5,f5
+	fcmpu	cr0,f1,f4	# if (a == 0.f)
 	bne	cr0,.notzero	# return 0.f;
-	#mr	f1,f5
+	#mr	f1,f4
 	blr
 
 .notzero:
@@ -72,10 +73,6 @@ _SGN:
 	.align	2
 two23:
 	.long   0x4b000000
-
-	.align	2
-zero:
-	.long	0x00000000
 
 	.align	2
 one:

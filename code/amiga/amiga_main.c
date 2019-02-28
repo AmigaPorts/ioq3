@@ -230,7 +230,6 @@ void LeaveAmigaLibs(void)
 	{
 		CloseLibrary(SocketBase);
 		SocketBase = NULL;
-		//printf("SocketBase NULL\n");
 	}
 
 }
@@ -259,12 +258,10 @@ Show the early console as an error dialog
 void QDECL Sys_Error( const char *error, ... )
 {
 	va_list		argptr;
-	//char		text[4096];
-	char		string[1024]; // new Cowcat
+	char		string[1024];
 
 	va_start (argptr, error);
-	//vsprintf (text, error, argptr);
-	Q_vsnprintf (string, sizeof(string), error, argptr); // new Cowcat
+	Q_vsnprintf (string, sizeof(string), error, argptr);
 	va_end (argptr);
 
 	//CL_Shutdown(string, qtrue); // new Cowcat
@@ -335,7 +332,7 @@ are initialized
 
 void Sys_Init( void )
 {
-	char *cpuidstr;
+	//char *cpuidstr;
 	
 	Cmd_AddCommand ("in_restart", Sys_In_Restart_f);
 

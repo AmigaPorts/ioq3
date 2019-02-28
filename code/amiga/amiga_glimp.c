@@ -59,7 +59,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <mgl/gl.h>
 
 extern qboolean mouse_active;
-extern int mx, my;
 
 extern cvar_t *r_finish;
 cvar_t *r_closeworkbench;
@@ -71,10 +70,8 @@ cvar_t *r_perspective_fast; //
 
 extern cvar_t *in_nograb;
 
-unsigned short *mousePtr = 0;
-
+static unsigned short *mousePtr = 0;
 struct MsgPort *Sys_EventPort = 0;
-
 struct Window *win = NULL;
 
 void (APIENTRYP qglActiveTextureARB) (GLenum texture);
