@@ -204,14 +204,14 @@ void MSG_WriteBits( msg_t *msg, int value, int bits )
 			return;
 		}
 		
-		if (bits==8)
+		if (bits == 8)
 		{
 			msg->data[msg->cursize] = value;
 			msg->cursize += 1;
 			msg->bit += 8;
 		}
 
-		else if (bits==16)
+		else if (bits == 16)
 		{
 			#if 1
 
@@ -232,7 +232,7 @@ void MSG_WriteBits( msg_t *msg, int value, int bits )
 			#endif
 		}
 
-		else if (bits==32)
+		else if (bits == 32)
 		{
 			#if 1
 
@@ -331,14 +331,14 @@ int MSG_ReadBits( msg_t *msg, int bits )
 			return 0;
 		}
 
-		if (bits==8)
+		if (bits == 8)
 		{
 			value = msg->data[msg->readcount];
 			msg->readcount += 1;
 			msg->bit += 8;
 		}
 
-		else if (bits==16)
+		else if (bits == 16)
 		{
 			#if 1
 
@@ -360,7 +360,7 @@ int MSG_ReadBits( msg_t *msg, int bits )
 			#endif
 		}
 
-		else if (bits==32)
+		else if (bits == 32)
 		{
 			#if 1
 
@@ -700,12 +700,17 @@ char *MSG_ReadString( msg_t *msg )
 			c = '.';
 		}
 
-		string[l] = c;
-		l++;
+		// break only after reading all expected data from bitstream
+		if ( l >= sizeof( string ) - 1 )
+		{
+			break;
+		}
 
-	} while (l < sizeof(string)-1);
-	
-	string[l] = 0;
+		string[l++] = c;
+
+	} while (l);
+
+	string[l] = '\0';
 	
 	return string;
 }
@@ -714,7 +719,7 @@ char *MSG_ReadBigString( msg_t *msg )
 {
 	static char	string[BIG_INFO_STRING];
 	int		l,c;
-	
+
 	l = 0;
 
 	do
@@ -739,12 +744,17 @@ char *MSG_ReadBigString( msg_t *msg )
 			c = '.';
 		}
 
-		string[l] = c;
-		l++;
+		// break only after reading all expected data from bitstream
+		if ( l >= sizeof( string ) - 1 )
+		{
+			break;
+		}
 
-	} while (l < sizeof(string)-1);
+		string[l++] = c;
+
+	} while(l);
 	
-	string[l] = 0;
+	string[l] = '\0';
 	
 	return string;
 }
@@ -778,12 +788,17 @@ char *MSG_ReadStringLine( msg_t *msg )
 			c = '.';
 		}
 
-		string[l] = c;
-		l++;
+		// break only after reading all expected data from bitstream
+		if ( l >= sizeof( string ) - 1 )
+		{
+			break;
+		}
 
-	} while (l < sizeof(string)-1);
+		string[l++] = c;
+
+	} while (l);
 	
-	string[l] = 0;
+	string[l] = '\0';
 	
 	return string;
 }
@@ -836,58 +851,6 @@ extern cvar_t *cl_shownet;
 
 #define LOG(x) if( cl_shownet && cl_shownet->integer == 4 ) { Com_Printf("%s ", x ); };
 
-#if 0
-void MSG_WriteDelta( msg_t *msg, int oldV, int newV, int bits )
-{
-	if ( oldV == newV )
-	{
-		MSG_WriteBits( msg, 0, 1 );
-		return;
-	}
-
-	MSG_WriteBits( msg, 1, 1 );
-	MSG_WriteBits( msg, newV, bits );
-}
-
-int MSG_ReadDelta( msg_t *msg, int oldV, int bits )
-{
-	if ( MSG_ReadBits( msg, 1 ) )
-	{
-		return MSG_ReadBits( msg, bits );
-	}
-
-	return oldV;
-}
-
-void MSG_WriteDeltaFloat( msg_t *msg, float oldV, float newV )
-{
-	floatint_t fi;
-
-	if ( oldV == newV )
-	{
-		MSG_WriteBits( msg, 0, 1 );
-		return;
-	}
-
-	fi.f = newV;
-	MSG_WriteBits( msg, 1, 1 );
-	MSG_WriteBits( msg, fi.i, 32 );
-}
-
-float MSG_ReadDeltaFloat( msg_t *msg, float oldV )
-{
-	if ( MSG_ReadBits( msg, 1 ) )
-	{
-		floatint_t fi;
-
-		fi.i = MSG_ReadBits( msg, 32 );
-		return fi.f;
-	}
-
-	return oldV;
-}
-#endif
-
 /*
 =============================================================================
 
@@ -929,6 +892,7 @@ int MSG_ReadDeltaKey( msg_t *msg, int key, int oldV, int bits )
 	return oldV;
 }
 
+#if 0 // not used ? - Cowcat
 void MSG_WriteDeltaKeyFloat( msg_t *msg, int key, float oldV, float newV )
 {
 	floatint_t fi;
@@ -956,7 +920,7 @@ float MSG_ReadDeltaKeyFloat( msg_t *msg, int key, float oldV )
 
 	return oldV;
 }
-
+#endif
 
 /*
 ============================================================================
@@ -1083,6 +1047,7 @@ MSG_ReportChangeVectors_f
 Prints out a table from the current statistics for copying to code
 =================
 */
+
 void MSG_ReportChangeVectors_f( void )
 {
 	int i;
@@ -1175,7 +1140,7 @@ netField_t entityStateFields[] =
 #else
 
 // using the stringizing operator to save typing...
-#define	NETF(x) #x,(size_t)&((entityState_t*)0)->x
+#define NETF(x) #x,(size_t)&((entityState_t*)0)->x
 
 netField_t entityStateFields[] = 
 {
@@ -1638,7 +1603,7 @@ netField_t playerStateFields[] =
 #else
 
 // using the stringizing operator to save typing...
-#define	PSF(x) #x,(size_t)&((playerState_t*)0)->x
+#define PSF(x) #x,(size_t)&((playerState_t*)0)->x
 
 netField_t playerStateFields[] = 
 {

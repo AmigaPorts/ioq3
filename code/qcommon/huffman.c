@@ -395,13 +395,13 @@ int Huff_Receive (node_t *node, int *ch, byte *fin)
 }
 
 /* Get a symbol */
-void Huff_offsetReceive (node_t *node, int *ch, byte *fin, int *offset, int maxoffset) // new ioq3 - Cowcat
+void Huff_offsetReceive (node_t *node, int *ch, byte *fin, int *offset, int maxoffset)
 {
 	bloc = *offset;
 
 	while (node && node->symbol == INTERNAL_NODE)
 	{
-		if(bloc >= maxoffset) // new ioq3 - Cowcat
+		if(bloc >= maxoffset)
 		{
 			*ch = 0;
 			*offset = maxoffset + 1;
@@ -431,16 +431,16 @@ void Huff_offsetReceive (node_t *node, int *ch, byte *fin, int *offset, int maxo
 }
 
 /* Send the prefix code for this node */
-static void send(node_t *node, node_t *child, byte *fout, int maxoffset) // new ioq3 - Cowcat
+static void send(node_t *node, node_t *child, byte *fout, int maxoffset)
 {
 	if (node->parent)
 	{
-		send(node->parent, node, fout, maxoffset); // new ioq3 - Cowcat
+		send(node->parent, node, fout, maxoffset);
 	}
 
 	if (child)
 	{
-		if(bloc >= maxoffset) // new ioq3 - Cowcat
+		if(bloc >= maxoffset)
 		{
 			bloc = maxoffset + 1;
 			return;
@@ -459,14 +459,14 @@ static void send(node_t *node, node_t *child, byte *fout, int maxoffset) // new 
 }
 
 /* Send a symbol */
-void Huff_transmit (huff_t *huff, int ch, byte *fout, int maxoffset) // new ioq3 - Cowcat
+void Huff_transmit (huff_t *huff, int ch, byte *fout, int maxoffset)
 {
 	int i;
 
 	if (huff->loc[ch] == NULL)
 	{ 
 		/* node_t hasn't been transmitted, send a NYT, then the symbol */
-		Huff_transmit(huff, NYT, fout, maxoffset); // new ioq3 - Cowcat
+		Huff_transmit(huff, NYT, fout, maxoffset);
 
 		for (i = 7; i >= 0; i--)
 		{
@@ -476,14 +476,14 @@ void Huff_transmit (huff_t *huff, int ch, byte *fout, int maxoffset) // new ioq3
 
 	else
 	{
-		send(huff->loc[ch], NULL, fout, maxoffset); // new ioq3 - Cowcat
+		send(huff->loc[ch], NULL, fout, maxoffset);
 	}
 }
 
-void Huff_offsetTransmit (huff_t *huff, int ch, byte *fout, int *offset, int maxoffset) // new ioq3 - Cowcat
+void Huff_offsetTransmit (huff_t *huff, int ch, byte *fout, int *offset, int maxoffset)
 {
 	bloc = *offset;
-	send(huff->loc[ch], NULL, fout, maxoffset); // new ioq3 - Cowcat
+	send(huff->loc[ch], NULL, fout, maxoffset);
 	*offset = bloc;
 }
 
@@ -555,7 +555,7 @@ void Huff_Decompress(msg_t *mbuf, int offset)
 	Com_Memcpy(mbuf->data + offset, seq, cch);
 }
 
-extern	int oldsize;
+//extern int oldsize;
 
 void Huff_Compress(msg_t *mbuf, int offset)
 {
@@ -565,7 +565,7 @@ void Huff_Compress(msg_t *mbuf, int offset)
 	huff_t		huff;
 
 	size = mbuf->cursize - offset;
-	buffer = mbuf->data + offset; // no more extra + // - Cowcat
+	buffer = mbuf->data + offset;
 
 	if (size<=0)
 	{
@@ -590,7 +590,7 @@ void Huff_Compress(msg_t *mbuf, int offset)
 	for (i=0; i<size; i++ )
 	{
 		ch = buffer[i];
-		Huff_transmit(&huff, ch, seq, size<<3 ); 	/* Transmit symbol */ // new ioq3 - Cowcat
+		Huff_transmit(&huff, ch, seq, size<<3 ); 	/* Transmit symbol */
 		Huff_addRef(&huff, (byte)ch);			/* Do update */
 	}
 

@@ -398,8 +398,8 @@ static char *SkipWhitespace( char *data, qboolean *hasNewLines )
 int COM_Compress( char *data_p )
 {
 	char		*in, *out;
-	int 		c;
-	qboolean 	newline = qfalse, whitespace = qfalse;
+	int		c;
+	qboolean	newline = qfalse, whitespace = qfalse;
 
 	in = out = data_p;
 
@@ -595,6 +595,11 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 				return com_token;
 			}
 
+			if( c == '\n' )
+			{
+				com_lines++;
+			}
+
 			if (len < MAX_TOKEN_CHARS - 1)
 			{
 				com_token[len] = c;
@@ -688,6 +693,9 @@ void SkipRestOfLine ( char **data )
 
 	p = *data;
 
+	if ( !*p )
+		return;
+
 	while ( (c = *p++) != 0 )
 	{
 		if ( c == '\n' )
@@ -699,7 +707,6 @@ void SkipRestOfLine ( char **data )
 
 	*data = p;
 }
-
 
 void Parse1DMatrix (char **buf_p, int x, float *m)
 {
@@ -752,15 +759,15 @@ Com_HexStrToInt
 */
 int Com_HexStrToInt( const char *str )
 {
-	if ( !str || !str[ 0 ] )
+	if ( !str )
 		return -1;
 
 	// check for hex code
-	if( str[ 0 ] == '0' && str[ 1 ] == 'x' )
+	if( str[ 0 ] == '0' && str[ 1 ] == 'x' && str[ 2 ] != '\0')
 	{
-		int i, n = 0;
+		int i, n = 0, len = strlen( str );
 
-		for( i = 2; i < strlen( str ); i++ )
+		for( i = 2; i < len; i++ )
 		{
 			char digit;
 
@@ -1163,33 +1170,6 @@ int Q_CountChar(const char *string, char tocount)
 	return count;
 }
 
-#if 0 // old Cowcat
-
-void QDECL Com_sprintf( char *dest, int size, const char *fmt, ...)
-{
-	int		len;
-	va_list		argptr;
-	char		bigbuffer[32000];	// big, but small enough to fit in PPC stack
-
-	va_start (argptr,fmt);
-	len = Q_vsnprintf (bigbuffer, sizeof(bigbuffer), fmt,argptr);
-	va_end (argptr);
-
-	if ( len >= sizeof( bigbuffer ) )
-	{
-		Com_Error( ERR_FATAL, "Com_sprintf: overflowed bigbuffer" );
-	}
-
-	if (len >= size)
-	{
-		Com_Printf ("Com_sprintf: overflow of %i in %i\n", len, size);
-	}
-
-	Q_strncpyz (dest, bigbuffer, size );
-}
-
-#else
-
 int QDECL Com_sprintf(char *dest, int size, const char *fmt, ...)
 {
 	int		len;
@@ -1205,7 +1185,6 @@ int QDECL Com_sprintf(char *dest, int size, const char *fmt, ...)
 	return len;
 }
 
-#endif
 
 /*
 ============
@@ -1297,9 +1276,9 @@ FIXME: overflow check?
 char *Info_ValueForKey( const char *s, const char *key )
 {
 	char		pkey[BIG_INFO_KEY];
-	static	char	value[2][BIG_INFO_VALUE];	// use two buffers so compares
+	static char	value[2][BIG_INFO_VALUE];	// use two buffers so compares
 							// work without stomping on each other
-	static	int	valueindex = 0;
+	static int	valueindex = 0;
 	char		*o;
 	
 	if ( !s || !key )
@@ -1463,7 +1442,6 @@ void Info_RemoveKey( char *s, const char *key )
 		if (!strcmp (key, pkey) )
 		{
 			memmove(start, s, strlen(s) + 1); // remove this part
-			
 			return;
 		}
 
@@ -1529,7 +1507,7 @@ void Info_RemoveKey_Big( char *s, const char *key )
 
 		if (!strcmp (key, pkey) )
 		{
-			memmove (start, s, strlen(s) + 1);
+			memmove (start, s, strlen(s) + 1); // remove this part
 			return;
 		}
 
@@ -1615,8 +1593,8 @@ Changes or adds a key/value pair
 */
 void Info_SetValueForKey_Big( char *s, const char *key, const char *value )
 {
-	char	newi[BIG_INFO_STRING];
-	const char* blacklist = "\\;\"";
+	char		newi[BIG_INFO_STRING];
+	const char	*blacklist = "\\;\"";
 
 	if ( strlen( s ) >= BIG_INFO_STRING )
 	{
