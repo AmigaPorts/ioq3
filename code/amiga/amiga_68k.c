@@ -7,7 +7,6 @@ struct MsgStruct
 {
 	ULONG Class;
 	UWORD Code;
-	UWORD Qualifier;
 	WORD MouseX;
 	WORD MouseY;
 	int rawkey;
@@ -24,11 +23,10 @@ int GetMessages68k( __reg("a1") struct MsgPort *port, __reg("a0") struct MsgStru
 
   	while ((imsg = (struct IntuiMessage *)GetMsg(port)))
 	{
-    		if (i < maxmsg)
+    	if (i < maxmsg)
 		{
-      			msg[i].Code = imsg->Code;
-      			msg[i].Class = imsg->Class;
-			msg[i].Qualifier = imsg->Qualifier;
+      		msg[i].Code = imsg->Code;
+      		msg[i].Class = imsg->Class;
 			msg[i].MouseX = imsg->MouseX;
 			msg[i].MouseY = imsg->MouseY;
 
@@ -49,10 +47,10 @@ int GetMessages68k( __reg("a1") struct MsgPort *port, __reg("a0") struct MsgStru
 					msg[i].rawkey = buf[0];
 			}
 
-      			i++;
-    		}
+			i++;
+    	}
 
-    		ReplyMsg((struct Message *)imsg);
+		ReplyMsg((struct Message *)imsg);
   	}
 
   	return i;
