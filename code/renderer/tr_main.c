@@ -693,6 +693,18 @@ void R_SetupProjectionZ(viewParms_t *dest)
 {
 	float zNear, zFar, depth;
 	
+	zNear	= r_znear->value;
+	zFar	= dest->zFar;	
+	//depth = zFar - zNear;
+	depth	= 1.0f / (zFar - zNear); // Cowcat
+
+	dest->projectionMatrix[2] = 0;
+	dest->projectionMatrix[6] = 0;
+	dest->projectionMatrix[10] = -( zFar + zNear ) * depth; // 
+	dest->projectionMatrix[14] = -2 * zFar * zNear * depth; //
+	//dest->projectionMatrix[10] = -( zFar + zNear ) / depth;
+	//dest->projectionMatrix[14] = -2 * zFar * zNear / depth;
+
 	if( dest->isPortal ) // from ioq3 xbox360 - fixes for mirrors
 	{
 		float	plane[4];
@@ -724,21 +736,6 @@ void R_SetupProjectionZ(viewParms_t *dest)
 		dest->projectionMatrix[6] = c[1];
 		dest->projectionMatrix[10] = c[2] + 1.0f;
 		dest->projectionMatrix[14] = c[3];
-	}
-
-	else 
-	{
-		zNear	= r_znear->value;
-		zFar	= dest->zFar;	
-		//depth = zFar - zNear;
-		depth	= 1.0f / (zFar - zNear); // Cowcat
-
-		dest->projectionMatrix[2] = 0;
-		dest->projectionMatrix[6] = 0;
-		dest->projectionMatrix[10] = -( zFar + zNear ) * depth; // 
-		dest->projectionMatrix[14] = -2 * zFar * zNear * depth; //
-		//dest->projectionMatrix[10] = -( zFar + zNear ) / depth;
-		//dest->projectionMatrix[14] = -2 * zFar * zNear / depth;
 	}
 }
 
