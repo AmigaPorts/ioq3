@@ -2127,7 +2127,7 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen, char *node, socklen_
 
 	//Com_Printf("DEBUG: buf is '%s'", buf);
 
-	if ( (strlen(buf) <= nodelen) && (strlen(buf) < sizeof(buf)) ); // was < 32 - Cowcat
+	if ( (strlen(buf) <= nodelen) && (strlen(buf) < sizeof(buf)) ) // was < 32 - Cowcat
 	{
 		strncpy(node, buf, strlen(buf) + 1);
 		
