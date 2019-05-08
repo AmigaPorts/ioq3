@@ -175,9 +175,6 @@ void GLBlendFunc(GLcontext context, GLenum sfactor, GLenum dfactor)
 
 	context->SrcAlpha = sfactor;
 	context->DstAlpha = dfactor;
-
-	W3D_SetState(context->w3dContext, W3D_BLENDING, W3D_ENABLE);
-	context->Blend_State = GL_TRUE;
 }
 
 void GLColorMask(GLcontext context, GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha) // Cowcat
