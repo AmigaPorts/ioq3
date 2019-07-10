@@ -29,7 +29,7 @@ extern struct ExecBase *SysBase;
 
 void tex_FreeTextures(GLcontext context);
 void tex_SetEnv(GLcontext context, GLenum env);
-ULONG tex_GLFilter2W3D(GLcontext context, GLenum filter); // Cowcat
+ULONG tex_GLFilter2W3D(GLenum filter);
 void tex_SetFilter(GLcontext context, GLenum min, GLenum mag);
 void tex_SetWrap(GLcontext context, GLenum wrap_s, GLenum wrap_t);
 
@@ -226,7 +226,7 @@ void tex_SetEnv(GLcontext context, GLenum env)
 	}
 }
 
-ULONG tex_GLFilter2W3D(GLcontext context, GLenum filter)
+ULONG tex_GLFilter2W3D(GLenum filter)
 {
 	switch(filter)
 	{
@@ -255,8 +255,8 @@ void tex_SetFilter(GLcontext context, GLenum min, GLenum mag)
 	if (!tex)
 		return;
 
-	minf = tex_GLFilter2W3D(context, min);
-	magf = tex_GLFilter2W3D(context, mag);
+	minf = tex_GLFilter2W3D(min);
+	magf = tex_GLFilter2W3D(mag);
 
 	W3D_SetFilter(context->w3dContext, tex, minf, magf);
 }
