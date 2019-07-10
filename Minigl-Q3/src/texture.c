@@ -29,7 +29,7 @@ extern struct ExecBase *SysBase;
 
 void tex_FreeTextures(GLcontext context);
 void tex_SetEnv(GLcontext context, GLenum env);
-ULONG tex_GLFilter2W3D(GLenum filter);
+ULONG tex_GLFilter2W3D(GLcontext context, GLenum filter); // Cowcat
 void tex_SetFilter(GLcontext context, GLenum min, GLenum mag);
 void tex_SetWrap(GLcontext context, GLenum wrap_s, GLenum wrap_t);
 
@@ -43,12 +43,12 @@ void tex_SetWrap(GLcontext context, GLenum wrap_s, GLenum wrap_t);
 
 //Formats directly supported by Warp3D:
 
-void SHORT4444_4444(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
-void SHORT565_565(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
+static void SHORT4444_4444(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
+static void SHORT565_565(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
 
 //supported, but not in hardware on voodoo3:
 
-void L8A8_L8A8(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
+static void L8A8_L8A8(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
 
 #ifdef EIGHTBIT_TEXTURES
 
@@ -59,15 +59,15 @@ void EIGHT_EIGHT(GLcontext context, GLubyte *input, UWORD *output, int width, in
 
 //conversion routines:
 
-void SHORT565_4444(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
-void SHORT4444_565(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
-void A8_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
-void L8_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
-void RGBA_RGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
-void RGBA_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
-void RGB_RGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
-void RGB_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
-void RGBA4_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
+static void SHORT565_4444(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
+static void SHORT4444_565(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
+static void A8_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
+static void L8_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
+static void RGBA_RGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
+static void RGBA_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
+static void RGB_RGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
+static void RGB_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
+//void RGBA4_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height);
 
 ULONG MGLConvert(GLcontext context, const GLvoid *inputp, UWORD *output, int width, int height, GLenum internalformat, GLenum format);
 
@@ -121,7 +121,6 @@ void GLDeleteTextures(GLcontext context, GLsizei n, const GLuint *textures)
 
 		if (context->w3dTexBuffer[j])
 		{
-			//W3D_BindTexture(context->w3dContext, j, NULL); // bugfix ? - Cowcat
 			W3D_FreeTexObj(context->w3dContext, context->w3dTexBuffer[j]);
 			context->w3dTexBuffer[j] = NULL;
 		}
@@ -177,17 +176,15 @@ void tex_FreeTextures(GLcontext context)
 	{
 		if (context->w3dTexBuffer[i])
 		{
-			//W3D_BindTexture(context->w3dContext, i, NULL); // bugfix ? - Cowcat
 			W3D_FreeTexObj(context->w3dContext, context->w3dTexBuffer[i]);
+			context->w3dTexBuffer[i] = 0;
 		}
 
 		if (context->w3dTexMemory[i])
 		{
 			tex_Free(context->w3dTexMemory[i]);
+			context->w3dTexMemory[i] = 0;
 		}
-
-		context->w3dTexBuffer[i] = 0;
-		context->w3dTexMemory[i] = 0;
 	}
 
 	W3D_FreeAllTexObj(context->w3dContext);
@@ -229,13 +226,13 @@ void tex_SetEnv(GLcontext context, GLenum env)
 	}
 }
 
-ULONG tex_GLFilter2W3D(GLenum filter)
+ULONG tex_GLFilter2W3D(GLcontext context, GLenum filter)
 {
 	switch(filter)
 	{
 		case GL_NEAREST:		return W3D_NEAREST;
 		case GL_LINEAR:			return W3D_LINEAR;
-		case GL_NEAREST_MIPMAP_NEAREST: return W3D_NEAREST_MIP_NEAREST;
+		case GL_NEAREST_MIPMAP_NEAREST:	return W3D_NEAREST_MIP_NEAREST;
 		case GL_LINEAR_MIPMAP_NEAREST:	return W3D_LINEAR_MIP_NEAREST;
 		case GL_NEAREST_MIPMAP_LINEAR:	return W3D_NEAREST_MIP_LINEAR;
 		case GL_LINEAR_MIPMAP_LINEAR:	return W3D_LINEAR_MIP_LINEAR;
@@ -258,8 +255,8 @@ void tex_SetFilter(GLcontext context, GLenum min, GLenum mag)
 	if (!tex)
 		return;
 
-	minf = tex_GLFilter2W3D(min);
-	magf = tex_GLFilter2W3D(mag);
+	minf = tex_GLFilter2W3D(context, min);
+	magf = tex_GLFilter2W3D(context, mag);
 
 	W3D_SetFilter(context->w3dContext, tex, minf, magf);
 }
@@ -518,8 +515,8 @@ void GLBindTexture(GLcontext context, GLenum target, GLuint texture)
 #define GREENBYTEA(rgba)    (((UWORD)rgba & 0x00f0))
 #define BLUEBYTEA(rgba)	    (((UWORD)rgba & 0x000f) << 4)
 #define ALPHABYTEA(rgba)    (((UWORD)rgba & 0xf000) >> 8)
-#define RGB_GET(i) ((UBYTE *)(context->PaletteData)+3*i)
-#define ARGB_GET(i) ((UBYTE *)(context->PaletteData)+4*i)
+#define RGB_GET(i) ((UBYTE *)(context->PaletteData) + 3*i)
+#define ARGB_GET(i) ((UBYTE *)(context->PaletteData) + 4*i)
 
 
 /*
@@ -531,10 +528,10 @@ void GLBindTexture(GLcontext context, GLenum target, GLuint texture)
 
 void tex_AddAlpha(UWORD *output, int width, int height)
 {
-	int size;
-	UBYTE r,g,b,a;
-	UWORD x;
-	ULONG a_tmp;
+	int	size;
+	UBYTE	r, g, b, a;
+	UWORD	x;
+	ULONG	a_tmp;
 	size = width*height;
 
 	while (size)
@@ -628,9 +625,9 @@ void EIGHT_EIGHT (GLcontext context, GLubyte *input, UWORD *output, int width, i
 	UBYTE *in = (UBYTE*)input;
 	UBYTE *out = (UBYTE*)output;
 
-	for (i=0; i<height; i++)
+	for (i=0; i < height; i++)
 	{
-		for (j=0; j<width; j++)
+		for (j=0; j < width; j++)
 		{
 			*out++ = *in++;
 		}
@@ -641,7 +638,7 @@ void EIGHT_EIGHT (GLcontext context, GLubyte *input, UWORD *output, int width, i
 
 #endif
 
-void L8A8_L8A8(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
+static void L8A8_L8A8(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
 {
 	int i, j;
 
@@ -650,9 +647,9 @@ void L8A8_L8A8(GLcontext context, GLubyte *input, UWORD *output, int width, int 
 	UWORD *in = (UWORD*)input;
 	UWORD *out = (UWORD*)output;
 
-	for (i=0; i<height;i++)
+	for (i=0; i < height; i++)
 	{
-		for (j=0; j<width; j++)
+		for (j=0; j < width; j++)
 		{
 			*out++ = *in++;
 		}
@@ -661,7 +658,7 @@ void L8A8_L8A8(GLcontext context, GLubyte *input, UWORD *output, int width, int 
 	}
 }
 
-void SHORT565_565(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
+static void SHORT565_565(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
 {
 	int i, j;
 
@@ -681,9 +678,9 @@ void SHORT565_565(GLcontext context, GLubyte *input, UWORD *output, int width, i
 	}
 }
 
-void SHORT4444_4444(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
+static void SHORT4444_4444(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
 {
-	int i,j;
+	int i, j;
 
 	//assume a width divisible by 2 for faster copy
 
@@ -699,21 +696,20 @@ void SHORT4444_4444(GLcontext context, GLubyte *input, UWORD *output, int width,
 
 		CORRECT_ALIGN
 	}
-
 }
 
 //These formats need conversion:
 
 #if 1
 
-void A8_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
+static void A8_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
 {
 	int	i, j;
 	GLubyte a;
 
-	for (i=0; i<height;i++)
+	for (i=0; i < height; i++)
 	{
-		for (j=0; j<width; j++)
+		for (j=0; j < width; j++)
 		{
 			a = *input++;
 			*output++ = ( ((UWORD)a & 0xF0) << 8) | 0x0FFF;
@@ -723,14 +719,15 @@ void A8_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int he
 	}
 }
 
-void L8_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
+static void L8_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
 {
 	int	i, j;
+
 	GLubyte la, lb, lc;
 
-	for (i=0; i<height;i++)
+	for (i=0; i < height; i++)
 	{
-		for (j=0; j<width; j++)
+		for (j=0; j < width; j++)
 		{
 			la = lb = lc = *input++;
 			*output++ = ARGBFORM(0xff, la, lb, lc);
@@ -742,19 +739,19 @@ void L8_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int he
 
 #endif
 
-void RGBA_RGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
+static void RGBA_RGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
 {
 	int	i, j;
 	UBYTE	r, g, b, a;
 
-	for (i=0; i<height;i++)
+	for (i=0; i < height; i++)
 	{
-		for (j=0; j<width; j++)
+		for (j=0; j < width; j++)
 		{
-			r=*input++;
-			g=*input++;
-			b=*input++;
-			a=*input++;
+			r = *input++;
+			g = *input++;
+			b = *input++;
+			a = *input++;
 			*output++ = RGBFORM(r,g,b);
 		}
 
@@ -762,20 +759,19 @@ void RGBA_RGB(GLcontext context, GLubyte *input, UWORD *output, int width, int h
 	}
 }
 
-
-void RGBA_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
+static void RGBA_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
 {
 	int	i, j;
 	UBYTE	r, g, b, a;
 
-	for (i=0; i<height;i++)
+	for (i=0; i < height; i++)
 	{
-		for (j=0; j<width; j++)
+		for (j=0; j < width; j++)
 		{
-			r=*input++;
-			g=*input++;
-			b=*input++;
-			a=*input++;
+			r = *input++;
+			g = *input++;
+			b = *input++;
+			a = *input++;
 			*output++ = ARGBFORM(a,r,g,b);
 		}
 
@@ -783,18 +779,18 @@ void RGBA_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int 
 	}
 }
 
-void RGB_RGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
+static void RGB_RGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
 {
 	int	i, j;
 	UBYTE	r, g, b;
 
-	for (i=0; i<height;i++)
+	for (i=0; i < height; i++)
 	{
-		for (j=0; j<width; j++)
+		for (j=0; j < width; j++)
 		{
-			r=*input++;
-			g=*input++;
-			b=*input++;
+			r = *input++;
+			g = *input++;
+			b = *input++;
 			*output++ = RGBFORM(r,g,b);
 		}
 
@@ -802,18 +798,18 @@ void RGB_RGB(GLcontext context, GLubyte *input, UWORD *output, int width, int he
 	}
 }
 
-void RGB_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
+static void RGB_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
 {
 	int	i, j;
 	UBYTE	r, g, b;
 
-	for (i=0; i<height;i++)
+	for (i=0; i < height; i++)
 	{
-		for (j=0; j<width; j++)
+		for (j=0; j < width; j++)
 		{
-			r=*input++;
-			g=*input++;
-			b=*input++;
+			r = *input++;
+			g = *input++;
+			b = *input++;
 			*output++ = ARGBFORM(0xff,r,g,b);
 		}
 
@@ -821,7 +817,7 @@ void RGB_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int h
 	}
 }
 
-void SHORT4444_565(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
+static void SHORT4444_565(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
 {
 	int	i, j;
 	UBYTE	r, g, b;
@@ -840,10 +836,9 @@ void SHORT4444_565(GLcontext context, GLubyte *input, UWORD *output, int width, 
 
 		CORRECT_ALIGN
 	}
-	
 }
 
-void SHORT565_4444(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
+static void SHORT565_4444(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
 {
 	int	i, j;
 	UBYTE	r, g, b;
@@ -865,6 +860,7 @@ void SHORT565_4444(GLcontext context, GLubyte *input, UWORD *output, int width, 
 	}
 }
 
+#if 0 // Cowcat
 void RGBA4_ARGB (GLcontext context, GLubyte *input, UWORD *output, int width, int height)
 {
 	int	i, j;
@@ -887,6 +883,7 @@ void RGBA4_ARGB (GLcontext context, GLubyte *input, UWORD *output, int width, in
 		CORRECT_ALIGN
 	}
 }
+#endif
 
 void INDEX_RGB(GLcontext context, GLubyte *input, UWORD *output, int width, int height)
 {
@@ -896,9 +893,9 @@ void INDEX_RGB(GLcontext context, GLubyte *input, UWORD *output, int width, int 
 
 	if (context->PaletteFormat == GL_RGB)
 	{
-		for (i=0; i<height; i++)
+		for (i=0; i < height; i++)
 		{
-			for (j=0; j<width; j++)
+			for (j=0; j < width; j++)
 			{
 				ind = *input++;
 				r = *RGB_GET(ind);
@@ -913,7 +910,7 @@ void INDEX_RGB(GLcontext context, GLubyte *input, UWORD *output, int width, int 
 
 	else
 	{
-		for (i=0; i<height; i++)
+		for (i=0; i < height; i++)
 		{
 			for (j=0; j<width; j++)
 			{
@@ -938,9 +935,9 @@ void INDEX_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int
 
 	if (context->PaletteFormat == GL_RGB)
 	{
-		for (i=0; i<height; i++)
+		for (i=0; i < height; i++)
 		{
-			for (j=0; j<width; j++)
+			for (j=0; j < width; j++)
 			{
 				ind = *input++;
 				r = *RGB_GET(ind);
@@ -955,9 +952,9 @@ void INDEX_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int
 
 	else
 	{
-		for (i=0; i<height; i++)
+		for (i=0; i < height; i++)
 		{
-			for (j=0; j<width; j++)
+			for (j=0; j < width; j++)
 			{
 				ind = *input++;
 				r = *RGB_GET(ind);
@@ -1008,6 +1005,7 @@ ULONG MGLConvert(GLcontext context, const GLvoid *inputp, UWORD *output, int wid
 			switch(format) // the format of the pixel (input) data
 			{
 				case GL_LUMINANCE:
+				case GL_RGBA:
 
 				#ifdef EIGHTBIT_TEXTURES
 					EIGHT_EIGHT(context, (GLubyte *)input, output, width, height);
@@ -1025,6 +1023,7 @@ ULONG MGLConvert(GLcontext context, const GLvoid *inputp, UWORD *output, int wid
 			switch(format)
 			{
 				case GL_LUMINANCE_ALPHA:
+				case GL_RGBA:
 					L8A8_L8A8(context, (GLubyte *)input, output, width, height);
 					return W3D_L8A8;
 			}
@@ -1055,7 +1054,6 @@ ULONG MGLConvert(GLcontext context, const GLvoid *inputp, UWORD *output, int wid
 				case MGL_UNSIGNED_SHORT_4_4_4_4:
 					SHORT4444_565(context, (GLubyte *)input, output, width, height);
 					return context->w3dFormat;
-
 			}
 
 			break;
@@ -1109,6 +1107,10 @@ ULONG MGLConvert(GLcontext context, const GLvoid *inputp, UWORD *output, int wid
 			}
 
 			break;
+
+		case 0: // dummy - workaround for cinematics in Q3 engines - Cowcat
+			return context->w3dAlphaFormat;
+			break;
 	}
 	
 	return 0; /* ERROR */ // glhexen2 fixes - Cowcat
@@ -1128,8 +1130,14 @@ void UpdateTexImage(W3D_Context *context, W3D_Texture *texture, void *image, int
 
 #endif
 
+
 void GLTexImage2D(GLcontext context, GLenum gltarget, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels)
 {
+	GLTexImage2DNoMIP(context, gltarget, level, internalformat, width, height, border, format, type, pixels);
+	return;
+
+	#if 0 ///////////// NoMipMapping always true by default and code below is not ok - Cowcat
+
 	int	current;
 	ULONG	w, h;
 	ULONG	targetsize;
@@ -1191,7 +1199,7 @@ void GLTexImage2D(GLcontext context, GLenum gltarget, GLint level, GLint interna
 
 	if (level)
 	{
-		int i=level;
+		int i = level;
 
 		while (i)
 		{
@@ -1203,6 +1211,8 @@ void GLTexImage2D(GLcontext context, GLenum gltarget, GLint level, GLint interna
 
 	if (context->w3dTexBuffer[current] == NULL)
 	{
+		int i;
+
 		/*
 		** Create a new texture object
 		** Get the memory
@@ -1244,8 +1254,6 @@ void GLTexImage2D(GLcontext context, GLenum gltarget, GLint level, GLint interna
 
 	useFormat = MGLConvert(context, pixels, (UWORD *)target, width, height, internalformat, format);
 
-	if(!useFormat) return; /* ERROR */ // glhexen2 fixes - Cowcat
-
 	/*
 	** Create a new W3D_Texture if none was present, using the converted
 	** data.
@@ -1261,7 +1269,7 @@ void GLTexImage2D(GLcontext context, GLenum gltarget, GLint level, GLint interna
 
 		while (1)
 		{
-			miparray[i++] = target;
+			//miparray[i++] = target;
 
 			if (iw == 1 && ih == 1)
 				break;
@@ -1270,7 +1278,11 @@ void GLTexImage2D(GLcontext context, GLenum gltarget, GLint level, GLint interna
 
 			if (iw > 1) iw /= 2;
 			if (ih > 1) ih /= 2;
+
+			miparray[i++] = target; // here Cowcat
 		}
+
+		miparray[i] = NULL; // Cowcat
 
 		AllocTags[0].ti_Tag  = W3D_ATO_IMAGE;
 		AllocTags[0].ti_Data = (ULONG)context->w3dTexMemory[current];
@@ -1307,6 +1319,8 @@ void GLTexImage2D(GLcontext context, GLenum gltarget, GLint level, GLint interna
 		tex_SetEnv(context, context->TexEnv[0]);
 	}
 
+	else
+	{
 	#ifndef __PPC__
 
 	UpdateTexImage(context->w3dContext, context->w3dTexBuffer[current], target, level, NULL);
@@ -1316,7 +1330,9 @@ void GLTexImage2D(GLcontext context, GLenum gltarget, GLint level, GLint interna
 	W3D_UpdateTexImage(context->w3dContext, context->w3dTexBuffer[current], target, level, NULL);
 
 	#endif
+	}
 
+	#endif ///////////// Cowcat
 }
 
 void GLTexImage2DNoMIP(GLcontext context, GLenum gltarget, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels)
@@ -1337,6 +1353,7 @@ void GLTexImage2DNoMIP(GLcontext context, GLenum gltarget, GLint level, GLint in
 		current = context->CurrentBinding;
 
 #ifdef EIGHTBIT_TEXTURES
+
 	if(format == GL_ALPHA || format == GL_LUMINANCE)
 		BytesPerTexel = 1;
 
@@ -1391,8 +1408,6 @@ void GLTexImage2DNoMIP(GLcontext context, GLenum gltarget, GLint level, GLint in
 	*/
 
 	useFormat = MGLConvert(context, pixels, (UWORD *)target, width, height, internalformat, format);
-
-	if(!useFormat) return; /* ERROR */ // glhexen2 fixes - Cowcat
 
 	/*
 	** Create a new W3D_Texture if none was present, using the converted
@@ -1476,8 +1491,8 @@ inline void tex_UpdateScanlineShort(UWORD *start, UBYTE *pixels, int numpixels)
 {
 	int	i;
 
-	UWORD	*in = (UWORD*)pixels;
-	UWORD	*out = (UWORD*)start;
+	UWORD *in = (UWORD*)pixels;
+	UWORD *out = (UWORD*)start;
 
 	for (i=0; i<numpixels; i++)
 	{
@@ -1518,10 +1533,10 @@ inline void tex_UpdateScanlineAlpha(UWORD *start, UBYTE *pixels, int numpixels)
 
 	for (i=0; i<numpixels; i++)
 	{
-		r=*pixels++;
-		g=*pixels++;
-		b=*pixels++;
-		a=*pixels++;
+		r = *pixels++;
+		g = *pixels++;
+		b = *pixels++;
+		a = *pixels++;
 		*start++ = ARGBFORM(a,r,g,b);
 	}
 }
@@ -1533,9 +1548,9 @@ inline void tex_UpdateScanlineNoAlpha(UWORD *start, UBYTE *pixels, int numpixels
 
 	for (i=0; i<numpixels; i++)
 	{
-		r=*pixels++;
-		g=*pixels++;
-		b=*pixels++;
+		r = *pixels++;
+		g = *pixels++;
+		b = *pixels++;
 		*start++ = RGBFORM(r,g,b);
 	}
 }
@@ -1549,20 +1564,22 @@ void GLTexSubImage2DNoMIP(GLcontext context, GLenum target, GLint level, GLint x
 
 void GLTexSubImage2D(GLcontext context, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels)
 {
-	int current;
+	//int current; // Cowcat
 
-	if (context->NoMipMapping == GL_TRUE)
+	//if (context->NoMipMapping == GL_TRUE) // always true
 	{
 		GLTexSubImage2DNoMIP(context, target, level, xoffset, yoffset, width, height, format, type, (void *)pixels);
 		return;
 	}
 
+	/*
 	if(context->ActiveTexture)
 		current = context->VirtualBinding;
 
 	else
 		current = context->CurrentBinding;
-	
+	*/
+
 	GLFlagError(context, target!=GL_TEXTURE_2D, GL_INVALID_ENUM);
 	GLFlagError(context, context->w3dTexBuffer[current] == NULL, GL_INVALID_OPERATION);
 
@@ -1579,11 +1596,13 @@ void GLTexSubImage2DNoMIP (GLcontext context, GLenum target, GLint level, GLint 
 	int	i; 
 	ULONG	BytesPerTexel;
 
+	/*
 	W3D_Scissor sc;
 	sc.left = xoffset;
 	sc.top = yoffset;
 	sc.width = width;
 	sc.height = height;
+	*/
 
 	if(context->ActiveTexture)
 		current = context->VirtualBinding;
@@ -1627,7 +1646,6 @@ void GLTexSubImage2DNoMIP (GLcontext context, GLenum target, GLint level, GLint 
 		case 3:
 			sourceunit = 3;
 			break;
-
 	}
 
 	linelength = context->w3dTexBuffer[current]->texwidth * BytesPerTexel;
@@ -1796,9 +1814,9 @@ void GLColorTable(GLcontext context, GLenum target, GLenum internalformat, GLint
 
 					for (i=0; i<width; i++)
 					{
-						r=*palette++;
-						g=*palette++;
-						b=*palette++;
+						r = *palette++;
+						g = *palette++;
+						b = *palette++;
 						palette++;
 						*where++ = r;
 						*where++ = g;
@@ -1811,10 +1829,10 @@ void GLColorTable(GLcontext context, GLenum target, GLenum internalformat, GLint
 
 					for (i=0; i<width; i++)
 					{
-						a=*palette++;
-						r=*palette++;
-						g=*palette++;
-						b=*palette++;
+						a = *palette++;
+						r = *palette++;
+						g = *palette++;
+						b = *palette++;
 						*where++ = a;
 						*where++ = r;
 						*where++ = g;
@@ -1835,9 +1853,9 @@ void GLColorTable(GLcontext context, GLenum target, GLenum internalformat, GLint
 
 					for (i=0; i<width; i++)
 					{
-						r=*palette++;
-						g=*palette++;
-						b=*palette++;
+						r = *palette++;
+						g = *palette++;
+						b = *palette++;
 						*where++ = r;
 						*where++ = g;
 						*where++ = b;
@@ -1849,9 +1867,9 @@ void GLColorTable(GLcontext context, GLenum target, GLenum internalformat, GLint
 
 					for (i=0; i<width; i++)
 					{
-						r=*palette++;
-						g=*palette++;
-						b=*palette++;
+						r = *palette++;
+						g = *palette++;
+						b = *palette++;
 						*where++ = 0xff;
 						*where++ = r;
 						*where++ = g;

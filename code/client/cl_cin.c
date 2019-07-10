@@ -117,7 +117,7 @@ typedef struct {
 	unsigned int		xsize, ysize, maxsize, minsize;
 
 	qboolean		half, smootheddouble; //, inMemory;
-	long			inMemory; // fix - Quake3e - Cowcat
+	long			inMemory; // fix - Quake3e
 	long			normalBuffer0;
 	long			roq_flags;
 	long			roqF0;
@@ -625,8 +625,12 @@ static unsigned short yuv_to_rgb( long y, long u, long v )
 	g = (YY + ROQ_UG_tab[u] + ROQ_VG_tab[v]) >> 8;
 	b = (YY + ROQ_UB_tab[u]) >> 9;
 	
-	if (r<0) r = 0; if (g<0) g = 0; if (b<0) b = 0;
-	if (r > 31) r = 31; if (g > 63) g = 63; if (b > 31) b = 31;
+	if (r<0) r = 0;
+	if (g<0) g = 0;
+	if (b<0) b = 0;
+	if (r > 31) r = 31;
+	if (g > 63) g = 63;
+	if (b > 31) b = 31;
 
 	return (unsigned short)((r<<11)+(g<<5)+(b));
 }
@@ -646,11 +650,14 @@ static unsigned int yuv_to_rgb24( long y, long u, long v )
 	g = (YY + ROQ_UG_tab[u] + ROQ_VG_tab[v]) >> 6;
 	b = (YY + ROQ_UB_tab[u]) >> 6;
 	
-	if (r<0) r = 0; if (g<0) g = 0; if (b<0) b = 0;
-	if (r > 255) r = 255; if (g > 255) g = 255; if (b > 255) b = 255;
+	if (r<0) r = 0;
+	if (g<0) g = 0;
+	if (b<0) b = 0;
+	if (r > 255) r = 255;
+	if (g > 255) g = 255;
+	if (b > 255) b = 255;
 	
-	return LittleLong ((r)|(g<<8)|(b<<16)|(255<<24));
-	//return LittleLong ((unsigned long)(r)|(g<<8)|(b<<16)|(255UL<<24)); // spearmint
+	return LittleLong ((unsigned long)(r)|(g<<8)|(b<<16)|(255UL<<24));
 
 }
 
@@ -1665,8 +1672,8 @@ int CIN_PlayCinematic( const char *arg, int x, int y, int w, int h, int systemBi
 
 	cin.currentHandle = currentHandle;
 
-	//strncpy(cinTable[currentHandle].fileName, name);
-	Q_strncpyz( cinTable[currentHandle].fileName, name, sizeof( cinTable[currentHandle].fileName ) ); // Quake3e - Cowcat
+	//strcpy(cinTable[currentHandle].fileName, name);
+	Q_strncpyz( cinTable[currentHandle].fileName, name, sizeof( cinTable[currentHandle].fileName ) ); // Quake3e
 
 	cinTable[currentHandle].ROQSize = 0;
 	cinTable[currentHandle].ROQSize = FS_FOpenFileRead (cinTable[currentHandle].fileName, &cinTable[currentHandle].iFile, qtrue);
@@ -1873,7 +1880,6 @@ void CIN_DrawCinematic (int handle)
 		cinTable[handle].dirty = qfalse;
 		Hunk_FreeTempMemory(buf2);
 		return;
-
 	}
 
 	re.DrawStretchRaw( x, y, w, h, cinTable[handle].drawX, cinTable[handle].drawY, buf, handle, cinTable[handle].dirty);
@@ -1885,9 +1891,7 @@ void CL_PlayCinematic_f(void)
 	char	*arg, *s;
 	int 	bits = CIN_system;
 
-	#if 0 // Cowcat - still doesn´t work
-
-	Com_DPrintf("CL_PlayCinematic_f\n");
+	Com_Printf("CL_PlayCinematic_f\n");
 
 	if (clc.state == CA_CINEMATIC)
 		SCR_StopCinematic();
@@ -1917,9 +1921,7 @@ void CL_PlayCinematic_f(void)
 
 		} while (cinTable[currentHandle].buf == NULL && cinTable[currentHandle].status == FMV_PLAY); // wait for first frame (load codebook and sound)
 	}
-	#endif
 }
-
 
 void SCR_DrawCinematic (void)
 {

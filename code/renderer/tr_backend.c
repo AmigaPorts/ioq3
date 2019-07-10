@@ -517,6 +517,7 @@ void RB_BeginDrawingView (void)
 	// we will need to change the projection matrix before drawing
 	// 2D images again
 	backEnd.projection2D = qfalse;
+	//qglEnable(MGL_PERSPECTIVE_MAPPING); // TEST for minigl - Cowcat
 
 	//
 	// set the modelview matrix for the viewer
@@ -683,7 +684,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 
 				// we have to reset the shaderTime as well otherwise image animations start
 				// from the wrong frame
-				tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset;
+				tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset; // not here - Cowcat
 
 				// set up the transformation matrix
 				R_RotateForEntity( backEnd.currentEntity, &backEnd.viewParms, &backEnd.or );
@@ -712,10 +713,12 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 
 				// we have to reset the shaderTime as well otherwise image animations on
 				// the world (like water) continue with the wrong frame
-				tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset;
+				tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset; // not here - Cowcat
 
 				R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.or );
 			}
+
+			tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset; // here - Cowcat
 
 			qglLoadMatrixf( backEnd.or.modelMatrix );
 
@@ -779,13 +782,15 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 		rb_surfaceTable[ *drawSurf->surface ]( drawSurf->surface );
 	}
 
-	backEnd.refdef.floatTime = originalTime;
+	backEnd.refdef.floatTime = originalTime; // not here - Cowcat
 
 	// draw the contents of the last shader batch
 	if (oldShader != NULL)
 	{
 		RB_EndSurface();
 	}
+
+	//backEnd.refdef.floatTime = originalTime; // here - Cowcat
 
 	// go back to the world modelview matrix
 	qglLoadMatrixf( backEnd.viewParms.world.modelMatrix );
@@ -842,6 +847,7 @@ void RB_SetGL2D (void)
 	GL_Cull(CT_TWO_SIDED);
 
 	//qglDisable( GL_CLIP_PLANE0 ); // Cowcat
+	//qglDisable(MGL_PERSPECTIVE_MAPPING); // TEST for minigl - Cowcat
 
 	// set time for 2D shaders
 	backEnd.refdef.time = ri.Milliseconds();
@@ -907,7 +913,12 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 
 	qglColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
 
+	#if defined(AMIGAOS)
+	qglBegin( MGL_FLATFAN );
+	#else
 	qglBegin (GL_QUADS);
+	#endif
+
 	qglTexCoord2f ( 0.5f / cols,  0.5f / rows );
 	qglVertex2f (x, y);
 	qglTexCoord2f ( ( cols - 0.5f ) / cols ,  0.5f / rows );
@@ -930,12 +941,17 @@ void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int
 	{
 		image->width = image->uploadWidth = cols;
 		image->height = image->uploadHeight = rows;
-		//qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+
+		#if defined(AMIGAOS)
+		qglTexImage2D( GL_TEXTURE_2D, 0, 0, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data ); // minigl workaround - Cowcat
+		#else
+		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+		#endif
+		
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat
-		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat	
+		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP /*_TO_EDGE*/ ); // Cowcat
 	}
 
 	else

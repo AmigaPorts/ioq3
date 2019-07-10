@@ -617,6 +617,11 @@ Upload32
 ===============
 */
 
+#define LUMA( red, green, blue ) ( 0.2126f * ( red ) + 0.7152f * ( green ) + 0.0722f * ( blue ) )
+
+#if defined(AMIGAOS) // Cowcat
+qboolean cinematic;
+#endif
 
 static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qboolean picmip, 
 	qboolean lightMap, int *format, int *pUploadWidth, int *pUploadHeight )
@@ -628,7 +633,7 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 	int		i, c;
 	byte		*scan;
 	GLenum		internalFormat = GL_RGB;
-	float		rMax = 0, gMax = 0, bMax = 0;
+	//float		rMax = 0, gMax = 0, bMax = 0; // Cowcat
 
 	//
 	// convert to exact power of 2 sizes
@@ -697,6 +702,17 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 	scan = ((byte *)data);
 	samples = 3;
 
+	if( r_greyscale->integer )
+	{
+		for ( i = 0; i < c; i++ )
+		{
+			byte luma = LUMA(scan[i*4], scan[i*4 + 1], scan[i*4 + 2]);
+			scan[i*4] = luma;
+			scan[i*4 + 1] = luma;
+			scan[i*4 + 2] = luma;
+		}
+	}
+
 	if(lightMap)
 	{
 		if(r_greyscale->integer)
@@ -710,6 +726,8 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 	{
 		for ( i = 0; i < c; i++ )
 		{
+			#if 0 // no need for this - Cowcat
+
 			if ( scan[i*4+0] > rMax )
 			{
 				rMax = scan[i*4+0];
@@ -724,6 +742,8 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 			{
 				bMax = scan[i*4+2];
 			}
+
+			#endif
 
 			if ( scan[i*4 + 3] != 255 ) 
 			{
@@ -746,9 +766,15 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 					internalFormat = GL_LUMINANCE;
 			}
 
+			#if defined(AMIGAOS) // Cowcat
+			else if(cinematic)
+				internalFormat = GL_ALPHA; // minigl workaround for scratch image - not really ALPHA .... 
+			#endif
+
 			else
 			{
 				#if !defined(AMIGAOS) // Cowcat
+
 				if ( glConfig.textureCompression == TC_S3TC_ARB )
 				{
 					internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
@@ -759,21 +785,18 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 					internalFormat = GL_RGB4_S3TC;
 				}
 
-				else
-				#endif
-					if ( r_texturebits->integer == 16 )
+				else if ( r_texturebits->integer == 16 )
 				{
 					internalFormat = GL_RGB5;
 				}
 
-				#if !defined(AMIGAOS) // Cowcat
 				else if ( r_texturebits->integer == 32 )
 				{
 					internalFormat = GL_RGB8;
 				}
-				#endif
 
 				else
+				#endif
 				{
 					internalFormat = GL_RGB;
 				}
@@ -796,6 +819,7 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 			else
 			{
 				#if !defined(AMIGAOS) // Cowcat
+
 				if ( r_texturebits->integer == 16 )
 				{
 					internalFormat = GL_RGBA4; 
@@ -862,7 +886,7 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 	*pUploadHeight = scaled_height;
 	*format = internalFormat;
 
-	qglTexImage2D (GL_TEXTURE_2D, 0, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaledBuffer );
+	qglTexImage2D ( GL_TEXTURE_2D, 0, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaledBuffer );
 
 	if (mipmap)
 	{
@@ -890,7 +914,7 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 				R_BlendOverTexture( (byte *)scaledBuffer, scaled_width * scaled_height, mipBlendColors[miplevel] );
 			}
 
-			qglTexImage2D (GL_TEXTURE_2D, miplevel, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaledBuffer );
+			qglTexImage2D ( GL_TEXTURE_2D, miplevel, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaledBuffer );
 		}
 	}
 done:
@@ -942,6 +966,8 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 	long		hash;
 	int		glWrapClampMode;
 
+	cinematic = qfalse; // Cowcat
+
 	if (strlen(name) >= MAX_QPATH )
 	{
 		ri.Error (ERR_DROP, "R_CreateImage: \"%s\" is too long\n", name);
@@ -951,6 +977,13 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 	{
 		isLightmap = qtrue;
 	}
+
+	#if defined(AMIGAOS) // Cowcat
+	if ( !strncmp( name, "*scratch", 8 ) )
+	{
+		cinematic = qtrue;
+	}
+	#endif
 
 	if ( tr.numImages == MAX_DRAWIMAGES )
 	{
@@ -1397,11 +1430,7 @@ void R_CreateBuiltinImages( void )
 	for(x = 0; x < ARRAY_LEN( tr.scratchImage ); x++) // ec-/Quake3e
 	{
 		// scratchimage is usually used for cinematic drawing
-		//tr.scratchImage[x] = R_CreateImage("*scratch", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE, 0);
 		tr.scratchImage[x] = R_CreateImage("*scratch", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE, 0);
-		
-		// Quake3e - Cowcat crash if null
-		//tr.scratchImage[x] = R_CreateImage("*scratch", /*NULL*/ (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE, GL_RGB);
 	}
 
 	R_CreateDlightImage();
