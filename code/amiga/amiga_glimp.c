@@ -65,12 +65,10 @@ cvar_t *r_closeworkbench;
 cvar_t *r_guardband; //
 cvar_t *r_vertexbuffersize; //
 cvar_t *r_glbuffers; //
-//cvar_t *gl_mtexbuffersize;
 cvar_t *r_perspective_fast; //
 
 extern cvar_t *in_nograb;
 
-static unsigned short *mousePtr = 0;
 struct MsgPort *Sys_EventPort = 0;
 struct Window *win = NULL;
 
@@ -90,43 +88,9 @@ extern qboolean mouse_avail;
 extern qboolean mhandler;
 qboolean windowmode; // mousehandler check on IN_Frame
 
-void MousePointerDisable(void)
-{
-	if( mouse_avail )
-	{
-		//Com_Printf("mousepointerdisable\n");
-
-		#ifdef __PPC__
-		mousePtr = (unsigned short *)AllocVecPPC( 8, MEMF_CHIP|MEMF_CLEAR, 0 );
-		#else
-		mousePtr = (unsigned short *)AllocVec( 8, MEMF_CHIP|MEMF_CLEAR);
-		#endif
-
-		SetPointer( win, mousePtr, 0, 0, 0, 0 );
-	}
-}
-
-void MousePointerEnable(void)
-{
-	if( mouse_avail ) 
-	{
-		//Com_Printf("mousepointerenable\n");
-
-		ClearPointer(win);
-
-		#ifdef __PPC__
-		FreeVecPPC(mousePtr);
-		#else
-		FreeVec(mousePtr);
-		#endif
-		
-		mousePtr = 0;
-	}
-}
-
 static qboolean GLW_StartDriverAndSetMode( int mode, int colorbits, qboolean fullscreen )
 {
-	BOOL useStencil = /*TRUE*/ FALSE;
+	//BOOL useStencil = /*TRUE*/ FALSE;
 	int depth;
 
 	ri.Printf(PRINT_ALL, "...setting mode %d:", mode);
@@ -137,7 +101,7 @@ static qboolean GLW_StartDriverAndSetMode( int mode, int colorbits, qboolean ful
 		return qfalse;
 	}
 
-	depth = r_colorbits->integer;
+	depth = colorbits;
 
 	if(depth != 15 && depth != 16 && depth != 24 && depth != 32)
 		depth = 16;
@@ -207,28 +171,14 @@ static qboolean GLW_StartDriverAndSetMode( int mode, int colorbits, qboolean ful
 
 	ri.Printf(PRINT_ALL, "vertexbuffersize %d\n", (int)r_vertexbuffersize->value );
 
-	#if 0 // no multitexture for this version - Cowcat
-
-	//base the size on #of polygons to store
-	gl_mtexbuffersize = ri.Cvar_Get("gl_mtexbuffersize", "4096", CVAR_ARCHIVE);
-
-	if((int)gl_mtexbuffersize <= 1024)
-		mglChooseMtexBufferSize( 4096 ); 
-
-	else
-		mglChooseMtexBufferSize( (int)gl_mtexbuffersize->value * 4);
-	#endif
-
 	if(!mglCreateContext(0, 0, glConfig.vidWidth, glConfig.vidHeight))
 	{
 		return qfalse;
 	}
 
-	//mglGetWindowHandle(); // wake up ???????? - Cowcat
-
 	if (fullscreen) // && r_glbuffers->value == 3)
 	{
-	    	mglEnableSync(GL_FALSE);
+		mglEnableSync(GL_FALSE);
 		ri.Printf(PRINT_ALL, "triplebuffer enabled\n");
 		ri.Printf(PRINT_ALL, "sync disabled\n");
 		windowmode = qfalse;
@@ -236,7 +186,7 @@ static qboolean GLW_StartDriverAndSetMode( int mode, int colorbits, qboolean ful
 
 	else
 	{
-	    	mglEnableSync(GL_TRUE);
+		mglEnableSync(GL_TRUE);
 		windowmode = qtrue;
 	}
 
@@ -251,7 +201,7 @@ static qboolean GLW_StartDriverAndSetMode( int mode, int colorbits, qboolean ful
 	*/
 
 	glConfig.colorBits = depth; // colorbits;
-	glConfig.depthBits = 0; // 16 - Cowcat
+	glConfig.depthBits = 16;
 	glConfig.stencilBits = 0;
 
 	/*
@@ -279,16 +229,12 @@ static qboolean GLW_StartDriverAndSetMode( int mode, int colorbits, qboolean ful
 	//
 	
 	// clear - Cowcat
-	
 	qglClearColor(0,0,0,1);
 	qglClear(GL_COLOR_BUFFER_BIT);
-	//qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	//mglSwitchDisplay();
 
 	return qtrue;
 }
 	
-
 static void GLW_Shutdown(void)
 {
 	mglDeleteContext();
@@ -534,8 +480,8 @@ void GLimp_Init(void)
 
 	ri.Printf(PRINT_ALL, "... Sys_EventPort at %p\n", Sys_EventPort);
 
-	if(r_fullscreen->integer)
-		MousePointerDisable();
+	//if(r_fullscreen->integer)
+		//MousePointerDisable(); // now minigl does it - Cowcat
 }		
 
 void GLimp_Shutdown(void)
@@ -543,9 +489,9 @@ void GLimp_Shutdown(void)
 	if (mhandler) 
 		MouseHandlerOff();
 
-	MousePointerEnable();
+	mglEnablePointer(); // Cowcat
 
-	IN_Shutdown(); //
+	IN_Shutdown();
 
 	GLW_RestoreGamma();
 
@@ -562,6 +508,7 @@ void GLimp_LogComment( char *comment )
 }
 #endif
 
+
 void GLimp_EndFrame(void)
 {
 	if (r_finish->modified)
@@ -572,8 +519,6 @@ void GLimp_EndFrame(void)
 
 	//mglUnlockDisplay(); // why if we are using SMART lock ? - Cowcat
 	mglSwitchDisplay();
-
-	//qglClear( GL_COLOR_BUFFER_BIT ); // test
 
 	/*
 	if (!r_fullscreen->integer && !in_nograb->integer)

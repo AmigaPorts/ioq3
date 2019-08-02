@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../client/client.h"
 
 #include "amiga_local.h"
+#include <mgl/gl.h> // needed now for vidpointer - Cowcat
 
 #ifdef __VBCC__
 #pragma amiga-align
@@ -132,13 +133,13 @@ void IN_Frame (void)
 	// Cowcat windowmode mousehandler juggling
 
 	static qboolean mousein;
-	qboolean loading;
+	//qboolean loading;
 
 	if ( windowmode ) 
 	{
-		loading = ( clc.state != CA_DISCONNECTED && clc.state != CA_ACTIVE );
+		//loading = ( clc.state != CA_DISCONNECTED && clc.state != CA_ACTIVE );
 
-		if( cls.cgameStarted == qtrue || loading )
+		if( cls.cgameStarted == qtrue ) // || loading )
 		{
 			if( !( Key_GetCatcher( ) & (KEYCATCH_UI | KEYCATCH_CONSOLE | KEYCATCH_CGAME) ) )
 			{
@@ -148,7 +149,7 @@ void IN_Frame (void)
 
 					win->Flags |= WFLG_REPORTMOUSE;
 
-					MousePointerDisable();
+					mglClearPointer(); // new Cowcat
 					MouseHandler();
 					mousein = qtrue;
 				}
@@ -161,7 +162,7 @@ void IN_Frame (void)
 				if ( Key_GetCatcher( ) & KEYCATCH_CONSOLE )
 					win->Flags &= ~WFLG_REPORTMOUSE;
 
-				MousePointerEnable();
+				mglEnablePointer(); // new Cowcat
 				MouseHandlerOff();
 				mousein = qfalse;
 			}
@@ -308,6 +309,7 @@ void IN_ProcessEvents(void)
 				{
 					mx = imsg->MouseX;
 					my = imsg->MouseY;
+
 					Com_QueueEvent(msgTime, SE_MOUSE, mx, my, 0, NULL);
 				}
 
@@ -365,11 +367,11 @@ struct MsgStruct
 	UWORD Code;
 	WORD MouseX;
 	WORD MouseY;
-	int rawkey;
+	UWORD rawkey;
 };
 #pragma pack(pop)
 
-int GetEvents(void *port, void *msgarray, int arraysize)
+static int GetEvents(void *port, void *msgarray, int arraysize)
 {
 	extern int GetMessages68k();
 	struct PPCArgs args;
@@ -390,13 +392,13 @@ int GetEvents(void *port, void *msgarray, int arraysize)
 
 void IN_ProcessEvents(void)
 {
-	struct InputEvent ie;
-	WORD res;
+	UWORD res;
 	int i;
 
 	if(Sys_EventPort)
 	{
 		struct MsgStruct events[50];
+		const ULONG msgTime = 0; //Sys_Milliseconds();
 
 		int messages = GetEvents(Sys_EventPort, events, 50);
 
@@ -405,8 +407,6 @@ void IN_ProcessEvents(void)
 
 		for (i = 0; i < messages; i++)
 		{
-			const ULONG msgTime = 0; //Sys_Milliseconds();
-
 			if (events[i].Class == IDCMP_RAWKEY)
 			{
 				int key = scantokey[ events[i].Code & 0x7f ];
@@ -438,6 +438,7 @@ void IN_ProcessEvents(void)
 				{
 					mx = events[i].MouseX;
 					my = events[i].MouseY;
+
 					Com_QueueEvent(msgTime, SE_MOUSE, mx, my, 0, NULL);
 				}
 			}
