@@ -508,7 +508,7 @@ sysEvent_t Sys_GetEvent(void)
 */
 
 //static char __attribute__((used)) stackcookie[] = "$STACK:2000000";
-unsigned long __stack = 0x2000000; // auto stack Cowcat
+unsigned long __stack = 0x200000; // auto stack Cowcat
 
 int main(int argc, char **argv)
 {
