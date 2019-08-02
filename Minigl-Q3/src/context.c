@@ -13,6 +13,7 @@
  */
 
 #include "sysinc.h"
+#include "vertexarray.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1561,6 +1562,9 @@ GLboolean MGLInitContext(GLcontext context)
 	context->ArrayPointer.verts = (UBYTE *)&context->VertexBuffer->v.x;
 	context->ArrayPointer.vertexstride = sizeof(MGLVertex);
 	context->ArrayPointer.vertexmode = W3D_VERTEX_F_F_D;
+
+	// Set vertexarrays properly - Cowcat
+	Set_W3D_VertexPointer(context->w3dContext, (void *)context->ArrayPointer.verts, sizeof(MGLVertex), W3D_VERTEX_F_F_D, 0);
 
 	context->ArrayPointer.lockfirst = 0;
 	context->ArrayPointer.locksize = 0;
