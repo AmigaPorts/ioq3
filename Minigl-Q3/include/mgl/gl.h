@@ -380,7 +380,7 @@ void        GLActiveTextureARB(GLcontext context, GLenum unit);
 void        GLMultiTexCoord2fARB(GLcontext context, GLenum unit, GLfloat s, GLfloat t);
 void        GLMultiTexCoord2fvARB(GLcontext context, GLenum unit, GLfloat *v);
 
-void MGLDrawMultitexBuffer (GLcontext context, GLenum BSrc, GLenum BDst, GLenum TexEnv);
+void        MGLDrawMultitexBuffer (GLcontext context, GLenum BSrc, GLenum BDst, GLenum TexEnv);
 
 
 
@@ -402,7 +402,7 @@ void        GLColor4ubv(GLcontext context, GLubyte *v);
 //void        GLColorPointer(GLcontext context, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
 void        GLColorTable(GLcontext context, GLenum target, GLenum internalformat, GLint width, GLenum format, GLenum type, GLvoid *data);
 
-void	    GLColorMask(GLcontext context, GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
+void	    GLColorMask(GLcontext context, GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha); // Cowcat
 
 void        GLCullFace(GLcontext context, GLenum mode);
 void        GLDeleteTextures(GLcontext context, GLsizei n, const GLuint *textures);
@@ -537,8 +537,14 @@ void        MGLSwitchBuffer(GLcontext context, int bufnr);
 void        MGLSwitchDisplay(GLcontext context);
 void        MGLTexMemStat(GLcontext context, GLint *Current, GLint *Peak);
 void        MGLUnlockDisplay(GLcontext context);
+
+//Cowcat
+void        MGLClearPointer(GLcontext context);
+void        MGLEnablePointer(GLcontext context);
+//
+
 void        MGLWriteShotPPM(GLcontext context, char *filename);
-GLboolean        MGLInit(void);
+GLboolean   MGLInit(void);
 void        MGLTerm(void);
 
 #ifdef AUTOMATIC_LOCKING_ENABLE
@@ -809,6 +815,9 @@ void        GLDrawArrays(GLcontext context, GLenum mode, GLint first, GLsizei co
 #define mglLockDisplay() MGLLockDisplay(mini_CurrentContext)
 #define mglUnlockDisplay() MGLUnlockDisplay(mini_CurrentContext)
 
+//Cowcat
+#define mglClearPointer() MGLClearPointer(mini_CurrentContext)
+#define mglEnablePointer() MGLEnablePointer(mini_CurrentContext)
 
 #define glColor4f(red, green, blue, alpha)  GLColor4f(mini_CurrentContext, red, green, blue, alpha)
 

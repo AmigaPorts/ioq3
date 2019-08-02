@@ -113,19 +113,17 @@ static GLboolean sys_MaybeOpenVidLibs(void)
 }
 
 
-#if 0 // Disabled for QuakeI/II/III/GLHexen2 - Cowcat
-
 static UWORD *MousePointer = 0;
 
 static void vid_Pointer(struct Window *window)
 {
 	if (!MousePointer)
 	{
-	#ifdef __PPC__
+		#ifdef __PPC__
 		MousePointer = AllocVecPPC(8, MEMF_CLEAR|MEMF_CHIP|MEMF_PUBLIC,0); //OF (8 instead of 12, MEMF_PUBLIC)
-	#else
+		#else
 		MousePointer = AllocVec(8, MEMF_CLEAR|MEMF_CHIP|MEMF_PUBLIC); //OF (idem)
-	#endif
+		#endif
 	}
 
 	if (window)
@@ -146,7 +144,17 @@ static void vid_DeletePointer(struct Window *window)
 	MousePointer = 0;
 }
 
-#endif
+// Cowcat
+void MGLClearPointer(GLcontext context)
+{
+	vid_Pointer(context->w3dWindow);
+}
+
+void MGLEnablePointer(GLcontext context)
+{
+	vid_DeletePointer(context->w3dWindow);
+}
+//
 
 void GLScissor(GLcontext context, GLint x, GLint y, GLsizei width, GLsizei height)
 {
