@@ -62,10 +62,11 @@ extern qboolean mouse_active;
 
 extern cvar_t *r_finish;
 cvar_t *r_closeworkbench;
-cvar_t *r_guardband; //
-cvar_t *r_vertexbuffersize; //
-cvar_t *r_glbuffers; //
-cvar_t *r_perspective_fast; //
+cvar_t *r_guardband;
+cvar_t *r_vertexbuffersize;
+cvar_t *r_glbuffers;
+cvar_t *r_perspective_fast;
+cvar_t *r_mintriarea;
 
 extern cvar_t *in_nograb;
 
@@ -108,11 +109,12 @@ static qboolean GLW_StartDriverAndSetMode( int mode, int colorbits, qboolean ful
 	
 	ri.Printf( PRINT_ALL, " %d %d %s\n", glConfig.vidWidth, glConfig.vidHeight, fullscreen ? "fullscreen" : "windowed" );
 
-	r_vertexbuffersize  = Cvar_Get("r_vertexbuffersize", "4096", CVAR_ARCHIVE);
+	r_vertexbuffersize  = Cvar_Get("r_vertexbuffersize", "4096", CVAR_ARCHIVE | CVAR_LATCH);
 	r_glbuffers  = Cvar_Get("r_glbuffers", "3", CVAR_ARCHIVE);
-	r_guardband  = Cvar_Get("r_guardband", "0", CVAR_ARCHIVE);
+	r_guardband  = Cvar_Get("r_guardband", "0", CVAR_ARCHIVE | CVAR_LATCH);
 	r_closeworkbench = Cvar_Get("r_closeworkbench", "0", CVAR_ARCHIVE);
-	r_perspective_fast = Cvar_Get("r_perspective_fast", "0", CVAR_ARCHIVE);
+	r_perspective_fast = Cvar_Get("r_perspective_fast", "0", CVAR_ARCHIVE | CVAR_LATCH);
+	r_mintriarea = Cvar_Get("r_mintriarea", "0", CVAR_ARCHIVE | CVAR_LATCH);
 
 	mglChoosePixelDepth(depth); // default 16
 
@@ -225,6 +227,12 @@ static qboolean GLW_StartDriverAndSetMode( int mode, int colorbits, qboolean ful
 	{
 		glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 		ri.Printf(PRINT_ALL, "GL_Perspective_Correction_hint: fast\n");
+	}
+
+	if(r_mintriarea->value) // screenwidth *screenheight/75000 (rounded)
+	{
+		mglMinTriArea(r_mintriarea->value);
+		ri.Printf(PRINT_ALL, "MinTriArea: %1.1f\n", r_mintriarea->value);
 	}
 	//
 	
