@@ -4351,8 +4351,6 @@ restart if necessary
 
 qboolean FS_ConditionalRestart( int checksumFeed, qboolean disconnect )
 {
-	#if !defined(AMIGAOS) // disabled until bugfix Amiga render - Cowcat
-
 	if(fs_gamedirvar->modified)
 	{
 		if(FS_FilenameCompare(lastValidGame, fs_gamedirvar->string) &&
@@ -4374,18 +4372,6 @@ qboolean FS_ConditionalRestart( int checksumFeed, qboolean disconnect )
 		FS_ReorderPurePaks();
 
 	return qfalse;
-
-	#else // old way
-
-	if( fs_gamedirvar->modified || checksumFeed != fs_checksumFeed )
-	{
-		FS_Restart( checksumFeed );
-		return qtrue;
-	}
-
-	return qfalse;
-
-	#endif
 }
 
 /*

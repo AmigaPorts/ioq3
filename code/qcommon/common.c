@@ -2878,8 +2878,6 @@ Change to a new mod properly with cleaning up cvars before switching.
 ==================
 */
 
-#if !defined(AMIGAOS) // called from files.c - disabled until bugfix Amiga render - Cowcat
-
 void Com_GameRestart(int checksumFeed, qboolean disconnect)
 {
 	// make sure no recursion can be triggered
@@ -2924,7 +2922,6 @@ void Com_GameRestart(int checksumFeed, qboolean disconnect)
 		com_gameClientRestarting = qfalse;
 	}
 }
-#endif
 
 #ifndef STANDALONE
 

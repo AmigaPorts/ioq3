@@ -1211,9 +1211,6 @@ Unsets a cvar
 ============
 */
 
-//
-#if !defined(AMIGAOS) // disabled until minigl Amiga fix - Cowcat 
-
 cvar_t *Cvar_Unset(cvar_t *cv)
 {
 	cvar_t *next = cv->next;
@@ -1336,8 +1333,6 @@ void Cvar_Restart_f(void)
 {
 	Cvar_Restart(qfalse);
 }
-
-#endif
 
 /*
 =====================
@@ -1569,11 +1564,11 @@ void Cvar_Init (void)
 	Cmd_SetCommandCompletionFunc( "seta", Cvar_CompleteCvarName );
 	Cmd_AddCommand ("reset", Cvar_Reset_f);
 	Cmd_SetCommandCompletionFunc( "reset", Cvar_CompleteCvarName );
-	//Cmd_AddCommand ("unset", Cvar_Unset_f); // Cowcat
-	//Cmd_SetCommandCompletionFunc( "unset", Cvar_CompleteCvarName ); // Cowcat
+	Cmd_AddCommand ("unset", Cvar_Unset_f);
+	Cmd_SetCommandCompletionFunc( "unset", Cvar_CompleteCvarName );
 
 	Cmd_AddCommand ("cvarlist", Cvar_List_f);
 	Cmd_AddCommand ("cvar_modified", Cvar_ListModified_f);
-	//Cmd_AddCommand ("cvar_restart", Cvar_Restart_f); // Cowcat
+	Cmd_AddCommand ("cvar_restart", Cvar_Restart_f);
 }
 
