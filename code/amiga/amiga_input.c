@@ -65,7 +65,7 @@ struct Library *KeymapBase = 0;
 extern struct Window *win;
 extern qboolean windowmode;
 
-void IN_ProcessEvents(void);
+static void IN_ProcessEvents(qboolean keycatch);
 
 void IN_ActivateMouse( qboolean isFullscreen ) 
 {
@@ -91,7 +91,7 @@ void IN_DeactivateMouse( qboolean isFullscreen )
 	}
 }
 
-static qboolean keycatch = qfalse;
+//static qboolean keycatch = qfalse;
 
 void IN_Frame (void) 
 {
@@ -127,10 +127,14 @@ void IN_Frame (void)
 	// Cowcat windowmode mousehandler juggling
 
 	static qboolean mousein;
+	int keycatch = qfalse;
 
 	if ( windowmode && mouse_avail )
 	{
-		if( Key_GetCatcher( ) & KEYCATCH_CONSOLE )
+		int keycatcher = Key_GetCatcher( );
+		//int keycatch = qfalse;
+
+		if( keycatcher & KEYCATCH_CONSOLE )
 		{
 			if(mousein)
 			{
@@ -155,19 +159,16 @@ void IN_Frame (void)
 			mousein = qtrue;
 		}
 
-		if ( Key_GetCatcher( ) & KEYCATCH_UI )
+		if ( cls.cgameStarted == qfalse || keycatcher & KEYCATCH_UI )
 		{
 			//Com_Printf("keycath ui\n");
 			keycatch = qtrue;
 		}
-
-		else
-			keycatch = qfalse;
 	}
 
 	#endif
 
-	IN_ProcessEvents( );
+	IN_ProcessEvents(keycatch);
 }
 
 
@@ -267,7 +268,7 @@ static int XLateKey(struct IntuiMessage *ev)
 	return scantokey[ev->Code&0x7f];
 }
 
-void IN_ProcessEvents(void)
+static void IN_ProcessEvents(qboolean keycatch)
 {
 	struct IntuiMessage *imsg;
 	struct InputEvent ie;
@@ -277,10 +278,10 @@ void IN_ProcessEvents(void)
 	if (!Sys_EventPort)
 		return;
 
+	const ULONG msgTime = 0; //Sys_Milliseconds();
+
 	while ((imsg = (struct IntuiMessage *)GetMsg(Sys_EventPort)))
 	{
-		const ULONG msgTime = 0; //Sys_Milliseconds();
-		
 		switch (imsg->Class)
 		{
 			case IDCMP_RAWKEY:
@@ -312,15 +313,14 @@ void IN_ProcessEvents(void)
 
 					else
 						res = MapRawKey(&ie, buf, 20, 0);
+
+					Com_QueueEvent(msgTime, SE_KEY, key, keyDown(imsg->Code), 0, NULL);
+
+					if (res == 1)
+					{
+						Com_QueueEvent(msgTime, SE_CHAR, buf[0], 0, 0, NULL);
+					}
 				}
-
-				Com_QueueEvent(msgTime, SE_KEY, key, keyDown(imsg->Code), 0, NULL);
-
-				if (res == 1)
-				{
-					Com_QueueEvent(msgTime, SE_CHAR, buf[0], 0, 0, NULL);
-				}
-
 			}
 				
 			break;
@@ -412,7 +412,7 @@ static int GetEvents(void *port, void *msgarray, int arraysize)
 	return args.PP_Regs[PPREG_D0];
 }
 
-void IN_ProcessEvents(void)
+static void IN_ProcessEvents(qboolean keycatch)
 {
 	UWORD res;
 	int i;
