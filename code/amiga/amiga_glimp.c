@@ -24,11 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../client/client.h"
 #include "amiga_local.h"
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 #include <exec/exec.h>
 #include <exec/memory.h>
@@ -50,15 +46,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 #endif
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined (WARPUP)
 #pragma pack(pop)
-#endif
 
 #include <mgl/gl.h>
-
-extern qboolean mouse_active;
 
 extern cvar_t *r_finish;
 cvar_t *r_closeworkbench;
@@ -87,7 +77,7 @@ void GLW_RestoreGamma(void) {}
 
 extern qboolean mouse_avail;
 extern qboolean mhandler;
-qboolean windowmode; // mousehandler check on IN_Frame
+qboolean windowmode; // IN_Frame check
 
 static qboolean GLW_StartDriverAndSetMode( int mode, int colorbits, qboolean fullscreen )
 {
@@ -322,6 +312,7 @@ static void GLW_InitExtensions( void )
 	// GL_S3_s3tc
 	glConfig.textureCompression = TC_NONE;
 
+	#if 0
 	if ( strstr( glConfig.extensions_string, "GL_S3_s3tc" ) )
 	{
 		if ( r_ext_compressed_textures->integer )
@@ -338,6 +329,7 @@ static void GLW_InitExtensions( void )
 	}
 
 	else
+	#endif
 	{
 		ri.Printf( PRINT_ALL, "...GL_S3_s3tc not found\n" );
 	}
@@ -345,6 +337,7 @@ static void GLW_InitExtensions( void )
 	// GL_EXT_texture_env_add
 	glConfig.textureEnvAddAvailable = qfalse;
 
+	#if 0
 	if ( strstr( glConfig.extensions_string, "EXT_texture_env_add" ) )
 	{
 		if ( r_ext_texture_env_add->integer )
@@ -361,14 +354,14 @@ static void GLW_InitExtensions( void )
 	}
 
 	else
+	#endif
 	{
 		ri.Printf( PRINT_ALL, "...GL_EXT_texture_env_add not found\n" );
 	}
 
 	// GL_ARB_multitexture
 
-	#if 0  // Cowcat
-
+	#if 0
 	if ( strstr( glConfig.extensions_string, "GL_MGL_ARB_multitexture" )  ) // minigl has no support for varray multitexture
 	{
 		if ( r_ext_multitexture->integer )
@@ -477,8 +470,6 @@ void GLimp_Init(void)
 	GLW_InitExtensions();
 	GLW_InitGamma();
 
-	IN_Init(); // was in amiga_main/sys_init ---
-	
 	win = mglGetWindowHandle();
 
 	ModifyIDCMP(win, IDCMP_RAWKEY|IDCMP_MOUSEBUTTONS|IDCMP_MOUSEMOVE|IDCMP_DELTAMOVE);
@@ -486,19 +477,13 @@ void GLimp_Init(void)
 
 	Sys_EventPort = win->UserPort;
 
-	ri.Printf(PRINT_ALL, "... Sys_EventPort at %p\n", Sys_EventPort);
+	IN_Init(); // was in amiga_main/sys_init ---
 
-	//if(r_fullscreen->integer)
-		//MousePointerDisable(); // now minigl does it - Cowcat
+	ri.Printf(PRINT_ALL, "... Sys_EventPort at %p\n", Sys_EventPort);
 }		
 
 void GLimp_Shutdown(void)
 {
-	if (mhandler) 
-		MouseHandlerOff();
-
-	mglEnablePointer(); // Cowcat
-
 	IN_Shutdown();
 
 	GLW_RestoreGamma();
@@ -544,43 +529,5 @@ void GLimp_EndFrame(void)
 		}
 	}
 	*/
-
-	#if 0 // that goes to IN_Frame - left for reference - Cowcat
-
-	static qboolean mousein;
-
-	if ( !r_fullscreen->integer ) // Cowcat windowmode mousehandler juggling
-	{
-		if( cls.cgameStarted == qtrue ) // only done at the time of playing
-		{
-			if( !( Key_GetCatcher( ) & (KEYCATCH_UI | KEYCATCH_CONSOLE) ) )
-			{
-				if(!mousein)
-				{
-					//ri.Printf(PRINT_ALL, "mousein\n");
-
-					win->Flags |= WFLG_REPORTMOUSE;
-
-					MousePointerDisable();
-					MouseHandler();
-					mousein = qtrue;
-				}
-			}
-
-			else if( mousein )
-			{
-				//ri.Printf(PRINT_ALL, "mouseoff\n");
-
-				if ( Key_GetCatcher( ) & KEYCATCH_CONSOLE )
-					win->Flags &= ~WFLG_REPORTMOUSE;
-
-				MousePointerEnable();
-				MouseHandlerOff();
-				mousein = qfalse;
-			}
-		}
-	}
-
-	#endif
 }
 

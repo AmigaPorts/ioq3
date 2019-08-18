@@ -28,11 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "amiga_local.h"
 #include <mgl/gl.h> // needed now for vidpointer - Cowcat
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 #include <devices/timer.h>
 #include <exec/ports.h>
@@ -52,11 +48,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif 
 #endif
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined (WARPUP)
 #pragma pack(pop)
-#endif
 
 static cvar_t *in_mouse	 = NULL;
 cvar_t *in_nograb        = NULL; 
@@ -99,6 +91,8 @@ void IN_DeactivateMouse( qboolean isFullscreen )
 	}
 }
 
+static qboolean keycatch = qfalse;
+
 void IN_Frame (void) 
 {
 	// IN_JoyMove(); // FIXME: disable if on desktop?
@@ -133,42 +127,44 @@ void IN_Frame (void)
 	// Cowcat windowmode mousehandler juggling
 
 	static qboolean mousein;
-	//qboolean loading;
 
-	if ( windowmode ) 
+	if ( windowmode && mouse_avail )
 	{
-		//loading = ( clc.state != CA_DISCONNECTED && clc.state != CA_ACTIVE );
-
-		if( cls.cgameStarted == qtrue ) // || loading )
+		if( Key_GetCatcher( ) & KEYCATCH_CONSOLE )
 		{
-			if( !( Key_GetCatcher( ) & (KEYCATCH_UI | KEYCATCH_CONSOLE | KEYCATCH_CGAME) ) )
-			{
-				if(!mousein)
-				{
-					//Com_Printf("mousein\n");
-
-					win->Flags |= WFLG_REPORTMOUSE;
-
-					mglClearPointer(); // new Cowcat
-					MouseHandler();
-					mousein = qtrue;
-				}
-			}
-
-			else if( mousein )
+			if(mousein)
 			{
 				//Com_Printf("mouseoff\n");
 
-				if ( Key_GetCatcher( ) & KEYCATCH_CONSOLE )
-					win->Flags &= ~WFLG_REPORTMOUSE;
+				win->Flags &= ~WFLG_REPORTMOUSE;
 
 				mglEnablePointer(); // new Cowcat
 				MouseHandlerOff();
 				mousein = qfalse;
 			}
 		}
+
+		else if( !mousein )
+		{
+			//Com_Printf("mousein\n");
+
+			win->Flags |= WFLG_REPORTMOUSE;
+
+			mglClearPointer(); // new Cowcat
+			MouseHandler();
+			mousein = qtrue;
+		}
+
+		if ( Key_GetCatcher( ) & KEYCATCH_UI )
+		{
+			//Com_Printf("keycath ui\n");
+			keycatch = qtrue;
+		}
+
+		else
+			keycatch = qfalse;
 	}
-	
+
 	#endif
 
 	IN_ProcessEvents( );
@@ -191,8 +187,24 @@ void IN_Init(void)
 	in_joystick = Cvar_Get ("in_joystick", "0", CVAR_ARCHIVE|CVAR_LATCH);
 	in_joystickDebug = Cvar_Get ("in_debugjoystick", "0", CVAR_TEMP);
 	joy_threshold = Cvar_Get ("joy_threshold", "0.15", CVAR_ARCHIVE); // FIXME: in_joythreshold
-
+	
 	mouse_avail = (in_mouse->value != 0);
+
+	if(mouse_avail)
+	{
+		if(windowmode)
+			MouseHandler();
+
+		mglClearPointer();
+	}
+
+	else
+	{
+		mglEnablePointer();
+
+		win->IDCMPFlags &= ~IDCMP_MOUSEBUTTONS|IDCMP_MOUSEMOVE|IDCMP_DELTAMOVE;
+		//win->Flags &= ~WFLG_REPORTMOUSE;
+	}
 
 	//IN_StartupJoystick( ); // bk001130 - from cvs1.17 (mkv)
 
@@ -201,6 +213,10 @@ void IN_Init(void)
 
 void IN_Shutdown(void)
 {
+	MouseHandlerOff();
+
+	mglEnablePointer(); // new Cowcat
+
 	mouse_avail = qfalse;
 
 	if (KeymapBase)
@@ -269,10 +285,16 @@ void IN_ProcessEvents(void)
 		{
 			case IDCMP_RAWKEY:
 			{
-				int key = XLateKey(imsg);
-
-				//if (IKeymap) // Cowcat
+				if ( keycatch &&  events[i].Code == ( 0x63 & ~IECODE_UP_PREFIX ) ) // windowmode handler workaround
 				{
+					Com_QueueEvent(msgTime, SE_KEY, K_MOUSE1, keyDown(events[i].Code), 0, NULL);
+					//Com_Printf ("mouse key RAWKEY\n"); //
+				}
+
+				else
+				{
+					int key = XLateKey(imsg);
+
 					//Com_Printf ("key encoded %d %d\n", imsg->Code, imsg->Qualifier);
 					//Com_Printf ("key encoded $%04x $%04lx\n", imsg->Code, imsg->Qualifier);
 
@@ -409,9 +431,18 @@ void IN_ProcessEvents(void)
 		{
 			if (events[i].Class == IDCMP_RAWKEY)
 			{
-				int key = scantokey[ events[i].Code & 0x7f ];
-
+				if ( keycatch &&  events[i].Code == ( 0x63 & ~IECODE_UP_PREFIX ) ) // windowmode handler workaround
 				{
+					Com_QueueEvent(msgTime, SE_KEY, K_MOUSE1, keyDown(events[i].Code), 0, NULL);
+					//Com_Printf ("mouse key RAWKEY\n"); //
+				}
+
+				else
+				{
+					int key = scantokey[ events[i].Code & 0x7f ];
+
+					//Com_Printf ("key encoded %d \n", key); //
+
 					if (key == '`') 
 					{
 						key = K_CONSOLE;
@@ -421,15 +452,13 @@ void IN_ProcessEvents(void)
 					else
 						res = 1;
 
+					Com_QueueEvent(msgTime, SE_KEY, key, keyDown(events[i].Code), 0, NULL);
+
+					if (res == 1)
+					{
+						Com_QueueEvent(msgTime, SE_CHAR, events[i].rawkey, 0, 0, NULL);
+					}
 				}
-
-				Com_QueueEvent(msgTime, SE_KEY, key, keyDown(events[i].Code), 0, NULL);
-
-				if (res == 1)
-				{
-					Com_QueueEvent(msgTime, SE_CHAR, events[i].rawkey, 0, 0, NULL);
-				}
-
 			}
 				
 			if (events[i].Class == IDCMP_MOUSEMOVE)
