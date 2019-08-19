@@ -267,8 +267,6 @@ static INLINE void TransformIndex(GLcontext context, const int size, const UWORD
 		a31=a(31); a32=a(32); a33=a(33); a34=a(34);
 		a41=a(41); a42=a(42); a43=a(43); a44=a(44);
 
-		float tx, ty, tz, tw;
-
 		stride = context->ArrayPointer.vertexstride;
 
 		i = size-1;
@@ -508,8 +506,6 @@ static INLINE ULONG TransformRange(GLcontext context, const int first, const int
 		a31=a(31); a32=a(32); a33=a(33); a34=a(34);
 		a41=a(41); a42=a(42); a43=a(43); a44=a(44);
 
-		float tx, ty, tz, tw;
-
 		stride = context->ArrayPointer.vertexstride;
 		vpointer = (context->ArrayPointer.verts + first*stride);
 
@@ -736,7 +732,7 @@ static INLINE void ProjectRangeByOutcode(GLcontext context, const int first, con
 				x = v->bx;
 				y = v->by;
 				z = v->bz;
-				w = 1.0/v->bw;
+				w = 1.0 / v->bw;
 	
 				v->v.x = context->ax + x * w * context->sx;
 				v->v.y = context->ay - y * w * context->sy;
@@ -797,7 +793,7 @@ static INLINE void ProjectRangeByOutcode(GLcontext context, const int first, con
 				x = v->bx;
 				y = v->by;
 				z = v->bz;
-				w = 1.0/v->bw;
+				w = 1.0 / v->bw;
 
 				v->v.x = context->ax + x * w * context->sx;
 				v->v.y = context->ay - y * w * context->sy;
@@ -879,12 +875,11 @@ if(ctx->ZOffset_State == GL_TRUE) ctx->VertexBuffer[vnum].v.z += ctx->ZOffset;}
 static INLINE void E_ToScreen(GLcontext context, const int vnum)
 {
 	float *wa;
-	float w = 1.0/context->VertexBuffer[vnum].bw;
+	float w = 1.0 / context->VertexBuffer[vnum].bw;
 
 	context->VertexBuffer[vnum].v.x = context->ax + context->VertexBuffer[vnum].bx * w * context->sx;
 	context->VertexBuffer[vnum].v.y = context->ay - context->VertexBuffer[vnum].by * w * context->sy;
 	context->VertexBuffer[vnum].v.z = context->az + context->VertexBuffer[vnum].bz * w * context->sz;
-
 	context->VertexBuffer[vnum].v.w = w; 
 
 	if(context->ZOffset_State == GL_TRUE)
@@ -896,8 +891,7 @@ static INLINE void E_ToScreen(GLcontext context, const int vnum)
 
 static INLINE void V_ToScreen(GLcontext context, const int i)
 {
-	float w;
-	w = 1.f / context->VertexBuffer[i].bw;
+	float w = 1.f / context->VertexBuffer[i].bw;
 
 	context->VertexBuffer[i].v.x = context->ax + context->VertexBuffer[i].bx * w * context->sx;
 	context->VertexBuffer[i].v.y = context->ay - context->VertexBuffer[i].by * w * context->sy;
@@ -945,7 +939,6 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 	int	size;
 	ULONG	and_code, or_code, guard_band;
 	ULONG	local_or, local_and;
-	ULONG	error;
 	static	ULONG complete[MGL_MAXVERTS];
 	static	ULONG visible[MGL_MAXVERTS];
 	static	PolyIndex polys[256];
@@ -1002,14 +995,14 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 				UWORD val = idx[first];
 				idx[first] = idx[0];
 
-				error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, size, (void*)&idx[first]);
+				W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, size, (void*)&idx[first]);
 
 				idx[first] = val;
 			}
 
 			else
 			{
-				error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, size, (void*)idx);
+				W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, size, (void*)idx);
 			}
 		}
 
@@ -1018,9 +1011,9 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 			float fsign;
 			float area;
 			float area2;
-			float x0,y0;
-			float x1,x2;
-			float y1,y2;
+			float x0, y0;
+			float x1, x2;
+			float y1, y2;
 			int oldfirst;
 
 			#define x(a) (vbase[idx[a]].bx)
@@ -1094,14 +1087,14 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 
 					idx[first] = idx[0];
 
-					error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, size, (void*)&idx[first]);
+					W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, size, (void*)&idx[first]);
 
 					idx[first] = val;
 				}
 
 				else
 				{
-					error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, size, (void*)idx);
+					W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, size, (void*)idx);
 				}
 			}
 		}
@@ -1184,7 +1177,7 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 
 		if(context->CullFace_State == GL_FALSE)
 		{
-			error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, count, (void*)idx);
+			W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, count, (void*)idx);
 		}
 
 		else
@@ -1192,9 +1185,9 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 			float fsign;
 			float area;
 			float area2;
-			float x0,y0;
-			float x1,x2;
-			float y1,y2;
+			float x0, y0;
+			float x1, x2;
+			float y1, y2;
 
 			#define x(a) (vbase[idx[a]].v.x)
 			#define y(a) (vbase[idx[a]].v.y)
@@ -1265,14 +1258,14 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 
 					idx[first] = idx[0];
 
-					error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, size, (void*)&idx[first]);
+					W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, size, (void*)&idx[first]);
 
 					idx[first] = val;
 				}
 
 				else
 				{
-					error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, size, (void*)idx);
+					W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, size, (void*)idx);
 				}
 			}
 
@@ -1287,7 +1280,7 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 
 	if(context->CullFace_State == GL_FALSE)
 	{
-		for(i=1,triangle=0; i<count-1; i++,triangle++)
+		for(i=1, triangle=0; i < count-1; i++, triangle++)
 		{
 			local_and = vbase[idx[0]].outcode
 				& vbase[idx[i]].outcode
@@ -1314,7 +1307,7 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 
 	else
 	{
-		for(i=1,triangle=0; i<count-1; i++,triangle++)
+		for(i=1, triangle=0; i < count-1; i++, triangle++)
 		{
 			local_and = vbase[idx[0]].outcode
 				& vbase[idx[i]].outcode
@@ -1449,7 +1442,7 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 				{
 					if(context->VertexBuffer[idx[i]].outcode == 0)
 					{
-						context->VertexBuffer[idx[i]].outcode	= 1;
+						context->VertexBuffer[idx[i]].outcode = 1;
 						E_ToScreen(context, idx[i]);
 					}
 				}
@@ -1457,8 +1450,8 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 				k = idx[vzero];
 				idx[vzero] = idx[0];
 
-				error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD,
-						PBUF[pnum].numverts, (void*)&(idx[vzero]));
+				W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD,
+					PBUF[pnum].numverts, (void*)&(idx[vzero]));
 
 				idx[vzero] = k;
 
@@ -1475,8 +1468,8 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 				k = idx[vzero];
 				idx[vzero] = idx[0];
 
-				error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD,
-						PBUF[pnum].numverts, (void*)&(idx[vzero]));
+				W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD,
+					PBUF[pnum].numverts, (void*)&(idx[vzero]));
 
 				idx[vzero] = k;
 
@@ -1507,14 +1500,14 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 
 					if(vert < context->VertexBufferPointer && context->VertexBuffer[vert].outcode == 0)
 					{
-						context->VertexBuffer[vert].outcode	= 1;
+						context->VertexBuffer[vert].outcode = 1;
 						V_ToScreen(context, vert);
 					}
 				}
 
 				fan.vertexcount = p->numverts;
 
-				error = W3D_DrawTriFanV(context->w3dContext, &fan);
+				W3D_DrawTriFanV(context->w3dContext, &fan);
 			}		
 		}
 
@@ -1531,7 +1524,7 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 
 				fan.vertexcount = p->numverts;
 
-				error = W3D_DrawTriFanV(context->w3dContext, &fan);
+				W3D_DrawTriFanV(context->w3dContext, &fan);
 			}
 		}
 	}
@@ -1543,7 +1536,6 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 	int	size;
 	ULONG	and_code, or_code, guard_band;
 	ULONG	local_or, local_and;
-	ULONG	error;
 	static ULONG complete[MGL_MAXVERTS];
 	static ULONG visible[MGL_MAXVERTS];
 	static PolyIndex polys[256];
@@ -1594,7 +1586,7 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 
 		if(context->CullFace_State == GL_FALSE)
 		{
-			error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, W3D_INDEX_UWORD, size, (void*)&idx[first]);
+			W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, W3D_INDEX_UWORD, size, (void*)&idx[first]);
 		}
 
 		else
@@ -1602,9 +1594,9 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 			float fsign;
 			float area;
 			float area2;
-			float a1,a2,b1,b2;
-			float x1,x2;
-			float y1,y2;
+			float a1, a2, b1, b2;
+			float x1, x2;
+			float y1, y2;
 			int oldfirst;
 
 			#define x(a) (vbase[idx[a]].bx)
@@ -1700,7 +1692,7 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 
 			if(area >= context->MinTriArea)
 			{
-				error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, W3D_INDEX_UWORD, size, (void*)&idx[first]);
+				W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, W3D_INDEX_UWORD, size, (void*)&idx[first]);
 			}
 		}
 
@@ -1781,7 +1773,7 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 
 		if(context->CullFace_State == GL_FALSE)
 		{
-			error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, W3D_INDEX_UWORD, count, (void*)idx);
+			W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, W3D_INDEX_UWORD, count, (void*)idx);
 		}
 
 		else
@@ -1792,9 +1784,9 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 			float fsign;
 			float area;
 			float area2;
-			float a1,a2,b1,b2;
-			float x1,x2;
-			float y1,y2;
+			float a1, a2, b1, b2;
+			float x1, x2;
+			float y1, y2;
 
 			fsign = (float)(-context->CurrentCullSign);
 
@@ -1877,7 +1869,7 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 
 			if(area >= context->MinTriArea)
 			{
-				error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, W3D_INDEX_UWORD, size, (void*)&idx[first]); 
+				W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, W3D_INDEX_UWORD, size, (void*)&idx[first]); 
 			}
 
 			#undef x
@@ -2068,8 +2060,8 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 					}
 				}
 
-				error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, W3D_INDEX_UWORD,
-						PBUF[pnum].numverts, (void*)&(idx[vzero]));
+				W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, W3D_INDEX_UWORD,
+					PBUF[pnum].numverts, (void*)&(idx[vzero]));
 
 			} while (pnum > 0);
 		}
@@ -2081,8 +2073,8 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 				pnum--;
 				vzero = PBUF[pnum].first;
 
-				error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, W3D_INDEX_UWORD,
-						PBUF[pnum].numverts, (void*)&(idx[vzero]));
+				W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, W3D_INDEX_UWORD,
+					PBUF[pnum].numverts, (void*)&(idx[vzero]));
 
 			} while (pnum > 0);
 		}
@@ -2117,7 +2109,7 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 				}
 
 				fan.vertexcount = p->numverts;
-				error = W3D_DrawTriFanV(context->w3dContext, &fan);
+				W3D_DrawTriFanV(context->w3dContext, &fan);
 			}
 		}
 
@@ -2133,7 +2125,7 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 				}
 
 				fan.vertexcount = p->numverts;
-				error = W3D_DrawTriFanV(context->w3dContext, &fan);
+				W3D_DrawTriFanV(context->w3dContext, &fan);
 			}
 		}
 	}
@@ -2142,15 +2134,11 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 
 //added 27-05-02
 
-//static PolyBuffer clipbuffer2[MGL_MAXVERTS*4>>2]; // Cowcat
-//#define CBUF2 clipbuffer2 //
-
 static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWORD *idx)
 {
 	int	i;
 	ULONG	local_and, local_or;
-	ULONG	error;
-	static UWORD trichain[MGL_MAXVERTS*4]; // was 4 - increased (6) for some Q3 mods - Cowcat
+	static UWORD trichain[MGL_MAXVERTS*4];
 	GLuint	visible;
 	int	cnum, free, chainverts;
 	int	offs = context->ArrayPointer.transformed;
@@ -2164,7 +2152,7 @@ static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWO
 		{
 			if(context->CullFace_State == GL_FALSE)
 			{
-				error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, W3D_INDEX_UWORD, count, (void *)idx);
+				W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, W3D_INDEX_UWORD, count, (void *)idx);
 			}
 
 			else
@@ -2222,7 +2210,7 @@ static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWO
 
 		if(chainverts)
 		{
-			error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, W3D_INDEX_UWORD, chainverts, (void *)trichain);
+			W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, W3D_INDEX_UWORD, chainverts, (void *)trichain);
 		}
 
 		return;
@@ -2294,7 +2282,7 @@ static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWO
 
 	if(chainverts)
 	{
-		error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, W3D_INDEX_UWORD, chainverts, (void*)&trichain[0]);
+		W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, W3D_INDEX_UWORD, chainverts, (void*)&trichain[0]);
 	}
 
 	if (cnum)
@@ -2329,7 +2317,7 @@ static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWO
 			}
 
 			fan.vertexcount = p->numverts;
-			error = W3D_DrawTriFanV(context->w3dContext, &fan);
+			W3D_DrawTriFanV(context->w3dContext, &fan);
 
 			i++;
 
@@ -2337,11 +2325,10 @@ static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWO
 	}
 }
 
-static void E_DrawTriangles(GLcontext context, const int count, const UWORD*idx)
+static void E_DrawTriangles(GLcontext context, const int count, const UWORD *idx)
 {
 	int	i;
 	ULONG	local_and, local_or;
-	ULONG	error;
 	static UWORD trichain[MGL_MAXVERTS*4]; //should be enough 
 	static GLuint visible;
 	int	cnum, free, chainverts;
@@ -2423,7 +2410,7 @@ static void E_DrawTriangles(GLcontext context, const int count, const UWORD*idx)
 
 	if(chainverts)
 	{
-		error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, W3D_INDEX_UWORD, chainverts, (void*)&trichain[0]);
+		W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, W3D_INDEX_UWORD, chainverts, (void*)&trichain[0]);
 	}
 
 	if (cnum)
@@ -2445,7 +2432,7 @@ static void E_DrawTriangles(GLcontext context, const int count, const UWORD*idx)
 	
 			for(j=0; j<p->numverts; j++)
 			{
-				int vert = p->verts[j];
+				int vert = p->verts[j]; // unsigned maybe - Cowcat
 				verts[j] = &(context->VertexBuffer[vert].v);
 
 				if(vert < context->VertexBufferPointer)
@@ -2465,7 +2452,7 @@ static void E_DrawTriangles(GLcontext context, const int count, const UWORD*idx)
 
 			fan.vertexcount = p->numverts;
 
-			error = W3D_DrawTriFanV(context->w3dContext, &fan);
+			W3D_DrawTriFanV(context->w3dContext, &fan);
 
 			i++;
 
@@ -2473,11 +2460,10 @@ static void E_DrawTriangles(GLcontext context, const int count, const UWORD*idx)
 	}
 }
 
-static void E_DrawFlatFan(GLcontext context, const int count, const UWORD*idx)
+static void E_DrawFlatFan(GLcontext context, const int count, const UWORD *idx)
 {
 	int	i;
 	int	vnum;
-	ULONG	error;
 	MGLVertex *v;
 	float	*W;
 	float	*V;
@@ -2507,7 +2493,7 @@ static void E_DrawFlatFan(GLcontext context, const int count, const UWORD*idx)
 	} while (i < count);
 
 	//error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, count, (void *)idx);
-	error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, W3D_INDEX_UWORD, count, (void *)idx); // test Quake3 - Cowcat
+	W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, W3D_INDEX_UWORD, count, (void *)idx); // test Quake3 - Cowcat
 }
 
 //Range guardband-check added 18-05-02 (surgeon)
@@ -2903,7 +2889,7 @@ void GLDrawElements(GLcontext context, GLenum mode, GLsizei count, GLenum type, 
 		switch(type)
 		{
 			case GL_UNSIGNED_SHORT:
-				idx = (UWORD*)indices;
+				idx = (UWORD *)indices;
 				break;
 
 			case GL_UNSIGNED_BYTE:
@@ -2999,16 +2985,18 @@ void GLDrawElements(GLcontext context, GLenum mode, GLsizei count, GLenum type, 
 
 	#endif
 
+	// vertex arrays bugfix for non textured arrays - crash in ppc / debugger hit with 68k
+
 	if(context->Texture2D_State[0] == GL_TRUE)
 	{
 		Set_W3D_Texture(context->w3dContext, 0, context->w3dTexBuffer[context->CurrentBinding]);
-		//context->w3dContext->TPFlags[0] = W3D_TEXCOORD_NORMALIZED; // Cowcat
+		//context->w3dContext->TPFlags[0] = W3D_TEXCOORD_NORMALIZED; // fix Cowcat
 	}
 
-	else // vertex arrays bugfix for non textured arrays - crash in ppc / debugger hit with 68k
+	else 
 	{
 		Set_W3D_Texture(context->w3dContext, 0, NULL);
-		//context->w3dContext->TPFlags[0] = 0; // Cowcat
+		//context->w3dContext->TPFlags[0] = 0; // fix Cowcat
 	}
 
 	if(context->VertexArrayPipeline != GL_FALSE)
@@ -3080,8 +3068,7 @@ void GLDrawElements(GLcontext context, GLenum mode, GLsizei count, GLenum type, 
 
 	if(context->VertexArrayPipeline == GL_FALSE)
 	{
-		ULONG error;
-		error = W3D_DrawElements(context->w3dContext, mode, type, count, (void*)indices);
+		W3D_DrawElements(context->w3dContext, mode, type, count, (void*)indices);
 	}
 
 	else

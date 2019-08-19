@@ -112,7 +112,6 @@ static GLboolean sys_MaybeOpenVidLibs(void)
 	return GL_TRUE;
 }
 
-
 static UWORD *MousePointer = 0;
 
 static void vid_Pointer(struct Window *window)
@@ -290,7 +289,7 @@ static void vid_CloseDisplay(GLcontext context)
 		context->Buffers[i] = NULL;
 	}
 
-	//vid_DeletePointer(context->w3dWindow); // Cowcat
+	vid_DeletePointer(context->w3dWindow);
 
 	if (context->w3dWindow)
 	{
@@ -477,7 +476,7 @@ static GLboolean vid_ReopenDisplay(GLcontext context, int w, int h)
 	W3D_FreeZBuffer(context->w3dContext);
 	W3D_AllocZBuffer(context->w3dContext);
 
-	// vid_Pointer(context->w3dWindow); // Cowcat
+	vid_Pointer(context->w3dWindow);
 					 
 	return GL_TRUE;
 
@@ -695,7 +694,7 @@ static GLboolean vid_OpenDisplay(GLcontext context, int pw, int ph, ULONG id)
 	*/
 
 	W3D_SetState(context->w3dContext, W3D_DITHERING,    W3D_ENABLE);
-	//W3D_SetState(context->w3dContext, W3D_SCISSOR,    W3D_ENABLE); // disabled for Q3
+	//W3D_SetState(context->w3dContext, W3D_SCISSOR,    W3D_ENABLE); // Cowcat
 	W3D_SetState(context->w3dContext, W3D_GOURAUD,	    W3D_ENABLE);
 	W3D_SetState(context->w3dContext, W3D_PERSPECTIVE,  W3D_ENABLE);
 
@@ -752,7 +751,7 @@ static GLboolean vid_OpenDisplay(GLcontext context, int pw, int ph, ULONG id)
 	context->w3dAlphaFormat = W3D_A4R4G4B4;
 	context->w3dBytesPerTexel = 2;
 
-	// vid_Pointer(context->w3dWindow); // Cowcat
+	vid_Pointer(context->w3dWindow);
 					 
 	return GL_TRUE;
 
@@ -810,6 +809,8 @@ static void vid_CloseWindow(GLcontext context)
 
 	#endif
 
+	//vid_DeletePointer(context->w3dWindow); // maybe - Cowcat
+
 	if (context->w3dWindow)
 	{ 
 		CloseWindow(context->w3dWindow);
@@ -843,7 +844,7 @@ static GLboolean vid_OpenWindow(GLcontext context, int w, int h)
 		{WA_InnerHeight,	 h}, //
 		{WA_Left,		 90},
 		{WA_Top,		 60},
-		{WA_Title,		 (ULONG)"Quake3"},
+		//{WA_Title,		 (ULONG)"Quake3"}, // Cowcat
 		{WA_SimpleRefresh,	 TRUE},
 		{WA_NoCareRefresh,	 TRUE},
 		{WA_DragBar,		 TRUE},
@@ -955,9 +956,7 @@ static GLboolean vid_OpenWindow(GLcontext context, int w, int h)
 	*/
 
 	W3D_SetState(context->w3dContext, W3D_DITHERING,    W3D_ENABLE);
-	//W3D_SetState(context->w3dContext, W3D_SCISSOR,    W3D_ENABLE); // do not enable - 
-									 // half rendered ui models + black bar on top window in Q3 - Cowcat
-
+	//W3D_SetState(context->w3dContext, W3D_SCISSOR,    W3D_ENABLE); // Cowcat
 	W3D_SetState(context->w3dContext, W3D_GOURAUD,	    W3D_ENABLE);
 	W3D_SetState(context->w3dContext, W3D_PERSPECTIVE,  W3D_ENABLE);
 
@@ -973,6 +972,24 @@ static GLboolean vid_OpenWindow(GLcontext context, int w, int h)
 		case W3D_NOZBUFFER:	printf("No ZBuffer: Operation not supported\n"); break;
 		case W3D_NOTVISIBLE:	printf("No ZBuffer: Screen is not visible\n"); break;
 	}
+
+	/*
+	W3D_Double zdepth = 0.8;
+		
+		printf("here 1\n");
+
+		W3D_SetState(context->w3dContext, W3D_ZBUFFERUPDATE, W3D_ENABLE);
+
+		if( W3D_SUCCESS == W3D_LockHardware(context->w3dContext) )
+		{
+			W3D_ClearZBuffer(context->w3dContext, &zdepth);
+			W3D_UnLockHardware(context->w3dContext);
+			printf("zbuffer clear\n");
+		}
+	
+		else
+			printf("zbuffer not clear\n");
+	*/
 
 	W3D_SetState(context->w3dContext, W3D_ZBUFFER, W3D_DISABLE);
 	W3D_SetState(context->w3dContext, W3D_ZBUFFERUPDATE, W3D_ENABLE);
@@ -995,6 +1012,8 @@ static GLboolean vid_OpenWindow(GLcontext context, int w, int h)
 	context->w3dFormat = W3D_R5G6B5;
 	context->w3dAlphaFormat = W3D_A4R4G4B4;
 	context->w3dBytesPerTexel = 2;
+
+	//vid_Pointer(context->w3dWindow); // maybe - Cowcat 
 
 	return GL_TRUE;
 
@@ -1350,7 +1369,7 @@ void MGLSwitchDisplay(GLcontext context)
 		context->Buffers[nowbuf]->sb_DBufInfo->dbi_SafeMessage.mn_ReplyPort = NULL;
 
 		while (!ChangeScreenBuffer(context->w3dScreen, context->Buffers[nowbuf]));
-		
+
 		// Make BufNr the new draw area
 		W3D_SetDrawRegion(context->w3dContext, context->Buffers[context->BufNr]->sb_BitMap, 0, &(context->scissor));
 	
@@ -1572,7 +1591,7 @@ GLboolean MGLInitContext(GLcontext context)
 	context->ArrayPointer.vertexmode = W3D_VERTEX_F_F_D;
 
 	// Set vertexarrays properly - Cowcat
-	Set_W3D_VertexPointer(context->w3dContext, (void *)context->ArrayPointer.verts, sizeof(MGLVertex), W3D_VERTEX_F_F_D, 0);
+	Set_W3D_VertexPointer(context->w3dContext, (void *)&context->ArrayPointer.verts, sizeof(MGLVertex), W3D_VERTEX_F_F_D, 0);
 
 	context->ArrayPointer.lockfirst = 0;
 	context->ArrayPointer.locksize = 0;
@@ -1622,6 +1641,7 @@ GLboolean MGLInitContext(GLcontext context)
 
 	return GL_TRUE;
 }
+
 
 void *MGLCreateContext(int offx, int offy, int w, int h)
 {

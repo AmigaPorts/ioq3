@@ -224,7 +224,7 @@ static ULONG A_TransformArray (GLcontext context, const int first, const int siz
 		do
 		{
 			ULONG	local_outcode;
-			int	tx,ty,tz,tw;
+			int	tx, ty, tz, tw;
 			int	*vp = (int *)vpointer;
 			int	x = vp[0];
 			int	y = vp[1];
@@ -409,7 +409,6 @@ static ULONG A_TransformArray (GLcontext context, const int first, const int siz
 
 	else
 		return or_code;
-
 }
 
 
@@ -718,8 +717,7 @@ static INLINE void A_ToScreen(GLcontext context, MGLVertex *v, int vnum)
 static INLINE void AV_ToScreen(GLcontext context, MGLVertex *v, int vnum)
 {
 	float *wa;
-	float w;
-	w = 1.0/v->bw;
+	float w = 1.0/v->bw;
 
 	v->v.x = v->bx = context->ax + v->bx * w * context->sx;
 	v->v.y = v->by = context->ay - v->by * w * context->sy;
@@ -734,8 +732,7 @@ static INLINE void AV_ToScreen(GLcontext context, MGLVertex *v, int vnum)
 
 static INLINE void V_ToScreen(GLcontext context, MGLVertex *v)
 {
-	float w;
-	w = 1.f / v->bw;
+	float w = 1.f / v->bw;
 
 	v->v.x = context->ax + v->bx * w * context->sx;
 	v->v.y = context->ay - v->by * w * context->sy;
@@ -792,7 +789,6 @@ static void A_DrawTriFan(GLcontext context, int first, int count)
 {
 	int	i;
 	ULONG	outcode, local_or, local_and;
-	ULONG	error;
 	static	ULONG complete[MGL_MAXVERTS];
 	static	ULONG visible[MGL_MAXVERTS];
 	static	PolyIndex polys[256];
@@ -844,7 +840,7 @@ static void A_DrawTriFan(GLcontext context, int first, int count)
 
 		if(context->CullFace_State == GL_FALSE)
 		{
-			error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIFAN, first, count);
+			W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIFAN, first, count);
 		}
 
 		else
@@ -939,14 +935,14 @@ static void A_DrawTriFan(GLcontext context, int first, int count)
 				{
 					e_wrap[newfirst] = first;
 
-					error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, size, (void*)&(e_wrap[newfirst]));
+					W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, size, (void*)&(e_wrap[newfirst]));
 
 					e_wrap[newfirst] = newfirst;
 				}
 
 				else
 				{
-					error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIFAN, newfirst, size);
+					W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIFAN, newfirst, size);
 				}
 			}
 
@@ -1165,14 +1161,14 @@ static void A_DrawTriFan(GLcontext context, int first, int count)
 
 		if(vzero == first)
 		{
-			error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIFAN, first, PBUF[pnum].numverts);
+			W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIFAN, first, PBUF[pnum].numverts);
 		}
 
 		else
 		{
 			e_wrap[vzero] = first;
 
-			error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, PBUF[pnum].numverts, (void*)&(e_wrap[vzero]));
+			W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, PBUF[pnum].numverts, (void*)&(e_wrap[vzero]));
 
 			e_wrap[vzero] = vzero;
 		}
@@ -1182,7 +1178,7 @@ static void A_DrawTriFan(GLcontext context, int first, int count)
 			vzero  = PBUF[pnum].first-1;
 			e_wrap[vzero] = first;
 
-			error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, PBUF[pnum].numverts, (void*)&(e_wrap[vzero]));
+			W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, PBUF[pnum].numverts, (void*)&(e_wrap[vzero]));
 
 			e_wrap[vzero] = vzero;
 
@@ -1210,7 +1206,7 @@ static void A_DrawTriFan(GLcontext context, int first, int count)
 
 			fan.vertexcount = p->numverts;
 
-			error = W3D_DrawTriFanV(context->w3dContext, &fan);
+			W3D_DrawTriFanV(context->w3dContext, &fan);
 		}
 	}
 }
@@ -1219,7 +1215,6 @@ static void A_DrawTriStrip(GLcontext context, int first, int count)
 {
 	int	i;
 	ULONG	outcode, local_or, local_and;
-	ULONG	error;
 	int	backface, size, newfirst;
 	static	ULONG visible[MGL_MAXVERTS];
 	static	ULONG complete[MGL_MAXVERTS];
@@ -1270,7 +1265,7 @@ static void A_DrawTriStrip(GLcontext context, int first, int count)
 
 		if(context->CullFace_State == GL_FALSE)
 		{
-			error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, first, count);
+			W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, first, count);
 		}
 
 		else
@@ -1368,7 +1363,7 @@ static void A_DrawTriStrip(GLcontext context, int first, int count)
 
 			if(area >= context->MinTriArea)
 			{
-				error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, newfirst, size);
+				W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, newfirst, size);
 			}
 
 			#undef x
@@ -1594,7 +1589,7 @@ static void A_DrawTriStrip(GLcontext context, int first, int count)
 		do
 		{
 			pnum--;
-			error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, PBUF[pnum].first, PBUF[pnum].numverts);
+			W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, PBUF[pnum].first, PBUF[pnum].numverts);
 
 		} while (pnum > 0);
 	}
@@ -1619,7 +1614,7 @@ static void A_DrawTriStrip(GLcontext context, int first, int count)
 			}
 
 			fan.vertexcount = p->numverts;
-			error = W3D_DrawTriFanV(context->w3dContext, &fan);
+			W3D_DrawTriFanV(context->w3dContext, &fan);
 		}
 	}
 }
@@ -1643,7 +1638,7 @@ static void A_DrawTriangles(GLcontext context, int first, int count)
 
 		if(context->CullFace_State == GL_FALSE)
 		{
-			error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, first, count);
+			W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, first, count);
 		}
 
 		else
@@ -1675,7 +1670,7 @@ static void A_DrawTriangles(GLcontext context, int first, int count)
 				{
 					if (chainverts)
 					{
-						error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, start, chainverts);
+						W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, start, chainverts);
 						chainverts = 0;
 					}
 				}
@@ -1704,7 +1699,7 @@ static void A_DrawTriangles(GLcontext context, int first, int count)
 
 			if (chainverts) //draw eventual remainder
 			{
-				error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, start, chainverts);
+				W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, start, chainverts);
 			}
 
 		}
@@ -1731,7 +1726,7 @@ static void A_DrawTriangles(GLcontext context, int first, int count)
 		{
 			if(chainverts)
 			{
-				error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, start, chainverts);
+				W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, start, chainverts);
 				chainverts = 0;
 			}
 
@@ -1796,7 +1791,7 @@ static void A_DrawTriangles(GLcontext context, int first, int count)
 				{
 					if (chainverts)
 					{
-						error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, start, chainverts);
+						W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, start, chainverts);
 						chainverts = 0;
 					}
 				}
@@ -1810,7 +1805,7 @@ static void A_DrawTriangles(GLcontext context, int first, int count)
 			{
 				if(chainverts)
 				{
-					error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, start, chainverts);
+					W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, start, chainverts);
 					chainverts = 0;
 				}
 		
@@ -1857,7 +1852,7 @@ static void A_DrawTriangles(GLcontext context, int first, int count)
 
 	if(chainverts) //draw remainder of unclipped triangles
 	{
-		error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, start, chainverts);
+		W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, start, chainverts);
 	}
 
 	if (cnum)
@@ -1881,7 +1876,7 @@ static void A_DrawTriangles(GLcontext context, int first, int count)
 			}
 
 			fan.vertexcount = p->numverts;
-			error = W3D_DrawTriFanV(context->w3dContext, &fan);
+			W3D_DrawTriFanV(context->w3dContext, &fan);
 		}
 	}
 }
@@ -1890,7 +1885,6 @@ static void A_DrawTriangles(GLcontext context, int first, int count)
 static void A_DrawFlatFan(GLcontext context, int first, int count)
 {
 	int	i;
-	ULONG	error;
 	MGLVertex *v;
 	UBYTE	*Vpointer;
 	UBYTE	*Wpointer;
@@ -1953,7 +1947,7 @@ static void A_DrawFlatFan(GLcontext context, int first, int count)
 		} while (--i);
 	}
 
-	error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIFAN, first, count);
+	W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIFAN, first, count);
 }
 
 //end of pipeline
@@ -2192,7 +2186,7 @@ void GLInterleavedArrays(GLcontext context, GLenum format, GLsizei stride, const
 		}
 
 		PTR.w_off = w_off;
-		PTR.w_buffer = target;
+		PTR.w_buffer = (UBYTE *)target;
 
 		Set_W3D_TexCoordPointer(context->w3dContext, (void*)PTR.texcoords, PTR.texcoordstride, 0, sizeof(GLfloat), w_off, W3D_TEXCOORD_NORMALIZED);
 	}
@@ -2298,7 +2292,7 @@ void GLTexCoordPointer(GLcontext context, GLint size, GLenum type, GLsizei strid
 			}
 
 			context->ArrayPointer.w_off = w_off;
-			context->ArrayPointer.w_buffer = target;
+			context->ArrayPointer.w_buffer = (UBYTE*)target; // cast ubyte* - Cowcat
 		}
 
 		Set_W3D_TexCoordPointer(context->w3dContext, (void*)context->ArrayPointer.texcoords, w3dStride, 0, sizeof(GLfloat), 
@@ -2606,8 +2600,7 @@ static void A_DrawNULL(GLcontext context, int first, int count)
 
 static void A_DrawDirect(GLcontext context, int first, int count)
 {
-	ULONG error;
-	error = W3D_DrawArray(context->w3dContext, context->CurrentPrimitive, first, count);
+	W3D_DrawArray(context->w3dContext, context->CurrentPrimitive, first, count);
 }
 
 void GLDrawArrays(GLcontext context, GLenum mode, GLint first, GLsizei count)

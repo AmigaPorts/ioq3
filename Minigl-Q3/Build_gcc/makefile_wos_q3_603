@@ -16,17 +16,17 @@ VPATH = ../src/ ../demos
 INCLUDE = -I../include
 CFLAGS = $(INCLUDE) $(DEBUG) $(ADDFLAG) -ffast-math
 DEBUG = -DNDEBUG
-LIBNAME = ../lib/libmgl.a
+LIBNAME = ../lib/libmglQ3_603.a
 
-DEMOS = GLTest varray warp mtex gears driverinfo
+#DEMOS = GLTest varray warp mtex gears driverinfo
 
-CC = gcc --specs=warpup -O3 -DINLINE=__inline
+CC = gcc --specs=warpup -O3 -mcpu=603e -Wall -DINLINE=__inline
 
 AR = ar
 RANLIB = ranlib
 
 LIBOBJ = context.o vertexbuffer.o draw.o texture.o fog.o \
-	hclip.o init.o glu.o \
+	hclip.o init.o \
 	aclip.o vertexelements.o vertexarray.o \
 	others.o matrix.o
 

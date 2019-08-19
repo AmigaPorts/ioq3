@@ -111,7 +111,7 @@ void GLShadeModel(GLcontext context, GLenum mode)
 
 void GLBlendFunc(GLcontext context, GLenum sfactor, GLenum dfactor)
 {
-	ULONG src, dest;
+	ULONG src = 0, dest = 0;
 
 	if((context->CurBlendSrc == sfactor) && (context->CurBlendDst == dfactor))
 		return;
@@ -275,6 +275,7 @@ void GLGetIntegerv(GLcontext context, GLenum pname, GLint *params)
 
 		case GL_MAX_TEXTURE_SIZE:
 			*params = 256 ;
+			//*params = W3D_Query(context->w3dContext, W3D_Q_MAXTEXWIDTH, 0); // future - Cowcat
 			return;
 
 		case GL_UNPACK_ROW_LENGTH:
@@ -300,8 +301,11 @@ void GLGetIntegerv(GLcontext context, GLenum pname, GLint *params)
 	}
 }
 
-const GLubyte * GLGetString(GLcontext context, GLenum name)
+const GLubyte *GLGetString(GLcontext context, GLenum name)
 {
+	char	*namedriver;
+	W3D_Driver **driver;
+
 	switch(name)
 	{
 		case GL_RENDERER:
@@ -311,36 +315,39 @@ const GLubyte * GLGetString(GLcontext context, GLenum name)
 				switch(context->w3dContext->CurrentChip)
 				{
 					case W3D_CHIP_VIRGE:
-						return "MiniGL/Warp3D S3 ViRGE (virge)";
+						return (GLubyte *)"MiniGL/Warp3D S3 ViRGE (virge)";
 
 					case W3D_CHIP_PERMEDIA2:
-						return "MiniGL/Warp3D 3DLabs Permedia 2 (permedia)";
+						return (GLubyte *)"MiniGL/Warp3D 3DLabs Permedia 2 (permedia)";
 
 					case W3D_CHIP_VOODOO1:
-						return "MiniGL/Warp3D 3DFX Voodoo 1 (voodoo)";
+						return (GLubyte *)"MiniGL/Warp3D 3DFX Voodoo 1 (voodoo)";
 
 					case W3D_CHIP_AVENGER_BE:
 					case W3D_CHIP_AVENGER_LE:
-						return "MiniGL/Warp3D 3DFX Voodoo 3 (avenger)";
+						return (GLubyte *)"MiniGL/Warp3D 3DFX Voodoo 3 (avenger)";
 
-					case W3D_CHIP_UNKNOWN:
-						return "MiniGL/Warp3D Unknown graphics chip";
+					case W3D_CHIP_UNKNOWN: // Update - Cowcat
+						//return (GLubyte *)"MiniGL/Warp3D Unknown graphics chip";
+						driver = W3D_GetDrivers();
+						namedriver = driver[0]->name;
+						return (GLubyte *)namedriver;
 
 					default:
-						return "MiniGL/Warp3D";
+						return (GLubyte *)"MiniGL/Warp3D";
 				}
 			}
 
 			else
 			{
-				return "MiniGL/Warp3D";
+				return (GLubyte *)"MiniGL/Warp3D";
 			}
 
 		case GL_VENDOR:
-			return "Hyperion";
+			return (GLubyte *)"Hyperion";
 
 		case GL_VERSION:
-			return "1.1";
+			return (GLubyte *)"1.1";
 
 		case GL_EXTENSIONS:
 
@@ -350,14 +357,13 @@ const GLubyte * GLGetString(GLcontext context, GLenum name)
 				case W3D_CHIP_AVENGER_LE:
 				case W3D_CHIP_PERMEDIA2:
 				case W3D_CHIP_UNKNOWN:
-				//case W3D_CHIP_RADEON2:
-					return "GL_MGL_ARB_multitexture GL_EXT_compiled_vertex_array GL_MGL_packed_pixels GL_EXT_color_table";
+					return (GLubyte *)"GL_MGL_ARB_multitexture GL_EXT_compiled_vertex_array GL_MGL_packed_pixels GL_EXT_color_table";
 			}
 
-			return "GL_MGL_packed_pixels GL_EXT_color_table";
+			return (GLubyte *)"GL_MGL_packed_pixels GL_EXT_color_table";
 
 		default:
-			return "Huh?";
+			return (GLubyte *)"Huh?";
 	}
 }
 

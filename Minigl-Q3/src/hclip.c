@@ -91,7 +91,6 @@ static void hc_ClipWZero(MGLVertex *a, MGLVertex *b, MGLVertex *r, GLenum shadin
 	w = r->bw;
 	outcode = 0;
 
-
 	if (-w > r->bx)
 	{
 		outcode |= MGL_CLIP_LEFT;
@@ -400,9 +399,6 @@ static void hc_ClipBack(MGLVertex *a, MGLVertex *b, MGLVertex *r, GLenum shading
 
 static void hc_ClipTop(MGLVertex *a, MGLVertex *b, MGLVertex *r, GLenum shading)
 {
-	float w;
-	ULONG outcode;
-
 	float t = (w1-y1)/((w1-y1)-(w2-y2));
 	r->bx = LERP(t, a->bx, b->bx);
 	r->bz = LERP(t, a->bz, b->bz);
@@ -474,9 +470,6 @@ Surgeon: this is always the 2nd last routine called, so here is no need to recod
 
 static void hc_ClipBottom(MGLVertex *a, MGLVertex *b, MGLVertex *r, GLenum shading)
 {
-	float w;
-	ULONG outcode;
-
 	float t = (w1+y1)/((w1+y1)-(w2+y2));
 	r->bx = LERP(t, a->bx, b->bx);
 	r->bz = LERP(t, a->bz, b->bz);
@@ -558,9 +551,7 @@ Surgeon: this is always the last routine called, so here is no need to recode - 
 
 GLboolean hc_DecideFrontface(GLcontext context, MGLVertex *a, MGLVertex *b, MGLVertex *c)
 {
-	GLboolean front;
 	float	a1, a2, b1, b2, r;
-
 	float 	aw, bw, cw;
 
 	aw = 1.0 / a->bw;
@@ -838,10 +829,11 @@ void hc_ClipAndDrawPoly(GLcontext context, MGLPolygon *poly, ULONG or_codes)
 	int 		i, j;
 	int 		prev;
 	int 		free = context->VertexBufferPointer;
-	GLboolean 	flag;
-	ULONG 		original_or_codes = or_codes;
+	//GLboolean 	flag;
+	//ULONG 	original_or_codes = or_codes;
 
-	a = poly; b=&output;
+	a = poly;
+	b = &output;
 
 	CLIPDBG(ClipWZero, MGL_CLIP_NEGW)
 	OLD_DOCLIP(MGL_CLIP_NEGW, ClipWZero);
@@ -893,8 +885,8 @@ void hc_ClipAndDrawLine(GLcontext context, MGLPolygon *poly, ULONG or_codes)
     	int 		i, j;
     	int 		prev;
     	int 		free = context->VertexBufferPointer;
-    	GLboolean 	flag;
-    	ULONG 		original_or_codes = or_codes;
+    	//GLboolean 	flag;
+    	//ULONG 	original_or_codes = or_codes;
 
     	a = poly; b=&output;
 
@@ -934,9 +926,10 @@ void hc_ClipPoly(GLcontext context, MGLPolygon *poly, PolyBuffer *out, int clips
 	int 		i, j;
 	int 		prev;
 	int 		free = clipstart;
-	ULONG 		original_or_codes = or_codes;
+	//ULONG 	original_or_codes = or_codes;
 
-	a = poly; b=&output;
+	a = poly;
+	b = &output;
 
 	CLIPDBG(ClipWZero, MGL_CLIP_NEGW)
 	DOCLIP(MGL_CLIP_NEGW, ClipWZero);
@@ -993,7 +986,8 @@ void hc_ClipPolyFF(GLcontext context, MGLPolygon *poly, ULONG or_codes)
 	int 		prev;
 	int 		free = context->VertexBufferPointer;
 
-	a = poly; b=&output;
+	a = poly;
+	b = &output;
 	out = poly;
 
 	CLIPDBG(ClipWZero, MGL_CLIP_NEGW)

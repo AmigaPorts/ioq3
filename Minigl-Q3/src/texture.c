@@ -1005,7 +1005,6 @@ ULONG MGLConvert(GLcontext context, const GLvoid *inputp, UWORD *output, int wid
 			switch(format) // the format of the pixel (input) data
 			{
 				case GL_LUMINANCE:
-				case GL_RGBA:
 
 				#ifdef EIGHTBIT_TEXTURES
 					EIGHT_EIGHT(context, (GLubyte *)input, output, width, height);
@@ -1023,7 +1022,6 @@ ULONG MGLConvert(GLcontext context, const GLvoid *inputp, UWORD *output, int wid
 			switch(format)
 			{
 				case GL_LUMINANCE_ALPHA:
-				case GL_RGBA:
 					L8A8_L8A8(context, (GLubyte *)input, output, width, height);
 					return W3D_L8A8;
 			}

@@ -93,12 +93,15 @@ void MGLTerm(void)
 	CyberGfxBase = NULL;
 
 	#ifdef __PPC__
+
 	if (Warp3DPPCBase)      CloseLibrary(Warp3DPPCBase);
 	Warp3DPPCBase = NULL;
 
 	#else
+
 	if (Warp3DBase)         CloseLibrary(Warp3DBase);
 	Warp3DBase = NULL;
+
 	#endif
 
 	if (IntuitionBase)      CloseLibrary((struct Library *)IntuitionBase);

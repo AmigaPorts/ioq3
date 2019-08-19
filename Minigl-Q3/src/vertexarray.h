@@ -36,8 +36,6 @@ static INLINE void Set_W3D_TexCoordPointer (W3D_Context *w3dctx, void *pointer, 
 	w3dctx->TexCoordPointer[u] = pointer;
 	w3dctx->TPStride[u] = stride;
 	w3dctx->TPWOffs[u] = w_off;
-	//w3dctx->TPVOffs[u] = v_off; // Cowcat
-	//w3dctx->TPFlags[u] = flags; //
 }
 
 static INLINE void Set_W3D_VertexPointer (W3D_Context *w3dctx, void *pointer, int stride, ULONG mode, ULONG flags)
@@ -81,8 +79,6 @@ static INLINE void Reset_W3D_ArrayPointers (GLcontext glctx, GLbitfield cls)
 		glctx->w3dContext->TexCoordPointer[0] = (void *)glctx->ArrayPointer.texcoords;
 		glctx->w3dContext->TPStride[0] = (int)glctx->ArrayPointer.texcoordstride;
 		glctx->w3dContext->TPWOffs[0] = (int)glctx->ArrayPointer.w_off;
-		//glctx->w3dContext->TPFlags[0] = (int)glctx->ArrayPointer.flags; // Cowcat
-		//glctx->w3dContext->TPVOffs[0] = (int)glctx->ArrayPointer.v_off;
 	}
 }
 

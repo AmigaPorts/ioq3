@@ -20,7 +20,7 @@ LIBNAME = ../lib/libmglQ3.a
 
 #DEMOS = GLTest varray warp mtex gears driverinfo
 
-CC = gcc --specs=warpup -O3 -DINLINE=__inline
+CC = gcc --specs=warpup -O3 -Wall -DINLINE=__inline
 
 AR = ar
 RANLIB = ranlib

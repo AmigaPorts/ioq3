@@ -720,10 +720,9 @@ void d_DrawPoints(GLcontext context)
 {
 	#if !defined(DISABLE_TRANSFORMATION)
 
-	int		i,j;
+	int		i;
 	W3D_Triangle	tri;
 	MGLVertex	*vf;
-	ULONG		error;
 
 	if(context->VertexBufferPointer == 0)
 		return; //invalid vertexcount;
@@ -786,7 +785,7 @@ void d_DrawPoints(GLcontext context)
 		tri.v2.y += context->CurrentPointSize;
 		tri.v3.x += context->CurrentPointSize;
 
-		error = W3D_DrawTriangle(context->w3dContext, &tri);
+		W3D_DrawTriangle(context->w3dContext, &tri);
 	}
 
 	#else
@@ -812,7 +811,7 @@ void d_DrawLines(GLcontext context)
 {
 	#if !defined(DISABLE_TRANSFORMATION)
 
-	int		i,j;
+	int		i, j;
 	W3D_Line	lin;
 	ULONG		or_code, and_code;
 	ULONG		error;
@@ -951,10 +950,9 @@ void d_DrawLines(GLcontext context)  // Cowcat
 {
 	#if !defined(DISABLE_TRANSFORMATION)
 
-	int		i,j;
+	int		i, j;
 	W3D_Line	lin;
 	ULONG		or_code, and_code;
-	ULONG		error;
 
 	if(context->VertexBufferPointer < 2)
 		return; //invalid vertexcount;
@@ -1031,7 +1029,7 @@ void d_DrawLines(GLcontext context)  // Cowcat
 			lin.st_enable = 0;
 			lin.st_factor = 1;
 			lin.linewidth = context->LineWidth;
-			error = W3D_DrawLine(context->w3dContext, &lin);
+			W3D_DrawLine(context->w3dContext, &lin);
 		}
 
 		else
@@ -1054,7 +1052,6 @@ void d_DrawLines(GLcontext context)  // Cowcat
 
 void dh_DrawLine(GLcontext context, MGLPolygon *poly)
 {
-	ULONG error;
 	static W3D_Line lin;
 
 	v_ToScreen(context, poly->verts[0]);
@@ -1069,7 +1066,7 @@ void dh_DrawLine(GLcontext context, MGLPolygon *poly)
 	lin.linewidth = context->LineWidth;
 
 	#ifndef NODRAW
-	error = W3D_DrawLine(context->w3dContext, &lin);
+	W3D_DrawLine(context->w3dContext, &lin);
 
 	// if (error != W3D_SUCCESS) kprintf("W3D_DrawTriFan = %ld\n", error);
 	#endif
@@ -1090,7 +1087,6 @@ void d_DrawTriangleFan(GLcontext context)
 	int	i, j;
 	ULONG	and_code, or_code;
 	ULONG	local_or, local_and, guard_band;
-	ULONG	error;
 	static	W3D_Vertex **verts = NULL;
 	static	GLboolean visible[MGL_MAXVERTS]; // Should be enough...?
 	static	ULONG	complete[MGL_MAXVERTS];	 // Ditto
@@ -1231,9 +1227,9 @@ void d_DrawTriangleFan(GLcontext context)
 		{
 			float area;
 			float sign;
-			float x0,y0;
-			float x1,y1;
-			float x2,y2;
+			float x0, y0;
+			float x1, y1;
+			float x2, y2;
 
 			sign = (float)(-context->CurrentCullSign);
 
@@ -1577,7 +1573,7 @@ void d_DrawTriangleFan(GLcontext context)
 		fan.v = &verts[first];
 		first += p->numverts;
 
-		error = W3D_DrawTriFanV(context->w3dContext, &fan);
+		W3D_DrawTriFanV(context->w3dContext, &fan);
 
 		j++;
 
@@ -1630,7 +1626,6 @@ void d_DrawTriangleStrip(GLcontext context)
 	int	i, j;
 	ULONG	and_code, or_code, guard_band;
 	ULONG	local_or, local_and;
-	ULONG	error;
 	static	W3D_Vertex **verts = NULL;
 	static	GLboolean visible[MGL_MAXVERTS];// Should be enough...?
 	static	ULONG	complete[MGL_MAXVERTS]; // Ditto
@@ -1772,8 +1767,8 @@ void d_DrawTriangleStrip(GLcontext context)
 
 		if(context->CullFace_State == GL_TRUE)
 		{
-			float x1,y1;
-			float x2,y2;
+			float x1, y1;
+			float x2, y2;
 			float area;
 			float sign;
 
@@ -2094,7 +2089,7 @@ void d_DrawTriangleStrip(GLcontext context)
 				verts[i+first] = &(context->VertexBuffer[vert].v);
 			}
 
-			error = W3D_DrawTriFanV(context->w3dContext, &tris);
+			W3D_DrawTriFanV(context->w3dContext, &tris);
 		}
 
 		else
@@ -2112,7 +2107,7 @@ void d_DrawTriangleStrip(GLcontext context)
 				verts[i+first] = &(context->VertexBuffer[vert].v);
 			}
 
-			error = W3D_DrawTriStripV(context->w3dContext, &tris);
+			W3D_DrawTriStripV(context->w3dContext, &tris);
 		}
 
 		first += p->numverts;
@@ -2161,7 +2156,6 @@ void d_DrawQuadStrip(GLcontext context)
 
 	int	i, j;
 	ULONG	or_code, and_code;
-	ULONG	error;
 
 	static	W3D_Vertex *verts[4];
 	static	W3D_TrianglesV tris;
@@ -2259,7 +2253,7 @@ void d_DrawQuadStrip(GLcontext context)
 			tris.vertexcount = 4;
 			tris.v = verts;
 
-			error = W3D_DrawTriFanV(context->w3dContext, &tris);
+			W3D_DrawTriFanV(context->w3dContext, &tris);
 		}
 
 		else
@@ -2315,9 +2309,8 @@ void d_DrawQuads(GLcontext context)
 {
 	#if !defined(DISABLE_TRANSFORMATION)
 
-	int	i,j;
+	int	i, j;
 	ULONG	or_code, and_code;
-	ULONG	error;
 	static	W3D_Vertex *verts[4];
 	static	W3D_TrianglesV tris;
 
@@ -2414,7 +2407,9 @@ void d_DrawQuads(GLcontext context)
 			tris.v = verts;
 
 			#ifndef NODRAW
-			error = W3D_DrawTriFanV(context->w3dContext, &tris);
+
+			W3D_DrawTriFanV(context->w3dContext, &tris);
+
 			#else
 			printf("d_DrawQuads\n");
 			DUMP_VERTEX(context->VertexBuffer[i+0]);
@@ -2507,8 +2502,6 @@ static int mtex_indexsize;
 
 GLboolean AllocMtex(int size)
 {
-	int i;
-
 	mtex_vertexbuffersize = size;
 	mtex_indexsize = size >> 2;
 
@@ -2545,7 +2538,7 @@ void FreeMtex(void)
 
 static INLINE void v_MtexToScreen_Flat(GLcontext context, int i, int bufpointer)
 {
-	float	x,y,z,w;
+	float	x, y, z, w;
 	float	az;
 
 	if (context->ZOffset_State == GL_TRUE)
@@ -2574,7 +2567,7 @@ static INLINE void v_MtexToScreen_Flat(GLcontext context, int i, int bufpointer)
 
 static INLINE void v_MtexToScreen_Smooth(GLcontext context, int i, int bufpointer)
 {
-	float	x,y,z,w;
+	float	x, y, z, w;
 	float	az;
 
 	if (context->ZOffset_State == GL_TRUE)
@@ -2607,7 +2600,7 @@ static void ProjectMtex_Flat(GLcontext context, int numverts, int bufstart)
 	int	i;
 	int	bufpointer;
 	float	az;
-	float	x,y,z,w;
+	float	x, y, z, w;
 
 	if (context->ZOffset_State == GL_TRUE)
 		az = context->az + context->ZOffset;
@@ -2648,7 +2641,7 @@ static void ProjectMtex_Smooth(GLcontext context, int numverts, int bufstart)
 	int	i;
 	int	bufpointer;
 	float	az;
-	float	x,y,z,w;
+	float	x, y, z, w;
 
 	if (context->ZOffset_State == GL_TRUE)
 		az = context->az + context->ZOffset;
@@ -2689,9 +2682,8 @@ static void ProjectMtex_Smooth(GLcontext context, int numverts, int bufstart)
 
 void d_DrawSmoothPoly(GLcontext context)
 {
-	int	i,j;
+	int	i, j;
 	ULONG	and_code, or_code, local_or, guard_band;
-	ULONG	error;
 	static	MGLPolygon poly;
 	static	W3D_Vertex **verts = NULL;
 	static	W3D_TrianglesV fan;
@@ -2918,7 +2910,7 @@ void d_DrawSmoothPoly(GLcontext context)
 		fan.v = verts;
 		fan.vertexcount = poly.numverts;
 
-		error = W3D_DrawTriFanV(context->w3dContext, &fan);
+		W3D_DrawTriFanV(context->w3dContext, &fan);
 
 		return;
 	}
@@ -3060,7 +3052,7 @@ void d_DrawSmoothPoly(GLcontext context)
 		}
 
 		fan.vertexcount = p->numverts;
-		error = W3D_DrawTriFanV(context->w3dContext, &fan);
+		W3D_DrawTriFanV(context->w3dContext, &fan);
 
 	} while (++j < pnum);
 }
@@ -3068,7 +3060,7 @@ void d_DrawSmoothPoly(GLcontext context)
 
 void d_DrawMtexPoly(GLcontext context)
 {
-	int	i,j;
+	int	i;
 	ULONG	and_code, or_code, guard_band;
 	static	MGLPolygon poly;
 	static	int mtexverts;
@@ -3323,8 +3315,7 @@ void d_DrawMtexPoly(GLcontext context)
 
 void d_DrawNormalPoly(GLcontext context)
 {
-	int	i,j;
-	ULONG	error;
+	int	i;
 	ULONG	and_code, or_code, guard_band;
 	static	W3D_Vertex **verts = NULL;
 	static	W3D_TrianglesV fan;
@@ -3568,7 +3559,7 @@ void d_DrawNormalPoly(GLcontext context)
 	fan.vertexcount = poly.numverts;
 	fan.v = verts;
 
-	error = W3D_DrawTriFanV(context->w3dContext, &fan);
+	W3D_DrawTriFanV(context->w3dContext, &fan);
 }
 
 
@@ -3584,10 +3575,9 @@ void d_DrawTriangles(GLcontext context)
 {
 	#if !defined(DISABLE_TRANSFORMATION)
 
-	int	i,j;
+	int	i;
 	static	W3D_TriangleV tri;
 	ULONG	or_code, and_code;
-	ULONG	error;
 
 	if(context->VertexBufferPointer < 3)
 		return; //invalid vertexcount;
@@ -3673,7 +3663,7 @@ void d_DrawTriangles(GLcontext context)
 			tri.v2 = &(context->VertexBuffer[i+1].v);
 			tri.v3 = &(context->VertexBuffer[i+2].v);
 
-			error = W3D_DrawTriangleV(context->w3dContext, &tri);
+			W3D_DrawTriangleV(context->w3dContext, &tri);
 		}
 
 		else
@@ -3718,9 +3708,8 @@ void d_DrawTriangles(GLcontext context)
 
 void d_DrawTrianglesVA(GLcontext context)
 {
-	int		i,j;
+	int		i;
 	ULONG		or_code, and_code;
-	ULONG		error;
 	ULONG		vcount; //counter for vertices
 	GLbitfield	ClientState;
 	GLboolean	continous;
@@ -3893,12 +3882,12 @@ void d_DrawTrianglesVA(GLcontext context)
 
 	if(continous == GL_TRUE)
 	{
-		error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, 0, context->VertexBufferPointer);
+		W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, 0, context->VertexBufferPointer);
 	}
 
 	else
 	{
-		error = W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, W3D_INDEX_UWORD, vcount, (void*)&vaindex[0]);
+		W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, W3D_INDEX_UWORD, vcount, (void*)&vaindex[0]);
 	}
 
 	Reset_W3D_ArrayPointers(context, ClientState);
@@ -3916,7 +3905,6 @@ void d_DrawTrianglesVA(GLcontext context)
 
 void d_DrawFlat(GLcontext context)
 {
-	ULONG	error;
 	int	i;
 	static	W3D_Vertex *verts[MGL_MAXVERTS];
 	static	W3D_TrianglesV tris;
@@ -3946,12 +3934,12 @@ void d_DrawFlat(GLcontext context)
 
 	if(context->CurrentPrimitive == MGL_FLATSTRIP)
 	{
-		error = W3D_DrawTriStripV(context->w3dContext, &tris);
+		W3D_DrawTriStripV(context->w3dContext, &tris);
 	}
 
 	else	// MGL_FLATFAN
 	{
-		error = W3D_DrawTriFanV(context->w3dContext, &tris);
+		W3D_DrawTriFanV(context->w3dContext, &tris);
 	}
 
 	#endif
@@ -3960,7 +3948,6 @@ void d_DrawFlat(GLcontext context)
 void dh_DrawPoly(GLcontext context, MGLPolygon *poly)
 {
 	int	i;
-	ULONG	error;
 	static	W3D_Vertex *verts[8]; //max clipverts for quad
 	static	W3D_TrianglesV tris;
 
@@ -3976,7 +3963,7 @@ void dh_DrawPoly(GLcontext context, MGLPolygon *poly)
 	tris.v = verts;
 
 	#ifndef NODRAW
-	error = W3D_DrawTriFanV(context->w3dContext, &tris);
+	W3D_DrawTriFanV(context->w3dContext, &tris);
 	#endif
 }
 
@@ -3988,7 +3975,6 @@ void dh_DrawPoly(GLcontext context, MGLPolygon *poly)
 static void d_DrawMtexPolyChains(GLcontext context, GLuint unit, GLuint size)
 {
 	int	i;
-	ULONG	error;
 
 	if(unit == 0)
 	{
@@ -3998,7 +3984,7 @@ static void d_DrawMtexPolyChains(GLcontext context, GLuint unit, GLuint size)
 		{
 			Set_W3D_Texture(context->w3dContext, 0, pidx[i].tmu[0]);
 
-			error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIFAN, pidx[i].first, pidx[i].count);
+			W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIFAN, pidx[i].first, pidx[i].count);
 
 			i++;
 
@@ -4013,7 +3999,7 @@ static void d_DrawMtexPolyChains(GLcontext context, GLuint unit, GLuint size)
 		{
 			Set_W3D_Texture(context->w3dContext, 0, pidx[i].tmu[1]);
 
-			error = W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIFAN, pidx[i].first, pidx[i].count);
+			W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIFAN, pidx[i].first, pidx[i].count);
 
 			i++;
 
@@ -4040,7 +4026,7 @@ It sets the supplied state-parameters, draws the buffer, and returns the context
 void MGLDrawMultitexBuffer (GLcontext context, GLenum BSrc, GLenum BDst, GLenum TexEnv)
 {
 	GLboolean blendfunc_changed;
-	GLboolean depthmask_changed;
+	//GLboolean depthmask_changed;
 	GLbitfield ClientState;
 	GLenum CurBlendSrc, CurBlendDst;
 

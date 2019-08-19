@@ -830,7 +830,7 @@ void GLEnd(GLcontext context)
 		return; //no verts recorded
 	}
 
-	#if 0 // disabled just for Q3 engines - Cowcat
+	#if 0 // ArrayElemeny not OpenGL conforming - Cowcat
 	if(context->ClientState & GLCS_VERTEX)
 	{
 		//assume that a series of glArrayElement commands has been issued
