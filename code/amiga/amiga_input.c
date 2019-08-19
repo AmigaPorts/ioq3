@@ -286,9 +286,9 @@ static void IN_ProcessEvents(qboolean keycatch)
 		{
 			case IDCMP_RAWKEY:
 			{
-				if ( keycatch &&  events[i].Code == ( 0x63 & ~IECODE_UP_PREFIX ) ) // windowmode handler workaround
+				if ( keycatch &&  imsg->Code == ( 0x63 & ~IECODE_UP_PREFIX ) ) // windowmode handler workaround
 				{
-					Com_QueueEvent(msgTime, SE_KEY, K_MOUSE1, keyDown(events[i].Code), 0, NULL);
+					Com_QueueEvent(msgTime, SE_KEY, K_MOUSE1, keyDown(imsg->Code), 0, NULL);
 					//Com_Printf ("mouse key RAWKEY\n"); //
 				}
 
