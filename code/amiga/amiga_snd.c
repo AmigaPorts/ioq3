@@ -25,11 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #undef NULL
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 #include <proto/exec.h>
 #include <proto/dos.h>
@@ -45,11 +41,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif 
 #endif
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined (WARPUP)
 #pragma pack(pop)
-#endif
 
 /* Implemented 100% on recycled Quake 2 code */
 
@@ -99,15 +91,14 @@ static int buflen;
 
 struct Hook EffHook = 
 {
-  	0, 0,
-  	(HOOKFUNC)callback,
-  	0, 0,
+	0, 0,
+	(HOOKFUNC)callback,
+	0, 0,
 };
 
 qboolean SNDDMA_Init(void)
 {
 	struct AHISampleInfo 	sample;
-	int 			i;
 	ULONG 			mixfreq, playsamples;
 	UBYTE 			name[256];
 	ULONG 			mode;

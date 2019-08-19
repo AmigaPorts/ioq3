@@ -91,8 +91,6 @@ void IN_DeactivateMouse( qboolean isFullscreen )
 	}
 }
 
-//static qboolean keycatch = qfalse;
-
 void IN_Frame (void) 
 {
 	// IN_JoyMove(); // FIXME: disable if on desktop?
@@ -132,7 +130,6 @@ void IN_Frame (void)
 	if ( windowmode && mouse_avail )
 	{
 		int keycatcher = Key_GetCatcher( );
-		//int keycatch = qfalse;
 
 		if( keycatcher & KEYCATCH_CONSOLE )
 		{
@@ -286,7 +283,7 @@ static void IN_ProcessEvents(qboolean keycatch)
 		{
 			case IDCMP_RAWKEY:
 			{
-				if ( keycatch &&  imsg->Code == ( 0x63 & ~IECODE_UP_PREFIX ) ) // windowmode handler workaround
+				if ( keycatch && imsg->Code == ( 0x63 & ~IECODE_UP_PREFIX ) ) // windowmode handler workaround
 				{
 					Com_QueueEvent(msgTime, SE_KEY, K_MOUSE1, keyDown(imsg->Code), 0, NULL);
 					//Com_Printf ("mouse key RAWKEY\n"); //

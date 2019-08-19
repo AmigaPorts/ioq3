@@ -14,19 +14,19 @@ struct MsgStruct
 
 int GetMessages68k( __reg("a1") struct MsgPort *port, __reg("a0") struct MsgStruct *msg, __reg("d0") int maxmsg )
 {
-  	int i = 0;
-  	struct IntuiMessage *imsg;
+	int i = 0;
+	struct IntuiMessage *imsg;
 	struct InputEvent ie;
 
 	UBYTE buf[4];
 	UWORD result;
 
-  	while ((imsg = (struct IntuiMessage *)GetMsg(port)))
+	while ((imsg = (struct IntuiMessage *)GetMsg(port)))
 	{
-    	if (i < maxmsg)
+		if (i < maxmsg)
 		{
-      		msg[i].Code = imsg->Code;
-      		msg[i].Class = imsg->Class;
+			msg[i].Code = imsg->Code;
+			msg[i].Class = imsg->Class;
 			msg[i].MouseX = imsg->MouseX;
 			msg[i].MouseY = imsg->MouseY;
 
@@ -48,10 +48,12 @@ int GetMessages68k( __reg("a1") struct MsgPort *port, __reg("a0") struct MsgStru
 			}
 
 			i++;
-    	}
+		}
 
 		ReplyMsg((struct Message *)imsg);
-  	}
+	}
 
-  	return i;
+	return i;
 }
+
+

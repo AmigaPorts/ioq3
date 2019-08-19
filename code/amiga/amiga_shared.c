@@ -84,75 +84,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #endif
 
-#if defined(__GNUC__)
-//typedef void *DIR;
-#endif
-
 DIR *findhandle = NULL;
-
-
-// Used to determine CD Path
-static char cdPath[MAX_OSPATH];
 
 // Used to determine local installation path
 static char installPath[MAX_OSPATH];
 
 // Used to determine where to store user-specific files
-static char homePath[MAX_OSPATH] = { 0 }; // cowcat
+static char homePath[MAX_OSPATH] = { 0 };
 
 qboolean Sys_RandomBytes( byte *string, int len )
 {
 	return qfalse;
 }
-
-#if 0
-
-static struct Device *TimerBase = NULL;
-static struct timeval sys_timeBase;
-
-int Sys_Milliseconds(void)
-{
-	struct timeval curtime;
-	static qboolean initialized = qfalse;
-	
-	if (!initialized)
-	{
-		#ifdef __PPC__
-
-		GetSysTimePPC(&sys_timeBase);
-
-		#else
-
-		if (!TimerBase)
-			TimerBase=(struct Device *)FindName(&SysBase->DeviceList,"timer.device");
-
-		GetSysTime(&sys_timeBase);
-
-		#endif
-
-		initialized = qtrue;
-	}
-	
-	#ifdef __PPC__
-
-	GetSysTimePPC(&curtime);
-	SubTimePPC(&curtime, &sys_timeBase);
-
-	#else
-	
-	GetSysTime(&curtime);
-	SubTime(&curtime, &sys_timeBase);
-
-	#endif
-	
-	return curtime.tv_secs * 1000 + curtime.tv_micro/1000;
-}
-
-#else // Cowcat
-
-#if !defined(__PPC__)
-extern struct Library *TimerBase;
-#endif
 
 static unsigned int inittime = 0L;
 
@@ -186,18 +129,45 @@ int Sys_Milliseconds(void)
   	return currenttime * 1000 + tv.tv_micro / 1000;
 }
 
-#endif
 
-#if defined(__VBCC__) && defined(__PPC__)
-extern float rint(float x);
-#endif
+#if 0 // function now is inlined in cl_cgame.c/sv_game.c
 
 void Sys_SnapVector(float *v)
 {
+#if defined(__VBCC__)
 	v[0] = rint(v[0]);
 	v[1] = rint(v[1]);
 	v[2] = rint(v[2]);
+
+#else
+	v[0] = fround(v[0]);
+	v[1] = fround(v[1]);
+	v[2] = fround(v[2]);
+
+#endif
+
 }
+#endif
+
+#if 0 // test
+extern float fnearbyint(float x);
+
+#define fgetenv() ({ float env; asm("mffs %0" : "=f" (env)); env; })
+#define fsetenv(env) ({ double d = (env); asm("mtfsf 0xff, %0" : : "f" (d)); })
+
+void Sys_SnapVector(float *v)
+{
+	float oldround = fgetenv();
+
+	asm("mtfsfi 7,0"); // rounding to-nearest
+
+	v[0] = fnearbyint(v[0]);
+	v[1] = fnearbyint(v[1]);
+	v[2] = fnearbyint(v[2]);
+
+	fsetenv(oldround);
+}
+#endif
 
 void Sys_Mkdir(const char *path)
 {
@@ -237,10 +207,12 @@ void Sys_ListFilteredFiles( const char *basedir, char *subdirs, char *filter, ch
 
 	while ((d = readdir(fdir)) != NULL)
 	{
+		#if 0
 		if (search[strlen(search)-1] == '/')
 			Com_sprintf(filename, sizeof(filename), "%s%s", search, d->d_name);
 
 		else
+		#endif
 			Com_sprintf(filename, sizeof(filename), "%s/%s", search, d->d_name);
 			
 		if (stat(filename, &st) == -1)
@@ -300,7 +272,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 		nfiles = 0;
 		Sys_ListFilteredFiles( directory, "", filter, list, &nfiles );
 
-		list[ nfiles ] = NULL; // was 0 - Cowcat
+		list[ nfiles ] = NULL;
 		*numfiles = nfiles;
 
 		if (!nfiles)
@@ -340,10 +312,12 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 
 	while ((d = readdir(fdir)) != NULL)
 	{
+		#if 0
 		if (directory[strlen(directory)-1] == '/')
 			Com_sprintf(search, sizeof(search), "%s%s", directory, d->d_name);
 
 		else
+		#endif
 			Com_sprintf(search, sizeof(search), "%s/%s", directory, d->d_name);
 
 		if (stat(search, &st) == -1)
@@ -354,8 +328,8 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 
 		if (*extension)
 		{
-			if ( strlen( d->d_name ) < strlen( extension ) ||
-				Q_stricmp( d->d_name + strlen( d->d_name ) - strlen( extension ), extension ) )
+			if ( strlen( d->d_name ) < extLen ||
+				Q_stricmp( d->d_name + strlen( d->d_name ) - extLen, extension ) )
 			{
 				continue; // didn't match
 			}
@@ -368,7 +342,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 		nfiles++;
 	}
 
-	list[ nfiles ] = NULL; // was 0 - Cowcat
+	list[ nfiles ] = NULL;
 
 	closedir(fdir);
 
@@ -419,17 +393,6 @@ char *Sys_Cwd( void )
 	return cwd;
 }
 
-#if 0
-void Sys_SetDefaultCDPath(const char *path)
-{
-	Q_strncpyz(cdPath, path, sizeof(cdPath));
-}
-
-char *Sys_DefaultCDPath(void)
-{
-	return cdPath;
-}
-#endif
 
 void Sys_SetDefaultInstallPath(const char *path)
 {

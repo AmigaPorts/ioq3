@@ -29,11 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define __USE_BASETYPE__
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 #include <exec/exec.h>
 #include <exec/ports.h>
@@ -45,11 +41,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <proto/timer.h>
 #include <proto/intuition.h>
 
-#ifdef __VBCC__
-#pragma default align
-#elif defined (WARPUP)
 #pragma pack(pop)
-#endif
 
 #ifdef DLL
 #include "dll.h"
@@ -58,7 +50,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //#include <devices/timer.h>
 //#include <inline/timer_protos.h>
 
-//#include <dlfunc.h>
 
 #ifdef __VBCC__
 #define CreateExtIO(p,s) CreateIORequest(p,s)
@@ -284,9 +275,6 @@ Sys_Quit
 */
 void Sys_Quit( void ) 
 {
-	//CL_Shutdown(); // new - disabled Cowcat
-//	IN_Shutdown();
-
 	Sys_Exit(0);
 }
 
@@ -298,14 +286,13 @@ Sys_Print
 */
 void Sys_Print( const char *msg ) 
 {
-	//IExec->DebugPrintF("%s", msg);
 	//Conbuf_AppendText( msg );
+
 	if(!consoleoutput)
 		return;
 
 	fputs(msg, stdout);
 }
-
 
 
 /*
@@ -414,8 +401,9 @@ Ptr should either be null, or point to a block of data that can
 be freed by the game later.
 ================
 */
-//void Sys_QueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr )
+
 /*
+//void Sys_QueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr )
 void Com_QueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr )
 {
 	sysEvent_t	*ev;
@@ -448,7 +436,6 @@ void Com_QueEvent( int time, sysEventType_t type, int value, int value2, int ptr
 	ev->evPtrLength = ptrLength;
 	ev->evPtr = ptr;
 }
-
 
 sysEvent_t Sys_GetEvent(void)
 {
@@ -611,7 +598,7 @@ int kprintf(char *format, ...)
 	return n;
 }
 #else
-int kprintf(char *format, ...)
+int Qkprintf(char *format, ...)
 {
 	return 0;
 }
