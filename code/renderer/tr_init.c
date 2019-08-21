@@ -919,8 +919,11 @@ void GfxInfo_f( void )
 		if ( primitives == 0 )
 			ri.Printf( PRINT_ALL, "single glDrawElements\n" );
 
-		else
+		else if ( primitives == 1 )
 			ri.Printf( PRINT_ALL, "multiple glArrayElement\n" );
+
+		else if ( primitives == 3 )
+			ri.Printf( PRINT_ALL, "multiple glColor4ubv + glTexCoord2fv + glVertex3fv\n" );
 		
 		#endif
 	}
@@ -929,7 +932,7 @@ void GfxInfo_f( void )
 	ri.Printf( PRINT_ALL, "picmip: %d\n", r_picmip->integer );
 	ri.Printf( PRINT_ALL, "texture bits: %d\n", r_texturebits->integer );
 	ri.Printf( PRINT_ALL, "multitexture: %s\n", enablestrings[qglActiveTextureARB != 0] );
-	ri.Printf( PRINT_ALL, "compiled vertex arrays: %s\n", enablestrings[qglLockArraysEXT != 0 ] );
+	ri.Printf( PRINT_ALL, "compiled vertex arrays: %s\n", "enabled" ); //enablestrings[qglLockArraysEXT != 0 ] ); // Cowcat
 	ri.Printf( PRINT_ALL, "texenv add: %s\n", enablestrings[glConfig.textureEnvAddAvailable != 0] );
 	ri.Printf( PRINT_ALL, "compressed textures: %s\n", enablestrings[glConfig.textureCompression != TC_NONE] );
 
@@ -961,6 +964,28 @@ void GfxInfo_f( void )
 R_Register
 ===============
 */
+
+typedef struct consoleCommand_s
+{
+	const char *cmd;
+	void (*func)(void);
+
+}consoleCommand_t;
+
+static consoleCommand_t commands[] = 
+{
+	{ "modellist",		R_ImageList_f },
+	{ "screenshotJPEG",	R_ScreenShotJPEG_f },
+	{ "screenshot",		R_ScreenShot_f },
+	{ "imagelist",		R_ImageList_f },
+	{ "shaderlist",		R_ShaderList_f },
+	{ "skinlist",		R_SkinList_f }, 
+	{ "gfxinfo",		GfxInfo_f },
+	{ "modelist",		R_ModeList_f },
+};
+
+static const size_t numCommands = ARRAY_LEN(commands);
+
 void R_Register( void ) 
 {
 	//
@@ -1091,8 +1116,10 @@ void R_Register( void )
 	r_maxpolyverts = ri.Cvar_Get( "r_maxpolyverts", va("%d", MAX_POLYVERTS), 0);
 
 	r_flaresDlight = ri.Cvar_Get ("r_flaresDlight", "0", CVAR_ARCHIVE); // OpenArena - Cowcat
+
 	// make sure all the commands added here are also
 	// removed in R_Shutdown
+	/*
 	ri.Cmd_AddCommand( "imagelist", R_ImageList_f );
 	ri.Cmd_AddCommand( "shaderlist", R_ShaderList_f );
 	ri.Cmd_AddCommand( "skinlist", R_SkinList_f );
@@ -1101,6 +1128,10 @@ void R_Register( void )
 	ri.Cmd_AddCommand( "screenshot", R_ScreenShot_f );
 	ri.Cmd_AddCommand( "screenshotJPEG", R_ScreenShotJPEG_f );
 	ri.Cmd_AddCommand( "gfxinfo", GfxInfo_f );
+	*/
+
+	for(size_t i = 0; i < numCommands; i++)
+		ri.Cmd_AddCommand( commands[i].cmd, commands[i].func);
 }
 
 /*
@@ -1214,10 +1245,11 @@ void R_Init( void )
 RE_Shutdown
 ===============
 */
+
 void RE_Shutdown( qboolean destroyWindow )
 {	
 	ri.Printf( PRINT_ALL, "RE_Shutdown( %i )\n", destroyWindow );
-
+	/*
 	ri.Cmd_RemoveCommand ("modellist");
 	ri.Cmd_RemoveCommand ("screenshotJPEG");
 	ri.Cmd_RemoveCommand ("screenshot");
@@ -1226,6 +1258,10 @@ void RE_Shutdown( qboolean destroyWindow )
 	ri.Cmd_RemoveCommand ("skinlist");
 	ri.Cmd_RemoveCommand ("gfxinfo");
 	ri.Cmd_RemoveCommand ("modelist");
+	*/
+
+	for(size_t i = 0; i < numCommands; i++)
+		ri.Cmd_RemoveCommand( commands[i].cmd );
 
 	if ( tr.registered )
 	{

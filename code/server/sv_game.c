@@ -337,6 +337,13 @@ The module is making a system call
 ====================
 */
 
+#if defined(__PPC__) && defined(__VBCC__)
+extern float rint(float x);
+#define round rint
+#elif defined(__GNUC__) && defined (__PPC__)
+#define round roundf
+#endif
+
 intptr_t SV_GameSystemCalls( intptr_t *args )
 {
 	switch( args[0] )
@@ -518,7 +525,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args )
 		return Com_RealTime( VMA(1) );
 
 	case G_SNAPVECTOR:
-		Sys_SnapVector( VMA(1) );
+		Q_SnapVector( VMA(1) );
 		return 0;
 
 		//====================================

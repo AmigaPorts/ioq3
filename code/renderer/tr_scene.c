@@ -119,13 +119,19 @@ void RE_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts
 	if ( !tr.registered )
 		return;
 
-	#if 0 // ec-/Quake3e - render default shader instead of spam
+	#if 1 // ec-/Quake3e - render default shader instead of spam
 	if ( !hShader )
 	{
 		ri.Printf( PRINT_WARNING, "WARNING: RE_AddPolyToScene: NULL poly shader\n");
 		return;
 	}
 	#endif
+
+	if ( numVerts < 0 )
+	{
+		ri.Printf( PRINT_WARNING, "WARNING: RE_AddPolyToScene: numVerts < 0\n");
+		return;
+	}
 
 	for ( j = 0; j < numPolys; j++ )
 	{
@@ -262,8 +268,7 @@ void RE_AddDynamicLightToScene( const vec3_t org, float intensity, float r, floa
 	if ( !tr.registered )
 		return;
 
-	//if ( r_numdlights >= MAX_DLIGHTS )
-	if ( r_numdlights >= ARRAY_LEN ( backEndData->dlights ) ) // Cowcat -does the same
+	if ( r_numdlights >= ARRAY_LEN ( backEndData->dlights ) )
 		return;
 
 	if ( intensity <= 0 )

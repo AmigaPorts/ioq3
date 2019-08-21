@@ -1,5 +1,5 @@
 #
-B = oa_objs_wos
+B = oa_objs_wos_vbcc
 
 CC = vc +warpos
 CC68K = vc +aos68k

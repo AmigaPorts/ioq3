@@ -30,19 +30,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 
 // Cowcat
-#if 0
-#if defined(__VBCC__)
-static ID_INLINE float _vmf(intptr_t x)
-{
-	floatint_t fi;
-	fi.i = (int) x;
-	return fi.f;
-}
-#define VMF(x)	_vmf(args[x])
-#endif
-#endif
-
-// Cowcat
 #if defined(__VBCC__)
 #define VMF(x)	((float *)args)[x]
 #endif
@@ -468,6 +455,13 @@ The cgame module is making a system call
 ====================
 */
 
+#if defined(__PPC__) && defined(__VBCC__)
+extern float rint(float x);
+#define round rint
+#elif defined(__GNUC__) && defined (__PPC__)
+#define round roundf
+#endif
+
 intptr_t CL_CgameSystemCalls( intptr_t *args )
 {
 	switch( args[0] )
@@ -717,7 +711,7 @@ intptr_t CL_CgameSystemCalls( intptr_t *args )
 	case CG_REAL_TIME:
 		return Com_RealTime( VMA(1) );
 	case CG_SNAPVECTOR:
-		Sys_SnapVector( VMA(1) );
+		Q_SnapVector( VMA(1) );
 		return 0;
 
 	case CG_CIN_PLAYCINEMATIC:
@@ -776,35 +770,6 @@ Should only be called by CL_StartHunkUsers
 ====================
 */
 
-#if 0
-__saveds intptr_t QDECL CL_DllSyscall( intptr_t arg, ... )
-{
-	#if !id386
-
-  	// rcg010206 - see commentary above
-  	intptr_t	args[10]; // MAX_VMSYSCALL_ARGS
-  	int 		i;
-  	va_list 	ap;
-
-  	args[0] = arg;
-  
-  	va_start(ap, arg);
-
-  	for (i = 1; i < sizeof (args) / sizeof (args[i]); i++)
-		args[i] = va_arg(ap, intptr_t);
-
-  	va_end(ap);
-  
-  	return CL_CgameSystemCalls( args );
-
-	#else // original id code
-
-	return CL_CgameSystemCalls( &arg );
-
-	#endif
-}
-#endif
-
 void CL_InitCGame( void )
 {
 	const char	*info;
@@ -833,7 +798,6 @@ void CL_InitCGame( void )
 	}
 
 	cgvm = VM_Create( "cgame", CL_CgameSystemCalls, interpret );
-	//cgvm = VM_Create( "cgame", CL_CgameSystemCalls, interpret, CL_DllSyscall);
 
 	if ( !cgvm )
 		Com_Error( ERR_DROP, "VM_Create on cgame failed" );

@@ -973,24 +973,6 @@ static GLboolean vid_OpenWindow(GLcontext context, int w, int h)
 		case W3D_NOTVISIBLE:	printf("No ZBuffer: Screen is not visible\n"); break;
 	}
 
-	/*
-	W3D_Double zdepth = 0.8;
-		
-		printf("here 1\n");
-
-		W3D_SetState(context->w3dContext, W3D_ZBUFFERUPDATE, W3D_ENABLE);
-
-		if( W3D_SUCCESS == W3D_LockHardware(context->w3dContext) )
-		{
-			W3D_ClearZBuffer(context->w3dContext, &zdepth);
-			W3D_UnLockHardware(context->w3dContext);
-			printf("zbuffer clear\n");
-		}
-	
-		else
-			printf("zbuffer not clear\n");
-	*/
-
 	W3D_SetState(context->w3dContext, W3D_ZBUFFER, W3D_DISABLE);
 	W3D_SetState(context->w3dContext, W3D_ZBUFFERUPDATE, W3D_ENABLE);
 	W3D_SetZCompareMode(context->w3dContext, W3D_Z_LESS);

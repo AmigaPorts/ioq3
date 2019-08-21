@@ -2275,7 +2275,6 @@ static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWO
 				Convert(context, &vbase[idx[i+2]], idx[i+2]);
 
 				cnum += AE_ClipTriangle(context, &clip, &CBUF[cnum], &free, local_or);
-				//cnum += AE_ClipTriangle(context, &clip, &CBUF2[cnum], &free, local_or); // Cowcat
 			}
 		}
 	}
@@ -2309,7 +2308,6 @@ static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWO
 		do
 		{
 			p = &CBUF[i];
-			//p = &CBUF2[i]; // test Cowcat
 
 			for(j=0; j<p->numverts; j++)
 			{

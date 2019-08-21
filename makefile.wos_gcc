@@ -9,14 +9,14 @@ CC68K = vc +aos68k -c99 -O2 -speed -cpu=68060
 
 ALTIVEC = -D__VECTOR__
 
-CFLAGS = -O2 -noixemul -fomit-frame-pointer -ffast-math -fno-strict-aliasing -DAMIGAOS -DNDEBUG -DBOTLIB -DUSE_LOCAL_HEADERS $(ALTIVEC) # -DNO_VM_COMPILED
+CFLAGS = -O2 -Wall -noixemul -fomit-frame-pointer -ffast-math -fno-strict-aliasing -DAMIGAOS -DNDEBUG -DBOTLIB -DUSE_LOCAL_HEADERS $(ALTIVEC) # -DNO_VM_COMPILED
 
 DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
 DO_CC68K = $(CC68K) -o $@ -c $<
 
 DO_CC_ALTIVEC = $(CC) $(CFLAGS) -maltivec -o $@ -c $<
 
-LIBS  = -lmglQ3 
+LIBS  = -lmglQ3 -lamigawos
 
 OBJS = \
 	$(B)/snd_adpcm.o \
@@ -183,6 +183,7 @@ OBJS = \
 	  $(B)/amiga_glimp.o \
 	  $(B)/amiga_shared.o \
 	  $(B)/amiga_68k.o \
+	  #$(B)/wos_asm_gcc.o \
 
 OBJSVEC  = \
 	  $(B)/snd_altivec.o \
@@ -309,7 +310,7 @@ OBJQAGAME = \
 
 ##
 
-QUAKE3 = $(B)/quake3-8-gcc
+QUAKE3 = $(B)/quake3-9-gcc
 Q3UI = $(BUI)/uippc.dll
 CGAME = $(BCG)/cgameppc.dll
 QAGAME = $(BQAG)/qagameppc.dll
@@ -655,6 +656,8 @@ $(B)/amiga_68k.o:  code/amiga/amiga_68k.c
 	$(DO_CC68K)
 	vlink -belf32morphos -r -set-deluscore $(B)/amiga_68k.o -o $(B)/amiga_68k.o
 
+$(B)/wos_asm_gcc.o:  code/amiga/wos_asm_gcc.s
+	$(DO_CC)
 
 $(B)/snd_adpcm.o:  code/client/snd_adpcm.c
 	$(DO_CC)

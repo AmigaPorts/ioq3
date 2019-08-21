@@ -176,7 +176,7 @@ static void R_LoadLightmaps( lump_t *l )
 		return;
 	}
 
-	tr.lightmaps[0] = ri.Hunk_Alloc( tr.numLightmaps * sizeof(image_t *), h_low ); // error tr.lightmaps ? added [0] - Cowcat
+	tr.lightmaps = ri.Hunk_Alloc( tr.numLightmaps * sizeof(image_t *), h_low );
 
 	for ( i = 0 ; i < tr.numLightmaps ; i++ )
 	{
@@ -225,7 +225,7 @@ static void R_LoadLightmaps( lump_t *l )
 			}
 		}
 
-		tr.lightmaps[i] = R_CreateImage( va("*lightmap%d",i), image, LIGHTMAP_SIZE, LIGHTMAP_SIZE, IMGTYPE_COLORALPHA,
+		tr.lightmaps[i] = R_CreateImage( va("*lightmap%d", i), image, LIGHTMAP_SIZE, LIGHTMAP_SIZE, IMGTYPE_COLORALPHA,
 			IMGFLAG_NOLIGHTSCALE | IMGFLAG_NO_COMPRESSION | IMGFLAG_CLAMPTOEDGE, 0 );
 	}
 

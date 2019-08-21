@@ -1,5 +1,5 @@
 #
-B = ioquake3_objs_wos
+B = ioquake3_objs_wos_vbcc
 BUI = $(B)/q3_ui
 BCG = $(B)/cgame
 BQAG = $(B)/qagame
@@ -15,7 +15,7 @@ DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
 DO_CC68K = $(CC68K) $(CFLAGS68K) -o $@ -c $<
 
 LIBS  = -lppcmath -lm -lmglQ3 -lposix -lamiga
-#LIBSDLL  = -lppcmath -lm -lmglQ3 -lposix -ldll -lamiga
+#LIBSDLL  = -lppcmath -lm -lposix -ldll -lamiga
 
 OBJS = \
 	$(B)/snd_adpcm.o \
@@ -304,7 +304,7 @@ OBJQAGAME = \
 
 ##
 
-QUAKE3 = $(B)/quake3-8-vbcc
+QUAKE3 = $(B)/quake3-9-vbcc
 Q3UI = $(BUI)/uippc.dll
 CGAME = $(BCG)/cgameppc.dll
 QAGAME = $(BQAG)/qagameppc.dll

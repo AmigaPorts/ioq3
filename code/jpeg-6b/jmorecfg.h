@@ -34,7 +34,6 @@
 
 #define MAX_COMPONENTS  10	/* maximum number of image components */
 
-
 /*
  * Basic data types.
  * You may need to change these if you have a machine with unusual data

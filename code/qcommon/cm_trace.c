@@ -875,7 +875,8 @@ get the first intersection of the ray with the sphere
 void CM_TraceThroughSphere( traceWork_t *tw, vec3_t origin, float radius, vec3_t start, vec3_t end )
 {
 	float	l1, l2, length, scale, fraction;
-	float	a, b, c, d, sqrtd;
+	//float	a;
+	float	b, c, d, sqrtd;
 	vec3_t	v1, dir, intersection;
 
 	// if inside the sphere
@@ -886,6 +887,7 @@ void CM_TraceThroughSphere( traceWork_t *tw, vec3_t origin, float radius, vec3_t
 	{
 		tw->trace.fraction = 0;
 		tw->trace.startsolid = qtrue;
+
 		// test for allsolid
 		VectorSubtract(end, origin, dir);
 		l1 = VectorLengthSquared(dir);

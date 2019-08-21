@@ -240,7 +240,7 @@ typedef void * HINSTANCE;
 
 #ifdef __GNUC__
 #ifdef __PPC__
-//#define __saveds
+#define __saveds
 #endif
 #endif
 

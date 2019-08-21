@@ -469,8 +469,11 @@ void AAS_CreateReversedReachability(void)
 			aasworld.reversedreachability[reach->areanum].first = revlink;
 			aasworld.reversedreachability[reach->areanum].numlinks++;
 
+			//printf("n %d\n", revlink);
+
 		} //end for
 
+		//printf("i %d\n", i);
 	} //end for
 
 	#endif

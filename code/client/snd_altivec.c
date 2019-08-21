@@ -255,24 +255,27 @@ void S_PaintChannelFrom16_altivec( portable_samplepair_t paintbuffer[PAINTBUFFER
 
 	chunk = sc->soundData;
 
-	while (sampleOffset>=SND_CHUNK_SIZE)
+	while (sampleOffset >= SND_CHUNK_SIZE)
 	{
 		chunk = chunk->next;
 		sampleOffset -= SND_CHUNK_SIZE;
 
-		if (!chunk) {
+		if (!chunk)
+		{
 			chunk = sc->soundData;
 		}
 	}
 
-	if (!ch->doppler || ch->dopplerScale==1.0f)
+	if (!ch->doppler || ch->dopplerScale == 1.0f)
 	{
 		vector signed short volume_vec;
 		vector unsigned int volume_shift;
 		int vectorCount, samplesLeft, chunkSamplesLeft;
+
 		leftvol = ch->leftvol*snd_vol;
 		rightvol = ch->rightvol*snd_vol;
 		samples = chunk->sndChunk;
+
 		((short *)&volume_vec)[0] = leftvol;
 		((short *)&volume_vec)[1] = leftvol;
 		((short *)&volume_vec)[4] = leftvol;

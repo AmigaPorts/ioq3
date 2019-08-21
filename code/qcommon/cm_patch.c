@@ -937,7 +937,7 @@ CM_AddFacetBevels
 void CM_AddFacetBevels( facet_t *facet )
 {
 	int		i, j, k, l;
-	int 		axis, dir, order, flipped;
+	int 		axis, dir, flipped;
 	float 		plane[4], d, newplane[4];
 	winding_t 	*w, *w2;
 	vec3_t 		mins, maxs, vec, vec2;

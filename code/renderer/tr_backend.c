@@ -684,7 +684,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 
 				// we have to reset the shaderTime as well otherwise image animations start
 				// from the wrong frame
-				tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset; // not here - Cowcat
+				tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset;
 
 				// set up the transformation matrix
 				R_RotateForEntity( backEnd.currentEntity, &backEnd.viewParms, &backEnd.or );
@@ -713,12 +713,10 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 
 				// we have to reset the shaderTime as well otherwise image animations on
 				// the world (like water) continue with the wrong frame
-				tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset; // not here - Cowcat
+				tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset;
 
 				R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.or );
 			}
-
-			tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset; // here - Cowcat
 
 			qglLoadMatrixf( backEnd.or.modelMatrix );
 
@@ -782,15 +780,13 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 		rb_surfaceTable[ *drawSurf->surface ]( drawSurf->surface );
 	}
 
-	backEnd.refdef.floatTime = originalTime; // not here - Cowcat
+	backEnd.refdef.floatTime = originalTime;
 
 	// draw the contents of the last shader batch
 	if (oldShader != NULL)
 	{
 		RB_EndSurface();
 	}
-
-	//backEnd.refdef.floatTime = originalTime; // here - Cowcat
 
 	// go back to the world modelview matrix
 	qglLoadMatrixf( backEnd.viewParms.world.modelMatrix );
@@ -930,6 +926,7 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 	qglEnd ();
 }
 
+	
 void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int client, qboolean dirty)
 {
 	image_t *image = tr.scratchImage[client];
@@ -1300,7 +1297,7 @@ void RB_ExecuteRenderCommands( const void *data )
 
 	while ( 1 )
 	{
-		data = PADP(data, sizeof(void *)); // test - Cowcat
+		data = PADP(data, sizeof(void *));
 
 		switch ( *(const int *)data )
 		{

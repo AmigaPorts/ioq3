@@ -12,6 +12,7 @@ CFLAGS = -c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 $(INCLUDES) -DAM
 DO_CC = $(CC) $(CFLAGS) -o $@ -c $<
 
 LIBS  = -lm060 -lmglQ3 -lposix -ldll -lamiga
+LIBSDLL  = -lm060 -lposix -ldll -lamiga
 
 OBJS = \
 	$(B)/snd_adpcm.o \
@@ -296,7 +297,7 @@ OBJQAGAME = \
 
 ##
 
-QUAKE3 = $(B)/quake3-68k-8-vbcc
+QUAKE3 = $(B)/quake3-68k-9-vbcc
 Q3UI = $(BUI)/ui68k.dll
 CGAME = $(BCG)/cgame68k.dll
 QAGAME = $(BQAG)/qagame68k.dll
@@ -307,13 +308,13 @@ $(QUAKE3): $(OBJS)
 	$(CC) -o $@ $(B)/#?.o $(LIBS)
 
 $(Q3UI): $(OBJSUI)
-	$(CC) -o $@ $(BUI)/#?.o $(LIBS)
+	$(CC) -o $@ $(BUI)/#?.o $(LIBSDLL)
 
 $(CGAME): $(OBJCGAME)
-	$(CC) -o $@ $(BCG)/#?.o $(LIBS)
+	$(CC) -o $@ $(BCG)/#?.o $(LIBSDLL)
 
 $(QAGAME): $(OBJQAGAME)
-	$(CC) -o $@ $(BQAG)/#?.o $(LIBS)
+	$(CC) -o $@ $(BQAG)/#?.o $(LIBSDLL)
 
 #
 

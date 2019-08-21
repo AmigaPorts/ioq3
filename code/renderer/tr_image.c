@@ -844,7 +844,7 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 	{
 		if (!mipmap)
 		{
-			qglTexImage2D (GL_TEXTURE_2D, 0, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			qglTexImage2D ( GL_TEXTURE_2D, 0, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
 
 			*pUploadWidth = scaled_width;
 			*pUploadHeight = scaled_height;
@@ -853,7 +853,7 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 			goto done;
 		}
 
-		Com_Memcpy (scaledBuffer, data, width*height*4);
+		Com_Memcpy ( scaledBuffer, data, width * height * 4 );
 	}
 
 	else
@@ -1259,7 +1259,7 @@ static void R_CreateDlightImage( void )
 		}
 	}
 
-	tr.dlightImage = R_CreateImage("*dlight", (byte *)data, DLIGHT_SIZE, DLIGHT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_CLAMPTOEDGE, 0 );
+	tr.dlightImage = R_CreateImage( "*dlight", (byte *)data, DLIGHT_SIZE, DLIGHT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_CLAMPTOEDGE, 0 );
 }
 
 
@@ -1349,7 +1349,7 @@ static void R_CreateFogImage( void )
 		}
 	}
 
-	tr.fogImage = R_CreateImage("*fog", (byte *)data, FOG_S, FOG_T, IMGTYPE_COLORALPHA, IMGFLAG_CLAMPTOEDGE, 0 );
+	tr.fogImage = R_CreateImage( "*fog", (byte *)data, FOG_S, FOG_T, IMGTYPE_COLORALPHA, IMGFLAG_CLAMPTOEDGE, 0 );
 	ri.Hunk_FreeTempMemory( data );
 }
 
@@ -1391,7 +1391,7 @@ static void R_CreateDefaultImage( void )
 		data[x][DEFAULT_SIZE-1][3] = 255;
 	}
 
-	tr.defaultImage = R_CreateImage("*default", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_MIPMAP, 0);
+	tr.defaultImage = R_CreateImage( "*default", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_MIPMAP, 0 );
 }
 
 /*
@@ -1409,7 +1409,7 @@ void R_CreateBuiltinImages( void )
 	// we use a solid white image instead of disabling texturing
 	Com_Memset( data, 255, sizeof( data ) );
 
-	tr.whiteImage = R_CreateImage("*white", (byte *)data, 8, 8, IMGTYPE_COLORALPHA, IMGFLAG_NONE, 0);
+	tr.whiteImage = R_CreateImage( "*white", (byte *)data, 8, 8, IMGTYPE_COLORALPHA, IMGFLAG_NONE, 0 );
 
 	// with overbright bits active, we need an image which is some fraction of full color,
 	// for default lightmaps, etc
@@ -1424,13 +1424,13 @@ void R_CreateBuiltinImages( void )
 		}
 	}
 
-	tr.identityLightImage = R_CreateImage("*identityLight", (byte *)data, 8, 8, IMGTYPE_COLORALPHA, IMGFLAG_NONE, 0);
+	tr.identityLightImage = R_CreateImage( "*identityLight", (byte *)data, 8, 8, IMGTYPE_COLORALPHA, IMGFLAG_NONE, 0 );
 
 	//for(x=0; x<32; x++)
 	for(x = 0; x < ARRAY_LEN( tr.scratchImage ); x++) // ec-/Quake3e
 	{
 		// scratchimage is usually used for cinematic drawing
-		tr.scratchImage[x] = R_CreateImage("*scratch", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE, 0);
+		tr.scratchImage[x] = R_CreateImage( "*scratch", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE, 0 );
 	}
 
 	R_CreateDlightImage();
@@ -1759,13 +1759,13 @@ qhandle_t RE_RegisterSkin( const char *name )
 
 	if ( !name || !name[0] )
 	{
-		Com_Printf( "Empty name passed to RE_RegisterSkin\n" );
+		ri.Printf( PRINT_DEVELOPER, "Empty name passed to RE_RegisterSkin\n" );
 		return 0;
 	}
 
 	if ( strlen( name ) >= MAX_QPATH )
 	{
-		Com_Printf( "Skin name exceeds MAX_QPATH\n" );
+		ri.Printf( PRINT_DEVELOPER, "Skin name exceeds MAX_QPATH\n" );
 		return 0;
 	}
 

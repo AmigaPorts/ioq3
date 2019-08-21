@@ -2006,14 +2006,14 @@ This function is called directly by the generated code
 
 int VM_CallCompiled( vm_t *vm, int *args )
 {
-	int	stack[256]; // Cowcat
 	//int	stack[1024];
+	int	stack[256]; // Cowcat
 	int	programStack;
 	int	stackOnEntry;
 	byte	*image;
 	int	arg; // Cowcat
-	currentVM = vm;
 
+	currentVM = vm;
 		
 	// interpret the code
 	vm->currentlyInterpreting = qtrue;
@@ -2053,7 +2053,7 @@ int VM_CallCompiled( vm_t *vm, int *args )
 	return stack[1];
 }
 
-#ifdef __GNUC__
+#ifdef __GNUC__ // err...not working for gcc
 
 /*
 ==================

@@ -1,7 +1,8 @@
 	.section ".text"
 	.align 2
 	.globl AsmCall
-	.type  AsmCall, @function
+	.type	AsmCall, @function
+
 AsmCall:
 	#pop off the destination instruction
 	lwz	%r12,0(%r4)	# RG_TOP, 0(RG_OPSTACK)
@@ -9,13 +10,13 @@ AsmCall:
 
 	# see if it is a system trap
 	cmpwi	%r12,0		# RG_TOP, 0 \n"
-	bc	12,0, .systemTrap
+	bc	%r12,0, .systemTrap
 
 	# calling another VM function, so lookup in instructionPointers
 	slwi	%r12,%r12,2	# RG_TOP,RG_TOP,2
 
 	# FIXME: range check
-	lwzx	%r12,%r8,%r12	# RG_TOP, RG_INSTRUCTIONS(RG_TOP)	
+	lwzx	%r12, %r8, %r12	# RG_TOP, RG_INSTRUCTIONS(RG_TOP)	
 	mtctr	%r12		# RG_TOP
 
 	bcctr	20,0		# when it hits a leave, it will branch to the current link register
@@ -54,7 +55,7 @@ AsmCall:
 	mtctr	%r12		# RG_TOP
 	bcctrl	20,0
 
-	mr	%r12,%r3	# RG_TOP, r3
+	mr	%r12,%r3		# RG_TOP, r3
 
 	# pop our saved registers
 	lwz	%r3,56(%r1)	# RG_STACK, 0(RG_REAL_STACK)
@@ -75,7 +76,5 @@ AsmCall:
 	stwu	%r12,4(%r4)	# RG_TOP, 0(RG_OPSTACK)
 	blr
 
-	.size	AsmCall, .-AsmCall
-	
-	
+	.size	AsmCall,.-AsmCall
 

@@ -217,7 +217,7 @@ static int ResampleSfxRaw( short *sfx, int channels, int inrate, int inwidth, in
 	int	outcount;
 	int	srcsample;
 	float	stepscale;
-	int	i, j;
+	int	i;
 	int	sample, samplefrac, fracstep;
 	
 	stepscale = (float)inrate / dma.speed;	// this is usually 0.5, 1, or 2

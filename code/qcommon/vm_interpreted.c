@@ -429,11 +429,11 @@ int VM_CallInterpreted( vm_t *vm, int *args )
 
 	#else
 
-	programStack -= ( 8 + 4 * 4 ); //  MAX_VMMAIN_ARGS - was 10 - Cowcat
 	//programStack -= ( 8 + 4 * MAX_VMMAIN_ARGS );
+	programStack -= ( 8 + 4 * 4 ); // Cowcat 
 
-	for ( arg = 0; arg < 4 ; arg++ ) //  MAX_VMMAIN_ARGS - was 10 - Cowcat
 	//for ( arg = 0; arg < MAX_VMMAIN_ARGS; arg++ )
+	for ( arg = 0; arg < 4 ; arg++ ) // Cowcat
 		*(int *)&image[ programStack + 8 + arg * 4 ] = args[ arg ];
 
 	#endif

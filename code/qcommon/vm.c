@@ -247,7 +247,6 @@ void VM_LoadSymbols( vm_t *vm )
 		void *v;
 	} mapfile;
 
-	int		len;
 	char		*text_p, *token;
 	char		name[MAX_QPATH];
 	char		symbols[MAX_QPATH];
@@ -379,18 +378,6 @@ Dlls will call this directly
 ============
 */
 
-#if 0
-
-#ifdef DLL
-__saveds 
-#endif
-intptr_t QDECL VM_DllSyscall( intptr_t (*args)[MAX_VMSYSCALL_ARGS] )
-{
-	return currentVM->systemCall( *args );
-
-}
-
-#else
 
 #ifdef DLL
 __saveds 
@@ -424,7 +411,6 @@ intptr_t QDECL VM_DllSyscall( intptr_t arg, ... )
 	#endif
 }
 
-#endif
 
 /*
 =================
@@ -551,8 +537,7 @@ vmHeader_t *VM_LoadQVM( vm_t *vm, qboolean alloc, qboolean unpure )
 			return NULL;
 		}
 
-		//Com_Memset( vm->dataBase, 0, dataLength );
-		Com_Memset(vm->dataBase, 0, vm->dataAlloc); // Cowcat test
+		Com_Memset(vm->dataBase, 0, vm->dataAlloc);
 	}
 
 	// copy the intialized data
@@ -662,8 +647,8 @@ vm_t *VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *), vmInte
 	vm_t		*vm;
 	vmHeader_t	*header;
 	int		i, remaining, retval;
-	char 		filename[MAX_OSPATH];
-	void 		*startSearch = NULL;
+	char		filename[MAX_OSPATH];
+	void		*startSearch = NULL;
 
 	if ( !module || !module[0] || !systemCalls )
 	{
@@ -817,7 +802,6 @@ void VM_Free( vm_t *vm )
 	if ( vm->dllHandle )
 	{
 		Sys_UnloadDll( vm->dllHandle );
-		Com_Memset( vm, 0, sizeof( *vm ) );
 	}
 
 #ifdef __amigaos4__
@@ -934,8 +918,6 @@ locals from sp
 ==============
 */
 
-#if 1
-
 intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
 {
 	vm_t		*oldVM;
@@ -967,7 +949,7 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
 		va_list ap;
 		va_start(ap, callnum);
 		
-		for (i = 0; i < sizeof (args) / sizeof (args[i]); i++)
+		for (i = 0; i < ARRAY_LEN(args); i++)
 		{
 			args[i] = va_arg(ap, int);
 		}
@@ -980,7 +962,6 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
 		r = vm->entryPoint(callnum, args[0], args[1], args[2]); // Cowcat
 
 		//printf("callnum %d - arg0 %d - arg1 %d - arg2 %d \n", callnum, args[0], args[1], args[2] );
-		
 	}
 
 	else
@@ -1009,15 +990,15 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
 			r = VM_CallCompiled( vm, &callnum );
 		}
 
-		#else
+		#else // gcc
 
-		if ( vm->compiled ) // gcc
+		if ( vm->compiled ) 
 		{
 			struct
 			{
 				int callnum;
 				//int args[MAX_VMMAIN_ARGS-1];
-				int args[3];
+				int args[3]; // Cowcat
 			
 			} a;
 
@@ -1026,7 +1007,7 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
 			a.callnum = callnum;
 			va_start(ap, callnum);
 
-			for (i = 0; i < sizeof (a.args) / sizeof (a.args[i]); i++)
+			for (i = 0; i < ARRAY_LEN(a.args); i++)
 			{
 				a.args[i] = va_arg(ap, int);
 			}
@@ -1054,7 +1035,7 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
 			a.callnum = callnum;
 			va_start(ap, callnum);
 
-			for (i = 0; i < sizeof (a.args) / sizeof (a.args[i]); i++)
+			for (i = 0; i < ARRAY_LEN(a.args); i++)
 			{
 				a.args[i] = va_arg(ap, int);
 			}
@@ -1074,61 +1055,6 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
 	return r;
 }
 
-#else
-
-intptr_t QDECL VM_Call_Impl( vm_t *vm, int (*args)[13] )
-{
-	vm_t		*oldVM;
-	intptr_t	r;
-
-	if ( !vm )
-	{
-		Com_Error( ERR_FATAL, "VM_Call with NULL vm" );
-	}
-
-	oldVM = currentVM;
-	currentVM = vm;
-	lastVM = vm;
-
-	if ( vm_debugLevel )
-	{
-		Com_Printf( "VM_Call( %d )\n", (*args)[0] );
-	}
-
-	++vm->callLevel;
-
-	// if we have a dll loaded, call it directly
-	if ( vm->entryPoint )
-	{
-		//rcg010207 -  see dissertation at top of VM_DllSyscall() in this file.
-
-		r = vm->entryPoint( (*args)[0], (*args)[1], (*args)[2], (*args)[3], (*args)[4], (*args)[5], (*args)[6], 
-			(*args)[7], (*args)[8], (*args)[9], (*args)[10], (*args)[11], (*args)[12] );
-		
-	}
-
-	else
-	{
-
-#ifndef NO_VM_COMPILED
-		if ( vm->compiled )
-			r = VM_CallCompiled( vm, *args );
-
-		else
-#endif
-			r = VM_CallInterpreted( vm, *args );
-
-	}
-
-	--vm->callLevel;
-
-	if ( oldVM != NULL )
-		currentVM = oldVM;
-
-	return r;
-}
-
-#endif
 
 //=================================================================
 

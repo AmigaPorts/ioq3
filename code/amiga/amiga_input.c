@@ -174,7 +174,7 @@ void IN_Init(void)
 	if (!KeymapBase)
 		KeymapBase = OpenLibrary("keymap.library", 0);
 
-	Com_Printf ("\n------- Input Initialization -------\n");
+	Com_DPrintf ("\n------- Input Initialization -------\n");
 
 	// mouse variables
 	in_mouse = Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE);
@@ -206,7 +206,7 @@ void IN_Init(void)
 
 	//IN_StartupJoystick( ); // bk001130 - from cvs1.17 (mkv)
 
-	Com_Printf ("------------------------------------\n");
+	Com_DPrintf ("------------------------------------\n");
 }
 
 void IN_Shutdown(void)

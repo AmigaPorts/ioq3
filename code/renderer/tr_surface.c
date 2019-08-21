@@ -94,8 +94,6 @@ void RB_AddQuadStampExt( vec3_t origin, vec3_t left, vec3_t up, byte *color, flo
 	tess.indexes[ tess.numIndexes + 4 ] = ndx + 1;
 	tess.indexes[ tess.numIndexes + 5 ] = ndx + 2;
 
-	#if 1
-
 	tess.xyz[ndx][0] = origin[0] + left[0] + up[0];
 	tess.xyz[ndx][1] = origin[1] + left[1] + up[1];
 	tess.xyz[ndx][2] = origin[2] + left[2] + up[2];
@@ -111,40 +109,6 @@ void RB_AddQuadStampExt( vec3_t origin, vec3_t left, vec3_t up, byte *color, flo
 	tess.xyz[ndx+3][0] = origin[0] + left[0] - up[0];
 	tess.xyz[ndx+3][1] = origin[1] + left[1] - up[1];
 	tess.xyz[ndx+3][2] = origin[2] + left[2] - up[2];
-
-	#else // ppc test - Cowcat
-
-	float left0 = left[0];
-	float left1 = left[1];
-	float left2 = left[2];
-	float up0 = up[0];
-	float up1 = up[1];
-	float up2 = up[2];
-	float origin0 = origin[0];
-	float origin1 = origin[1];
-	float origin2 = origin[2];
-
-	tess.xyz[ndx][0] = origin0 + left0 + up0;
-	tess.xyz[ndx][1] = origin1 + left1 + up1;
-	tess.xyz[ndx][2] = origin2 + left2 + up2;
-
-	float ori0left0 = origin0 - left0;
-	float ori1left1 = origin1 - left1;
-	float ori2left2 = origin2 - left2;
-
-	tess.xyz[ndx+1][0] = ori0left0 + up0;
-	tess.xyz[ndx+1][1] = ori1left1 + up1;
-	tess.xyz[ndx+1][2] = ori2left2 + up2;
-
-	tess.xyz[ndx+2][0] = ori0left0 - up0;
-	tess.xyz[ndx+2][1] = ori1left1 - up1;
-	tess.xyz[ndx+2][2] = ori2left2 - up2;
-
-	tess.xyz[ndx+3][0] = origin0 + left0 - up0;
-	tess.xyz[ndx+3][1] = origin1 + left1 - up1;
-	tess.xyz[ndx+3][2] = origin2 + left2 - up2;
-
-	#endif
 
 	// constant normal all the way around
 	VectorSubtract( vec3_origin, backEnd.viewParms.or.axis[0], normal );

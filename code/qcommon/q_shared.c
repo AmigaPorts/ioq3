@@ -299,7 +299,6 @@ void Swap_Init (void)
 		_BigFloat = FloatNoSwap;
 		_LittleFloat = FloatSwap;
 	}
-
 }
 */
 
@@ -757,6 +756,46 @@ void Parse3DMatrix (char **buf_p, int z, int y, int x, float *m)
 Com_HexStrToInt
 ===================
 */
+
+#if 0
+
+static inline size_t __strlen (const char *string)
+{
+	const char *s;
+
+	s = string;
+
+	while( *s )
+		s++;
+
+	return s - string;
+}
+
+#undef strlen
+#define strlen __strlen
+
+static inline int __tolower( int c ) {
+	if ( c >= 'A' && c <= 'Z' ) {
+		c += 'a' - 'A';
+	}
+	return c;
+}
+
+
+static inline int __toupper( int c ) {
+	if ( c >= 'a' && c <= 'z' ) {
+		c += 'A' - 'a';
+	}
+	return c;
+}
+
+#undef tolower
+#undef toupper
+#define tolower __tolower
+#define toupper __toupper
+
+#endif
+
 int Com_HexStrToInt( const char *str )
 {
 	if ( !str )
@@ -969,6 +1008,12 @@ int Q_stricmp (const char *s1, const char *s2)
 
 #else // ec-/Quake3e
 
+
+
+
+
+#if 1
+
 int Q_stricmp (const char *s1, const char *s2)
 {
 	unsigned char	c1, c2;
@@ -1008,10 +1053,30 @@ int Q_stricmp (const char *s1, const char *s2)
 			}
 		}
 
-	} while ( c1 != '\0' );
+	} while ( c1 );
 	
 	return 0;
 }
+
+#else
+
+int Q_stricmp (const char *s1, const char *s2)
+{
+	char f, l;
+
+	do
+	{
+		f = ((*s1 <= 'Z' ) && (*s1 >= 'A')) ? *s1 + 'a' - 'A' : *s1;
+		l = ((*s2 <= 'Z' ) && (*s2 >= 'A')) ? *s2 + 'a' - 'A' : *s2;
+
+		s1++;
+		s2++;
+
+	} while ((f) && ( f == l));
+
+	return (int) (f - l);
+}
+#endif
 
 #endif
 
@@ -1044,7 +1109,6 @@ char *Q_strupr( char *s1 )
 
 	return s1;
 }
-
 
 // never goes past bounds or leaves without a terminating 0
 void Q_strcat( char *dest, int size, const char *src )
@@ -1551,7 +1615,7 @@ Changes or adds a key/value pair
 void Info_SetValueForKey( char *s, const char *key, const char *value )
 {
 	char		newi[MAX_INFO_STRING];
-	const char	* blacklist = "\\;\"";
+	const char	*blacklist = "\\;\"";
 
 	if ( strlen( s ) >= MAX_INFO_STRING )
 	{

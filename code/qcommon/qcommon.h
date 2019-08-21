@@ -375,9 +375,6 @@ void	VM_Forced_Unload_Done(void);
 vm_t	*VM_Restart( vm_t *vm, qboolean unpure );
 
 intptr_t QDECL VM_Call( vm_t *vm, int callNum, ... );
-// test Cowcat
-//#define VM_Call(VM, ...) VM_Call_Impl(VM, &(int[13]){__VA_ARGS__})
-//intptr_t QDECL VM_Call_Impl( vm_t *vm, int (*args)[13] );
 
 void	VM_Debug( int level );
 void	*VM_ArgPtr( intptr_t intValue );
@@ -1090,7 +1087,6 @@ void	Sys_Init (void);
 // general development dll loading for virtual machine testing
 //void	*QDECL Sys_LoadDll( const char *name, char *fqpath , intptr_t (QDECL **entryPoint)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) );
 void	*QDECL Sys_LoadDll( const char *name, char *fqpath , intptr_t (QDECL **entryPoint)(int, int, int, int), intptr_t (QDECL *systemcalls)(intptr_t, ...) ); // Cowcat
-//void	*QDECL Sys_LoadDll( const char *name, char *fqpath , intptr_t (QDECL **entryPoint)(int, int, int, int, int, int, int, int, int, int, int, int, int), intptr_t (QDECL *systemcalls)(intptr_t*) );
 
 void	Sys_UnloadDll( void *dllHandle );
 

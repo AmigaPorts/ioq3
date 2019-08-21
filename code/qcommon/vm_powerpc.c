@@ -34,6 +34,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef __PPC__
 #if defined(__GNUC__)
+#include <powerpc/powerpc.h>
 #include <powerpc/powerpc_protos.h>
 #else
 #include <powerpc/powerpc.h>
@@ -378,6 +379,8 @@ static long int VM_AsmCall( int callSyscallInvNum, int callProgramStack )
 	// save the stack to allow recursive VM entry
 	currentVM->programStack = callProgramStack - 4;
 
+	#if 1
+
 	#if !defined(AMIGAOS)
 	// we need to convert ints to longs on 64bit powerpcs
 	if ( sizeof( intptr_t ) == sizeof( int ) )
@@ -406,6 +409,17 @@ static long int VM_AsmCall( int callSyscallInvNum, int callProgramStack )
 		ret = currentVM->systemCall( args );
 	}
 
+	#else // test Cowcat
+
+	int *argPosition = (int *)((byte *)currentVM->dataBase + callProgramStack + 4);
+
+	// generated code does not invert syscall number
+	argPosition[ 0 ] = -1 - callSyscallInvNum;
+
+	ret = currentVM->systemCall( argPosition );
+
+	#endif
+	
 	currentVM = savedVM;
 
 #ifdef VM_TIMES
@@ -2261,7 +2275,7 @@ void VM_Compile( vm_t *vm, vmHeader_t *header )
 	long int pc = 0;
 	unsigned long int i_count;
 	char* code;
-	struct timeval tvstart = {0, 0};
+	//struct timeval tvstart = {0, 0}; // Cowcat
 	source_instruction_t *i_first /* dummy */, *i_last = NULL, *i_now;
 
 	vm->compiled = qfalse;
@@ -2413,6 +2427,8 @@ int VM_CallCompiled( vm_t *vm, int *args )
 	times( &start_time );
 	time_outside_vm = 0;
 #endif
+
+	SetCache(CACHE_ICACHEINV, 0, 0); // Hedeon test
 
 	/* call generated code */
 	{
