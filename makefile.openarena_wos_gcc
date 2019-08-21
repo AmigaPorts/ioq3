@@ -187,7 +187,7 @@ OBJSVEC  = \
 
 ##
 
-QUAKE3 = $(B)/openarena-r5-gcc
+QUAKE3 = $(B)/openarena-r6-gcc
 
 all: $(QUAKE3)
 

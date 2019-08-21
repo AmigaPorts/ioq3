@@ -181,7 +181,7 @@ OBJS = \
 	  $(B)/wos_asm.o
 ##
 
-QUAKE3 = $(B)/openarena-r5-vbcc
+QUAKE3 = $(B)/openarena-r6-vbcc
 
 all: $(QUAKE3)
 
