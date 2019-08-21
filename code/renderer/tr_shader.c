@@ -28,7 +28,7 @@ static char *s_shaderText;
 // the shader is parsed into these global variables, then copied into
 // dynamically allocated memory if it is valid.
 
-static	shaderStage_t		stages[MAX_SHADER_STAGES];		
+static	shaderStage_t		stages[MAX_SHADER_STAGES];
 static	shader_t		shader;
 static	texModInfo_t		texMods[MAX_SHADER_STAGES][TR_MAX_TEXMODS];
 
@@ -1692,7 +1692,7 @@ surfaceparm <name>
 static void ParseSurfaceParm( char **text )
 {
 	char	*token;
-	int	numInfoParms = sizeof(infoParms) / sizeof(infoParms[0]);
+	int	numInfoParms = ARRAY_LEN(infoParms);
 	int	i;
 
 	token = COM_ParseExt( text, qfalse );
@@ -2569,6 +2569,11 @@ static void InitShader( const char *name, int lightmapIndex)
 	Q_strncpyz(shader.name, name, sizeof(shader.name));
 	shader.lightmapIndex = lightmapIndex;
 
+	// we need to know original (unmodified) lightmap index
+	// because shader search functions expects this
+	// otherwise they will fail and cause massive duplication
+	shader.lightmapSearchIndex = shader.lightmapIndex; // ec-/Quake3e
+
 	for ( i = 0 ; i < MAX_SHADER_STAGES ; i++ )
 	{
 		stages[i].bundle[0].texMods = texMods[i];
@@ -2750,7 +2755,7 @@ static shader_t *FinishShader( void )
 	{
 		shader.sort = SS_OPAQUE;
 	}
-
+		
 	//
 	// if we are in r_vertexLight mode, never use a lightmap texture
 	//
@@ -2940,9 +2945,7 @@ most world construction surfaces.
 ===============
 */
 
-#if 1
-
-static void SetImplicitShaderStages( image_t *image) // spearmint idea - Cowcat
+static void SetImplicitShaderStages( image_t *image ) // spearmint idea - Cowcat
 {
 	//
 	// create the default shading commands
@@ -3006,12 +3009,11 @@ static void SetImplicitShaderStages( image_t *image) // spearmint idea - Cowcat
 	}
 }
 
-#endif
 
 shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImage )
 {
 	char		strippedName[MAX_QPATH];
-	int		i, hash;
+	unsigned long	hash; // ec-/Quake3e
 	char		*shaderText;
 	image_t		*image;
 	shader_t	*sh;
@@ -3050,7 +3052,8 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 		// have to check all default shaders otherwise for every call to R_FindShader
 		// with that same strippedName a new default shader is created.
 
-		if ( (sh->lightmapIndex == lightmapIndex || sh->defaultShader) && !Q_stricmp(sh->name, strippedName) )
+		//if ( (sh->lightmapIndex == lightmapIndex || sh->defaultShader) && !Q_stricmp(sh->name, strippedName) )
+		if ( (sh->lightmapSearchIndex == lightmapIndex || sh->defaultShader) && !Q_stricmp(sh->name, strippedName) )  // ec-/Quake3e
 		{
 			// match found
 			return sh;
@@ -3123,71 +3126,13 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 	//
 	SetImplicitShaderStages (image);
 
-	#if 0
-	
-	if ( shader.lightmapIndex == LIGHTMAP_NONE )
-	{
-		// dynamic colors at vertexes
-		stages[0].bundle[0].image[0] = image;
-		stages[0].active = qtrue;
-		stages[0].rgbGen = CGEN_LIGHTING_DIFFUSE;
-		stages[0].stateBits = GLS_DEFAULT;
-	}
-
-	else if ( shader.lightmapIndex == LIGHTMAP_BY_VERTEX )
-	{
-		// explicit colors at vertexes
-		stages[0].bundle[0].image[0] = image;
-		stages[0].active = qtrue;
-		stages[0].rgbGen = CGEN_EXACT_VERTEX;
-		stages[0].alphaGen = AGEN_SKIP;
-		stages[0].stateBits = GLS_DEFAULT;
-	}
-
-	else if ( shader.lightmapIndex == LIGHTMAP_2D )
-	{
-		// GUI elements
-		stages[0].bundle[0].image[0] = image;
-		stages[0].active = qtrue;
-		stages[0].rgbGen = CGEN_VERTEX;
-		stages[0].alphaGen = AGEN_VERTEX;
-		stages[0].stateBits = GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
-	}
-
-	else if ( shader.lightmapIndex == LIGHTMAP_WHITEIMAGE )
-	{
-		// fullbright level
-		stages[0].bundle[0].image[0] = tr.whiteImage;
-		stages[0].active = qtrue;
-		stages[0].rgbGen = CGEN_IDENTITY_LIGHTING;
-		stages[0].stateBits = GLS_DEFAULT;
-	}
-
-	else
-	{
-		// two pass lightmap
-		stages[0].bundle[0].image[0] = tr.lightmaps[shader.lightmapIndex];
-		stages[0].bundle[0].isLightmap = qtrue;
-		stages[0].active = qtrue;
-		stages[0].rgbGen = CGEN_IDENTITY;	// lightmaps are scaled on creation
-							// for identitylight
-		stages[0].stateBits = GLS_DEFAULT;
-
-		stages[1].bundle[0].image[0] = image;
-		stages[1].active = qtrue;
-		stages[1].rgbGen = CGEN_IDENTITY;
-		stages[1].stateBits |= GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO;
-	}
-
-	#endif
-
 	return FinishShader();
 }
 
 
 qhandle_t RE_RegisterShaderFromImage(const char *name, int lightmapIndex, image_t *image, qboolean mipRawImage)
 {
-	int		hash;
+	unsigned long	hash;  // ec-/Quake3e
 	shader_t	*sh;
 
 	hash = generateHashValue(name, FILE_HASH_SIZE);
@@ -3209,9 +3154,14 @@ qhandle_t RE_RegisterShaderFromImage(const char *name, int lightmapIndex, image_
 		// then a default shader is created with lightmapIndex == LIGHTMAP_NONE, so we
 		// have to check all default shaders otherwise for every call to R_FindShader
 		// with that same strippedName a new default shader is created.
+
+		/*
 		if ( (sh->lightmapIndex == lightmapIndex || sh->defaultShader) &&
 			// index by name
 			!Q_stricmp(sh->name, name) )
+		*/
+
+		if ( (sh->lightmapSearchIndex == lightmapIndex || sh->defaultShader) && !Q_stricmp(sh->name, name) ) // ec-/Quake3e
 		{
 			// match found
 			return sh->index;
@@ -3230,69 +3180,6 @@ qhandle_t RE_RegisterShaderFromImage(const char *name, int lightmapIndex, image_
 	// create the default shading commands
 	//
 	SetImplicitShaderStages (image);
-
-	#if 0
-	
-	if ( shader.lightmapIndex == LIGHTMAP_NONE )
-	{
-		// dynamic colors at vertexes
-		stages[0].bundle[0].image[0] = image;
-		stages[0].active = qtrue;
-		stages[0].rgbGen = CGEN_LIGHTING_DIFFUSE;
-		stages[0].stateBits = GLS_DEFAULT;
-	}
-
-	else if ( shader.lightmapIndex == LIGHTMAP_BY_VERTEX )
-	{
-		// explicit colors at vertexes
-		stages[0].bundle[0].image[0] = image;
-		stages[0].active = qtrue;
-		stages[0].rgbGen = CGEN_EXACT_VERTEX;
-		stages[0].alphaGen = AGEN_SKIP;
-		stages[0].stateBits = GLS_DEFAULT;
-	}
-
-	else if ( shader.lightmapIndex == LIGHTMAP_2D )
-	{
-		// GUI elements
-		stages[0].bundle[0].image[0] = image;
-		stages[0].active = qtrue;
-		stages[0].rgbGen = CGEN_VERTEX;
-		stages[0].alphaGen = AGEN_VERTEX;
-		stages[0].stateBits = GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
-	}
-
-	else if ( shader.lightmapIndex == LIGHTMAP_WHITEIMAGE )
-	{
-		// fullbright level
-		stages[0].bundle[0].image[0] = tr.whiteImage;
-		stages[0].active = qtrue;
-		stages[0].rgbGen = CGEN_IDENTITY_LIGHTING;
-		stages[0].stateBits = GLS_DEFAULT;
-
-		stages[1].bundle[0].image[0] = image;
-		stages[1].active = qtrue;
-		stages[1].rgbGen = CGEN_IDENTITY;
-		stages[1].stateBits |= GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO;
-	}
-
-	else
-	{
-		// two pass lightmap
-		stages[0].bundle[0].image[0] = tr.lightmaps[shader.lightmapIndex];
-		stages[0].bundle[0].isLightmap = qtrue;
-		stages[0].active = qtrue;
-		stages[0].rgbGen = CGEN_IDENTITY;	// lightmaps are scaled on creation
-							// for identitylight
-		stages[0].stateBits = GLS_DEFAULT;
-
-		stages[1].bundle[0].image[0] = image;
-		stages[1].active = qtrue;
-		stages[1].rgbGen = CGEN_IDENTITY;
-		stages[1].stateBits |= GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO;
-	}
-
-	#endif
 
 	sh = FinishShader();
 	return sh->index; 
@@ -3705,7 +3592,7 @@ static void ScanAndLoadShaderFiles( void )
 		hashMem = ((char *) hashMem) + ((shaderTextHashTableSizes[i] + 1) * sizeof(char *));
 	}
 
-	Com_Memset(shaderTextHashTableSizes, 0, sizeof(shaderTextHashTableSizes)); // why twice? - Cowcat
+	//Com_Memset(shaderTextHashTableSizes, 0, sizeof(shaderTextHashTableSizes)); // why twice? - Cowcat
 
 	p = s_shaderText;
 

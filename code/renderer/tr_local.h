@@ -435,7 +435,8 @@ typedef struct {
 typedef struct shader_s {
 
 	char		name[MAX_QPATH];	// game path, including extension
-	int		lightmapIndex;		// for a shader to match, both name and lightmapIndex must match
+	int		lightmapSearchIndex;	// ec-/Quake3e - for a shader to match, both name and lightmapIndex must match
+	int		lightmapIndex;		// for rendering
 
 	int		index;			// this shader == tr.shaders[index]
 	int		sortedIndex;		// this shader == tr.sortedShaders[sortedIndex]
@@ -850,7 +851,6 @@ void		R_Modellist_f (void);
 extern	refimport_t	ri;
 
 #define MAX_DRAWIMAGES	2048
-#define MAX_LIGHTMAPS	256
 #define MAX_SKINS	1024
 
 #define MAX_DRAWSURFS	0x10000
@@ -990,7 +990,7 @@ typedef struct {
 	shader_t			*sunShader;
 
 	int				numLightmaps;
-	image_t				*lightmaps[MAX_LIGHTMAPS];
+	image_t				**lightmaps;
 
 	trRefEntity_t			*currentEntity;
 	trRefEntity_t			worldEntity;		// point currentEntity at this when rendering world
