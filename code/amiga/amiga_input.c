@@ -125,7 +125,7 @@ void IN_Frame (void)
 	// Cowcat windowmode mousehandler juggling
 
 	static qboolean mousein;
-	int keycatch = qfalse;
+	qboolean keycatch = qfalse;
 
 	if ( windowmode && mouse_avail )
 	{
@@ -156,7 +156,7 @@ void IN_Frame (void)
 			mousein = qtrue;
 		}
 
-		if ( cls.cgameStarted == qfalse || keycatcher & KEYCATCH_UI )
+		if ( cls.cgameStarted == qfalse || keycatcher & (KEYCATCH_UI|KEYCATCH_CGAME) )
 		{
 			//Com_Printf("keycath ui\n");
 			keycatch = qtrue;
@@ -458,7 +458,7 @@ static void IN_ProcessEvents(qboolean keycatch)
 				}
 			}
 				
-			if (events[i].Class == IDCMP_MOUSEMOVE)
+			else if (events[i].Class == IDCMP_MOUSEMOVE)
 			{
 				if (mouse_active)
 				{
@@ -469,7 +469,7 @@ static void IN_ProcessEvents(qboolean keycatch)
 				}
 			}
 
-			if (events[i].Class == IDCMP_MOUSEBUTTONS)
+			else if (events[i].Class == IDCMP_MOUSEBUTTONS)
 			{
 				switch (events[i].Code & ~IECODE_UP_PREFIX)
 				{
