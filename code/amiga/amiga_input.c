@@ -270,7 +270,7 @@ static void IN_ProcessEvents(qboolean keycatch)
 	struct IntuiMessage *imsg;
 	struct InputEvent ie;
 	WORD res;
-	char buf[20];
+	char buf[4];
 
 	if (!Sys_EventPort)
 		return;
@@ -309,7 +309,7 @@ static void IN_ProcessEvents(qboolean keycatch)
 					}
 
 					else
-						res = MapRawKey(&ie, buf, 20, 0);
+						res = MapRawKey(&ie, buf, 4, 0);
 
 					Com_QueueEvent(msgTime, SE_KEY, key, keyDown(imsg->Code), 0, NULL);
 
@@ -390,6 +390,7 @@ struct MsgStruct
 };
 #pragma pack(pop)
 
+
 static int GetEvents(void *port, void *msgarray, int arraysize)
 {
 	extern int GetMessages68k();
@@ -414,20 +415,25 @@ static void IN_ProcessEvents(qboolean keycatch)
 	UWORD res;
 	int i;
 
-	if(Sys_EventPort)
+	if(!Sys_EventPort)
+		return;
+
+	struct MsgStruct events[50];
+	const ULONG msgTime = 0; //Sys_Milliseconds();
+
+	int messages = GetEvents(Sys_EventPort, events, 50);
+
+	//if (messages > 0)
+		//Com_Printf("messages %d\n", messages);
+
+	i = 0;
+
+	while ( i < messages )
 	{
-		struct MsgStruct events[50];
-		const ULONG msgTime = 0; //Sys_Milliseconds();
-
-		int messages = GetEvents(Sys_EventPort, events, 50);
-
-		//if (messages > 0)
-			//Com_Printf("messages %d\n", messages);
-
-		for (i = 0; i < messages; i++)
+		switch( events[i].Class )
 		{
-			if (events[i].Class == IDCMP_RAWKEY)
-			{
+			case IDCMP_RAWKEY:
+
 				if ( keycatch &&  events[i].Code == ( 0x63 & ~IECODE_UP_PREFIX ) ) // windowmode handler workaround
 				{
 					Com_QueueEvent(msgTime, SE_KEY, K_MOUSE1, keyDown(events[i].Code), 0, NULL);
@@ -452,14 +458,13 @@ static void IN_ProcessEvents(qboolean keycatch)
 					Com_QueueEvent(msgTime, SE_KEY, key, keyDown(events[i].Code), 0, NULL);
 
 					if (res == 1)
-					{
 						Com_QueueEvent(msgTime, SE_CHAR, events[i].rawkey, 0, 0, NULL);
-					}
 				}
-			}
+
+				break;
 				
-			else if (events[i].Class == IDCMP_MOUSEMOVE)
-			{
+			case IDCMP_MOUSEMOVE:
+
 				if (mouse_active)
 				{
 					mx = events[i].MouseX;
@@ -467,10 +472,11 @@ static void IN_ProcessEvents(qboolean keycatch)
 
 					Com_QueueEvent(msgTime, SE_MOUSE, mx, my, 0, NULL);
 				}
-			}
 
-			else if (events[i].Class == IDCMP_MOUSEBUTTONS)
-			{
+				break;
+
+			case IDCMP_MOUSEBUTTONS:
+	
 				switch (events[i].Code & ~IECODE_UP_PREFIX)
 				{
 					case IECODE_LBUTTON:
@@ -485,8 +491,9 @@ static void IN_ProcessEvents(qboolean keycatch)
 						Com_QueueEvent(msgTime, SE_KEY, K_MOUSE3, keyDown(events[i].Code), 0, NULL);
 						break;
 				}
-			}
 		}
+
+		i++;
 	}
 }
 

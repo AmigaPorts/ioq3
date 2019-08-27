@@ -1161,7 +1161,7 @@ void R_Init( void )
 
 	if ( (intptr_t)tess.xyz & 15 )
 	{
-		Com_Printf( "WARNING: tess.xyz not 16 byte aligned\n" );
+		ri.Printf( PRINT_WARNING, "tess.xyz not 16 byte aligned\n" );
 	}
 
 	Com_Memset( tess.constantColor255, 255, sizeof( tess.constantColor255 ) );

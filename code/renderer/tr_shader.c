@@ -3204,7 +3204,7 @@ qhandle_t RE_RegisterShaderLightMap( const char *name, int lightmapIndex )
 
 	if ( strlen( name ) >= MAX_QPATH )
 	{
-		Com_Printf( "Shader name exceeds MAX_QPATH\n" );
+		ri.Printf( PRINT_ALL, "Shader name exceeds MAX_QPATH\n" );
 		return 0;
 	}
 
@@ -3241,7 +3241,7 @@ qhandle_t RE_RegisterShader( const char *name )
 
 	if ( strlen( name ) >= MAX_QPATH )
 	{
-		Com_Printf( "Shader name exceeds MAX_QPATH\n" );
+		ri.Printf( PRINT_ALL, "Shader name exceeds MAX_QPATH\n" );
 		return 0;
 	}
 
@@ -3274,7 +3274,7 @@ qhandle_t RE_RegisterShaderNoMip( const char *name )
 
 	if ( strlen( name ) >= MAX_QPATH )
 	{
-		Com_Printf( "Shader name exceeds MAX_QPATH\n" );
+		ri.Printf( PRINT_ALL, "Shader name exceeds MAX_QPATH\n" );
 		return 0;
 	}
 
