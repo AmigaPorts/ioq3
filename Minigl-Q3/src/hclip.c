@@ -66,6 +66,7 @@ static void hc_ClipWZero(MGLVertex *a, MGLVertex *b, MGLVertex *r, GLenum shadin
 	ULONG outcode;
 
 	float t = (CLIP_EPS-w1)/(w2-w1);
+
 	r->bx = LERP(t, a->bx, b->bx);
 	r->by = LERP(t, a->by, b->by);
 	r->bz = LERP(t, a->bz, b->bz);
@@ -139,6 +140,7 @@ static void hc_ClipLeft(MGLVertex *a, MGLVertex *b, MGLVertex *r, GLenum shading
 	ULONG outcode;
 	
 	float t = (w1+x1)/((w1+x1)-(w2+x2));
+
 	r->by = LERP(t, a->by, b->by);
 	r->bz = LERP(t, a->bz, b->bz);
 	r->bw = LERP(t, a->bw, b->bw);
@@ -612,7 +614,6 @@ These expressions test the length of the triangle-sides in 3D space and is in es
 	}
 }
 
-
 void GLFrontFace(GLcontext context, GLenum mode)
 {
 	int 	facing;
@@ -829,8 +830,8 @@ void hc_ClipAndDrawPoly(GLcontext context, MGLPolygon *poly, ULONG or_codes)
 	int 		i, j;
 	int 		prev;
 	int 		free = context->VertexBufferPointer;
-	//GLboolean 	flag;
-	//ULONG 	original_or_codes = or_codes;
+	//GLboolean	flag;
+	//ULONG		original_or_codes = or_codes;
 
 	a = poly;
 	b = &output;
@@ -885,8 +886,8 @@ void hc_ClipAndDrawLine(GLcontext context, MGLPolygon *poly, ULONG or_codes)
     	int 		i, j;
     	int 		prev;
     	int 		free = context->VertexBufferPointer;
-    	//GLboolean 	flag;
-    	//ULONG 	original_or_codes = or_codes;
+    	//GLboolean	flag;
+    	//ULONG		original_or_codes = or_codes;
 
     	a = poly; b=&output;
 
@@ -894,7 +895,7 @@ void hc_ClipAndDrawLine(GLcontext context, MGLPolygon *poly, ULONG or_codes)
 
 	// Surgeon: conditioned by macro execution
 
-      	if(or_codes & MGL_CLIP_NEGW)
+	if(or_codes & MGL_CLIP_NEGW)
 	{
 		j = 0;
 		or_codes = 0;
@@ -926,7 +927,7 @@ void hc_ClipPoly(GLcontext context, MGLPolygon *poly, PolyBuffer *out, int clips
 	int 		i, j;
 	int 		prev;
 	int 		free = clipstart;
-	//ULONG 	original_or_codes = or_codes;
+	//ULONG		original_or_codes = or_codes;
 
 	a = poly;
 	b = &output;
@@ -936,7 +937,7 @@ void hc_ClipPoly(GLcontext context, MGLPolygon *poly, PolyBuffer *out, int clips
 
 	// Surgeon: conditioned by macro execution
 
-      	if(or_codes & MGL_CLIP_NEGW)
+	if(or_codes & MGL_CLIP_NEGW)
 	{
 		j = 0;
 		or_codes = 0;
@@ -995,7 +996,7 @@ void hc_ClipPolyFF(GLcontext context, MGLPolygon *poly, ULONG or_codes)
 
 	// Surgeon: conditioned by macro execution
 
-      	if(or_codes & MGL_CLIP_NEGW)
+	if(or_codes & MGL_CLIP_NEGW)
 	{
 		j = 0;
 		or_codes = 0;

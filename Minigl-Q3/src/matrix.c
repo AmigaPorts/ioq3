@@ -499,7 +499,6 @@ INLINE void m_MatMultB0001(Matrix *pA, float *pB, Matrix *pC)
 	float a43 = a(43);
 	float a44 = a(44);
 
-
 	c(11) = a11*b11 + a12*b21 + a13*b31;
 	c(12) = a11*b12 + a12*b22 + a13*b32;
 	c(13) = a11*b13 + a12*b23 + a13*b33;
@@ -1023,7 +1022,7 @@ INLINE void m_MatMultATrans(Matrix *pA, float *pB, Matrix *pC)
 	b24 += b44*a24;
 	b34 += b44*a34;
 	c(14) = b14;
-	c(24) = b23;
+	c(24) = b24; // was b23 - Cowcat
 	c(34) = b34;
 
 	c(41) = b41;
@@ -1525,7 +1524,7 @@ INLINE void m_MatMultA0001_BPersp(Matrix *pA, float *pB, Matrix *pC)
 	c(13) = a14; 
 	c(23) = a24; 
 	c(33) = a34; 
-	c(43) = -1; 
+	c(43) = -1.0f; // single float - Cowcat
 
 	#undef a
 	#undef b

@@ -236,6 +236,7 @@ static void A_ClipRight(MGLVertex *a, MGLVertex *b, MGLVertex *r)
 	r->bx = r->bw;
 
 	w = r->bw;
+
 	outcode = 0;
 
 	if (-w > r->by)
@@ -296,6 +297,7 @@ static void A_ClipFront(MGLVertex *a, MGLVertex *b, MGLVertex *r)
 	{
 		r->outcode = 0;
 	}
+
 }
 
 static void A_ClipBack(MGLVertex *a, MGLVertex *b, MGLVertex *r)

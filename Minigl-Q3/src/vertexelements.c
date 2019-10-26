@@ -434,7 +434,7 @@ static INLINE ULONG TransformRange(GLcontext context, const int first, const int
 			{
 				local_outcode |= MGL_CLIP_NEGW;
 			}
-     
+
 			if (-tw > tx)
 			{
 				local_outcode |= MGL_CLIP_LEFT;
@@ -535,13 +535,14 @@ static INLINE ULONG TransformRange(GLcontext context, const int first, const int
 		do
 		{
 			ULONG local_outcode = 0;
+
 			float cw = v->bw;
 
 			if (cw < CLIP_EPS )
 			{
 				local_outcode |= MGL_CLIP_NEGW;
 			}
-	
+
 			if (-cw > v->bx)
 			{
 				local_outcode |= MGL_CLIP_LEFT;
@@ -561,7 +562,7 @@ static INLINE ULONG TransformRange(GLcontext context, const int first, const int
 			{
 				local_outcode |= MGL_CLIP_TOP;
 			}
-	
+			
 			if (-cw > v->bz)
 			{
 				local_outcode |= MGL_CLIP_BACK;
@@ -2496,6 +2497,7 @@ static void E_DrawFlatFan(GLcontext context, const int count, const UWORD *idx)
 
 //Range guardband-check added 18-05-02 (surgeon)
 
+#if 0 // not used - Cowcat 
 static INLINE ULONG TestRangeGuardBand(GLcontext context, const GLuint first, const GLsizei count)
 {
 	int i; 
@@ -2528,6 +2530,7 @@ static INLINE ULONG TestRangeGuardBand(GLcontext context, const GLuint first, co
 
 	return ret;
 }
+#endif
 
 static INLINE ULONG EncodeRangeGuardBand(GLcontext context, const GLuint first, const GLsizei count)
 {

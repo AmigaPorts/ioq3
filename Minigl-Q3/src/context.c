@@ -1696,46 +1696,28 @@ void MGLDeleteContext(GLcontext context)
 	FreeMtex();
 
 	if (context->NormalBuffer) 
-	{
 		free(context->NormalBuffer);
-		context->NormalBuffer = NULL;
-	}
-
+		
 	if (context->WBuffer) 
-	{
 		free(context->WBuffer);
-		context->WBuffer = NULL;
-	}
 
 	if (context->ElementIndex) 
-	{
 		free(context->ElementIndex);
-		context->ElementIndex = NULL;
-	}
-
+		
 	if (context->VertexBuffer) 
-	{
 		free(context->VertexBuffer);
-		context->VertexBuffer = NULL;
-	}
 
 	if (context->w3dTexBuffer) 
-	{
 		free(context->w3dTexBuffer);
-		context->w3dTexBuffer = NULL;
-	}
 
 	if (context->GeneratedTextures) 
-	{
 		free(context->GeneratedTextures);
-		context->GeneratedTextures = NULL;
-	}
 
-	if (context->PaletteData) // missing ? - Cowcat
-	{
+	if (context->w3dTexMemory) // missing - Cowcat
+		free(context->w3dTexMemory);
+
+	if (context->PaletteData) // missing - Cowcat
 		free(context->PaletteData);
-		context->PaletteData = NULL;
-	}
 
 	//MGLTexMemStat(context, &current, &peak); // Cowcat
 
@@ -1800,7 +1782,7 @@ void MGLSetState(GLcontext context, const GLenum cap, const GLboolean flag) //su
 
 			if(flag == GL_FALSE) //restore
 				W3D_SetScissor(context->w3dContext, &(context->scissor));
-
+			
 			break;
 
 		case GL_CULL_FACE:
