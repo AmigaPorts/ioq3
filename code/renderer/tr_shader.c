@@ -2591,7 +2591,7 @@ from the current global working shader
 
 static shader_t *FinishShader( void )
 {
-	int		stage;
+	int		stage, i;
 	qboolean	hasLightmapStage;
 	qboolean	vertexLightmap;
 
@@ -2755,6 +2755,25 @@ static shader_t *FinishShader( void )
 	{
 		shader.sort = SS_OPAQUE;
 	}
+
+	// avoid redundand comparisons on›in R_ComputeColors - quake3e
+	for (i = 0; i < MAX_SHADER_STAGES; i++)
+	{
+		shaderStage_t *pStage = &stages[i];
+
+		if( !pStage->active)
+			break;
+
+		if( pStage->rgbGen == CGEN_IDENTITY && pStage->alphaGen == AGEN_IDENTITY )
+			pStage->alphaGen = AGEN_SKIP;
+
+		else if( pStage->rgbGen == CGEN_CONST && pStage->alphaGen == AGEN_CONST )
+			pStage->alphaGen = AGEN_SKIP;
+		
+		else if( pStage->rgbGen == CGEN_VERTEX && pStage->alphaGen == AGEN_VERTEX )
+			pStage->alphaGen = AGEN_SKIP;
+	}
+	//
 		
 	//
 	// if we are in r_vertexLight mode, never use a lightmap texture

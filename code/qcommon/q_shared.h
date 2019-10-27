@@ -1403,6 +1403,7 @@ typedef enum _flag_status {
 #define CDKEY_LEN 	16
 #define CDCHKSUM_LEN 	2
 
+#define LUMA( red, green, blue ) ( 0.2126f * ( red ) + 0.7152f * ( green ) + 0.0722f * ( blue ) )
 
 #endif	// __Q_SHARED_H
 

@@ -41,7 +41,7 @@ This is just for OpenGL conformance testing, it should never be the fastest
 ================
 */
 
-#if 1 // old slow mode
+// old slow mode
 
 static void APIENTRY R_ArrayElementDiscrete( GLint index )
 {
@@ -150,16 +150,12 @@ static void R_DrawStripElements( int numIndexes, const glIndex_t *indexes, void 
 	qglEnd();
 }
 
-#endif
-
 /*
 ===================
 R_DrawStripElements
 
 ===================
 */
-
-static UWORD ElementIndex[4096];
 
 static void R_DrawStripElementsAmiga( int numIndexes, const glIndex_t *indexes )
 {
@@ -170,8 +166,10 @@ static void R_DrawStripElementsAmiga( int numIndexes, const glIndex_t *indexes )
 	if ( numIndexes <= 0 )
 		return;
 
-	unsigned int VertexBufferPointer = 0;
+	UWORD *ElementIndex = CC->ElementIndex; // mglmacros.h
 
+	unsigned int VertexBufferPointer = 0;
+	
 	int indexes0 = indexes[0];
 	int indexes1 = indexes[1];
 	int indexes2 = indexes[2];
@@ -341,7 +339,7 @@ R_BindAnimatedImage
 */
 static void R_BindAnimatedImage( textureBundle_t *bundle )
 {
-	int	index;
+	int index;
 
 	if ( bundle->isVideoMap )
 	{
@@ -367,7 +365,7 @@ static void R_BindAnimatedImage( textureBundle_t *bundle )
 	}
 
 	index %= bundle->numImageAnimations;
-	
+
 	GL_Bind( bundle->image[ index ] );
 }
 	
@@ -513,8 +511,8 @@ t1 = most downstream according to spec
 ===================
 */
 
-//#if !defined(AMIGAOS) // Cowcat
-#if 1
+#if !defined(AMIGAOS) // Cowcat
+
 static void DrawMultitextured( shaderCommands_t *input, int stage )
 {
 	shaderStage_t	*pStage;
@@ -625,7 +623,7 @@ static void ProjectDlightTexture_scalar( void )
 		{
 			float luminance;
 			
-			luminance = (dl->color[0] * 255.0f + dl->color[1] * 255.0f + dl->color[2] * 255.0f) / 3;
+			luminance = LUMA(dl->color[0], dl->color[1], dl->color[2]) * 255.0f;
 			floatColor[0] = floatColor[1] = floatColor[2] = luminance;
 		}
 
@@ -723,7 +721,7 @@ static void ProjectDlightTexture_scalar( void )
 
 		for ( i = 0 ; i < tess.numIndexes ; i += 3 )
 		{
-			int	a, b, c; 
+			int a, b, c; 
 
 			a = tess.indexes[i];
 			b = tess.indexes[i+1];
@@ -952,7 +950,7 @@ static void ComputeColors( shaderStage_t *pStage )
 
 		case AGEN_IDENTITY:
 
-			if ( pStage->rgbGen != CGEN_IDENTITY )
+			//if ( pStage->rgbGen != CGEN_IDENTITY ) // quake3e
 			{
 				if ( ( pStage->rgbGen == CGEN_VERTEX && tr.identityLight != 1 ) || pStage->rgbGen != CGEN_VERTEX )
 				{
@@ -967,7 +965,7 @@ static void ComputeColors( shaderStage_t *pStage )
 
 		case AGEN_CONST:
 
-			if ( pStage->rgbGen != CGEN_CONST )
+			//if ( pStage->rgbGen != CGEN_CONST ) // quake3e
 			{
 				for ( i = 0; i < tess.numVertexes; i++ )
 				{
@@ -995,7 +993,7 @@ static void ComputeColors( shaderStage_t *pStage )
 
 		case AGEN_VERTEX:
 
-			if ( pStage->rgbGen != CGEN_VERTEX )
+			//if ( pStage->rgbGen != CGEN_VERTEX ) //quake3e
 			{
 				for ( i = 0; i < tess.numVertexes; i++ )
 				{
@@ -1226,8 +1224,7 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 		ComputeColors( pStage );
 		ComputeTexCoords( pStage );
 
-		//#if !defined(AMIGAOS) // Cowcat
-		#if 1
+		#if !defined(AMIGAOS) // Cowcat
 
 		if ( !setArraysOnce )
 		{
@@ -1277,6 +1274,15 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 		//
 		R_BindAnimatedImage( &pStage->bundle[0] );
 
+		/*
+		if ( r_lightmap->integer && ( pStage->bundle[0].isLightmap || pStage->bundle[1].isLightmap ) ) // test no lightmaps
+		{
+			unsigned int stateBits = (pStage->stateBits & ~(GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS)) | (GLS_SRCBLEND_ONE | GLS_DSTBLEND_ZERO);
+			GL_State( stateBits );
+		}
+		else
+		*/
+
 		GL_State( pStage->stateBits );
 
 		//
@@ -1291,9 +1297,6 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 		{
 			break;
 		}
-
-		//if ( pStage->bundle[0].isLightmap ) // || pStage->bundle[1].isLightmap ) // test ligthmap problems - cowcat
-			//break;
 	}
 }
 

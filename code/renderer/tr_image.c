@@ -617,8 +617,6 @@ Upload32
 ===============
 */
 
-#define LUMA( red, green, blue ) ( 0.2126f * ( red ) + 0.7152f * ( green ) + 0.0722f * ( blue ) )
-
 #if defined(AMIGAOS) // Cowcat
 qboolean cinematic;
 #endif
@@ -752,6 +750,14 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 			}
 		}
 
+		#if defined(AMIGAOS) // Cowcat
+		
+		if(cinematic)
+			internalFormat = GL_ALPHA; // minigl workaround for scratch image - not really ALPHA .... 
+			
+		else
+		#endif
+
 		// select proper internal format
 		if ( samples == 3 )
 		{
@@ -765,11 +771,6 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 				#endif
 					internalFormat = GL_LUMINANCE;
 			}
-
-			#if defined(AMIGAOS) // Cowcat
-			else if(cinematic)
-				internalFormat = GL_ALPHA; // minigl workaround for scratch image - not really ALPHA .... 
-			#endif
 
 			else
 			{
@@ -840,6 +841,7 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 	}
 
 	// copy or resample data as appropriate for first MIP level
+
 	if ( ( scaled_width == width ) && ( scaled_height == height ) )
 	{
 		if (!mipmap)
@@ -917,8 +919,8 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 			qglTexImage2D ( GL_TEXTURE_2D, miplevel, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaledBuffer );
 		}
 	}
-done:
 
+done:
 	if (mipmap) 
 	{
 		#if !defined(AMIGAOS) // Cowcat
