@@ -105,9 +105,8 @@ static void copy64(uint32_t *M, byte *in)
 {
 	int i;
 
-	for (i=0;i<16;i++) // new Cowcat
+	for (i=0;i<16;i++)
 	{
-		//M[i] = (in[i*4+3]<<24) | (in[i*4+2]<<16) | (in[i*4+1]<<8) | (in[i*4+0]<<0);
 		M[i] =
 			((uint32_t)in[i*4+3]<<24) |
 			((uint32_t)in[i*4+2]<<16) |
@@ -136,7 +135,7 @@ void mdfour_begin(struct mdfour *md)
 
 static void mdfour_tail(byte *in, int n)
 {
-	byte buf[128];
+	byte	buf[128];
 	uint32_t M[16];
 	uint32_t b;
 
@@ -221,3 +220,4 @@ unsigned Com_BlockChecksum (const void *buffer, int length)
 
 	return val;
 }
+

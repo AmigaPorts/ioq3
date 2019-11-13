@@ -281,19 +281,8 @@ Check whether a certain address is banned
 
 static qboolean SV_IsBanned(netadr_t *from, qboolean isexception)
 {
-	int		index, addrlen, curbyte, netmask, cmpmask;
+	int		index;
 	serverBan_t	*curban;
-	byte		*addrfrom, *addrban;
-	qboolean	differed;
-	
-	if(from->type == NA_IP)
-		addrlen = sizeof(from->ip);
-
-	else if(from->type == NA_IP6)
-		addrlen = sizeof(from->ip6);
-
-	else
-		return qfalse;
 
 	if(!isexception)
 	{
@@ -301,57 +290,18 @@ static qboolean SV_IsBanned(netadr_t *from, qboolean isexception)
 		if(SV_IsBanned(from, qtrue))
 			return qfalse;
 	}
-	
+
 	for(index = 0; index < serverBansCount; index++)
 	{
 		curban = &serverBans[index];
 		
-		if(curban->isexception == isexception && from->type == curban->ip.type)
+		if(curban->isexception == isexception)
 		{
-			if(from->type == NA_IP)
-			{
-				addrfrom = from->ip;
-				addrban = curban->ip.ip;
-			}
-
-			else
-			{
-				addrfrom = from->ip6;
-				addrban = curban->ip.ip6;
-			}
-			
-			differed = qfalse;
-			curbyte = 0;
-			
-			for(netmask = curban->subnet; netmask > 7; netmask -= 8)
-			{
-				if(addrfrom[curbyte] != addrban[curbyte])
-				{
-					differed = qtrue;
-					break;
-				}
-				
-				curbyte++;
-			}
-			
-			if(differed)
-				continue;
-				
-			if(netmask)
-			{
-				cmpmask = (1 << netmask) - 1;
-				cmpmask <<= 8 - netmask;
-				
-				if((addrfrom[curbyte] & cmpmask) == (addrban[curbyte] & cmpmask))
-					return qtrue;
-			}
-
-			else
+			if(NET_CompareBaseAdrMask(curban->ip, *from, curban->subnet))
 				return qtrue;
-			
 		}
 	}
-	
+
 	return qfalse;
 }
 
@@ -1404,7 +1354,7 @@ static void SV_VerifyPaks_f( client_t *cl )
 	//
 	if ( sv_pure->integer != 0 )
 	{
-		bGood = qtrue;
+		//bGood = qtrue; // cowcat new
 		nChkSum1 = nChkSum2 = 0;
 
 		// we run the game, so determine which cgame and ui the client "should" be running

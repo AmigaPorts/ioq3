@@ -249,8 +249,9 @@ void S_PaintChannelFrom16_altivec( portable_samplepair_t paintbuffer[PAINTBUFFER
 
 	samp = &paintbuffer[ bufferOffset ];
 
-	if (ch->doppler) {
-		sampleOffset = sampleOffset*ch->oldDopplerScale;
+	if (ch->doppler)
+	{
+		sampleOffset = sampleOffset * ch->oldDopplerScale;
 	}
 
 	chunk = sc->soundData;
@@ -413,7 +414,8 @@ void S_PaintChannelFrom16_altivec( portable_samplepair_t paintbuffer[PAINTBUFFER
 				{
 					chunk = chunk->next;
 
-					if (!chunk) {
+					if (!chunk)
+					{
 						chunk = sc->soundData;
 					}
 

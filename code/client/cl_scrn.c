@@ -252,7 +252,6 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, float *set
 	re.SetColor( NULL );
 }
 
-
 void SCR_DrawBigString( int x, int y, const char *s, float alpha, qboolean noColorEscape )
 {
 	float	color[4];

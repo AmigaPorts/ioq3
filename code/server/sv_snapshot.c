@@ -556,7 +556,6 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 			eNums->unordered = qtrue; // ec-/Quake3e
 			SV_AddEntitiesVisibleFromPoint( ent->s.origin2, frame, eNums, qtrue );
 		}
-
 	}
 }
 

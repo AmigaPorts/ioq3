@@ -293,7 +293,7 @@ qboolean S_LoadSound( sfx_t *sfx )
 	// manager to do the right thing for us and page
 	// sound in as needed
 
-	if( sfx->soundCompressed == qtrue)
+	if( info.channels && sfx->soundCompressed == qtrue)
 	{
 		sfx->soundCompressionMethod = 1;
 		sfx->soundData = NULL;

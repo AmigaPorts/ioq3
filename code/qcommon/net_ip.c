@@ -84,11 +84,12 @@ static qboolean	winsockInitialized = qfalse;
 #	endif
 
 typedef int SOCKET;
+
 #define INVALID_SOCKET	-1
 #define SOCKET_ERROR	-1
 #define closesocket	close
 #define ioctlsocket	ioctl
-typedef int ioctlarg_t;
+typedef int		ioctlarg_t;
 #define socketError	errno
 
 #endif
@@ -115,15 +116,14 @@ static int networkingEnabled = 0;
  */
 
 #define _SS_MAXSIZE 128			/* Implementation-defined maximum size. */
-#define _SS_ALIGNSIZE (sizeof(int64_t)) /* Implementation-defined desired alignment. */ // was 64
+#define _SS_ALIGNSIZE (sizeof(int64_t)) /* Implementation-defined desired alignment. */
 
 
 /*
  *  Definitions used for sockaddr_storage structure paddings design.
  */
 #define _SS_PAD1SIZE (_SS_ALIGNSIZE - sizeof(sa_family_t))
-#define _SS_PAD2SIZE (_SS_MAXSIZE - (sizeof(sa_family_t)+ \
-					  _SS_PAD1SIZE + _SS_ALIGNSIZE))
+#define _SS_PAD2SIZE (_SS_MAXSIZE - (sizeof(sa_family_t) + _SS_PAD1SIZE + _SS_ALIGNSIZE))
 
 struct sockaddr_storage {
 	sa_family_t 	ss_family;		/* Address family. */
@@ -135,7 +135,7 @@ struct sockaddr_storage {
 				/* 6-byte pad; this is to make implementation-defined
 		   		pad up to alignment field that follows explicit in
 				the data structure. */
-	int64_t _ss_align;  	/* Field to force desired structure storage alignment. */ // was 64 - Cowcat
+	int64_t		_ss_align;  	/* Field to force desired structure storage alignment. */
 
 	char 		_ss_pad2[_SS_PAD2SIZE];
 				/* 112-byte pad to achieve desired size,
@@ -203,6 +203,7 @@ static SOCKET	socks_socket = INVALID_SOCKET;
 
 #ifndef IF_NAMESIZE
 #define IF_NAMESIZE 16
+
 #endif
 
 // use an admin local address per default so that network admins can decide on how to handle quake3 traffic.
@@ -382,26 +383,26 @@ static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int s
 		{
 			// Decide here and now which protocol family to use
 
-	#if !defined(AMIGAOS)
-			if((net_enabled->integer & NET_ENABLEV6) && (net_enabled->integer & NET_PRIOV6))
-				search = SearchAddrInfo(res, AF_INET6);
-
-			else
-	#endif
-				search = SearchAddrInfo(res, AF_INET);
-
-	#if !defined(AMIGAOS)
-			if(!search)
+		#if !defined(AMIGAOS)
+			if(net_enabled->integer & NET_PRIOV6)
 			{
-				if((net_enabled->integer & NET_ENABLEV6) &&
-				   (net_enabled->integer & NET_PRIOV6) &&
-				   (net_enabled->integer & NET_ENABLEV4))
+				if(net_enabled->integer & NET_ENABLEV6)
+					search = SearchAddrInfo(res, AF_INET6);
+
+				if(!search && (net_enabled->integer & NET_ENABLEV4))
 					search = SearchAddrInfo(res, AF_INET);
 
-				else if(net_enabled->integer & NET_ENABLEV6)
+			else
+		#endif
+			{
+				if(net_enabled->integer & NET_ENABLEV4)
+					search = SearchAddrInfo(res, AF_INET);
+
+		#if !defined(AMIGAOS)
+				if(!search && (net_enabled->integer & NET_ENABLEV6))
 					search = SearchAddrInfo(res, AF_INET6);
+		#endif
 			}
-	#endif
 		}
 
 		else
@@ -490,54 +491,99 @@ qboolean Sys_StringToAdr( const char *s, netadr_t *a, netadrtype_t family )
 
 /*
 ===================
+NET_CompareBaseAdrMask
+
+Compares without the port, and up to the bit number given in netmask
+===================
+*/
+
+qboolean NET_CompareBaseAdrMask (netadr_t a, netadr_t b, int netmask)
+{
+	byte cmpmask, *addra, *addrb;
+	int curbyte;
+
+	if (a.type != b.type)
+		return qfalse;
+
+	if (a.type == NA_LOOPBACK)
+	{
+		//Com_Printf ("NET_CompareBaseAdr: a.type = NA_LOOPBACK \n");
+		return qtrue;
+	}
+
+	if (a.type == NA_IP)
+	{
+		addra = (byte *) &a.ip;
+		addrb = (byte *) &b.ip;
+
+		if(netmask < 0 || netmask > 32)
+			netmask = 32;
+
+		//Com_Printf ("NET_CompareBaseAdr: a.type = NA_IP \n");
+	}
+
+#if !defined(AMIGAOS)
+	else if (a.type == NA_IP6)
+	{
+		addra = (byte *) &a.ip6;
+		addrb = (byte *) &b.ip6;
+
+		if(netmask < 0 || netmask > 128)
+			netmask = 128;
+	}
+#endif
+
+	else
+	{
+		Com_Printf ("NET_CompareBaseAdr: bad address type\n");
+		return qfalse;
+	}
+
+	curbyte = netmask >> 3;
+
+	if(curbyte && memcmp(addra, addrb, curbyte))
+		return qfalse;
+
+	netmask &= 0x07;
+
+	if(netmask)
+	{
+		cmpmask = (1 << netmask) - 1;
+		cmpmask <<= 8 - netmask;
+
+		if( (addra[curbyte] & cmpmask) == (addrb[curbyte] & cmpmask) )
+			return qtrue;
+	}
+
+	else
+		return qtrue;
+
+	return qfalse;
+}
+
+/*
+===================
 NET_CompareBaseAdr
 
 Compares without the port
 ===================
 */
+
 qboolean NET_CompareBaseAdr (netadr_t a, netadr_t b)
 {
-	if (a.type != b.type)
-		return qfalse;
-
-	if (a.type == NA_LOOPBACK)
-		return qtrue;
-
-	if (a.type == NA_IP)
-	{
-		if(!memcmp(a.ip, b.ip, sizeof(a.ip)))
-			return qtrue;
-		
-		return qfalse;
-	}
-
-#if !defined(AMIGAOS)
-	if (a.type == NA_IP6)
-	{
-		if(!memcmp(a.ip6, b.ip6, sizeof(a.ip6)) && a.scope_id == b.scope_id)
-				  return qtrue;
-		
-		return qfalse;
-	}
-#endif
-
-	Com_Printf ("NET_CompareBaseAdr: bad address type\n");
-	return qfalse;
+	return NET_CompareBaseAdrMask(a, b, -1);
 }
+
 
 const char *NET_AdrToString (netadr_t a)
 {
 	static char	s[NET_ADDRSTRMAXLEN];
 
 	if (a.type == NA_LOOPBACK)
-	{
 		Com_sprintf (s, sizeof(s), "loopback");
-	}
 
 	else if (a.type == NA_BOT)
-	{
 		Com_sprintf (s, sizeof(s), "bot");
-	}
 
 #if !defined(AMIGAOS) // Cowcat
 	else if (a.type == NA_IP || a.type == NA_IP6)
@@ -560,25 +606,17 @@ const char *NET_AdrToStringwPort (netadr_t a)
 	static char	s[NET_ADDRSTRMAXLEN];
 
 	if (a.type == NA_LOOPBACK)
-	{
 		Com_sprintf (s, sizeof(s), "loopback");
-	}
 
 	else if (a.type == NA_BOT)
-	{
 		Com_sprintf (s, sizeof(s), "bot");
-	}
 
 	else if(a.type == NA_IP)
-	{
 		Com_sprintf(s, sizeof(s), "%s:%hu", NET_AdrToString(a), ntohs(a.port));
-	}
 
 #if !defined(AMIGAOS)
 	else if(a.type == NA_IP6)
-	{
 		Com_sprintf(s, sizeof(s), "[%s]:%hu", NET_AdrToString(a), ntohs(a.port));
-	}
 #endif
 
 	return s;
@@ -680,6 +718,7 @@ qboolean NET_GetPacket( netadr_t *net_from, msg_t *net_message, fd_set *fdr )
 	}
 
 #if !defined(AMIGAOS)
+
 	if(ip6_socket != INVALID_SOCKET && FD_ISSET(ip6_socket, fdr))
 	{
 		fromlen = sizeof(from);
@@ -780,7 +819,7 @@ void Sys_SendPacket( int length, const void *data, netadr_t to )
 		return;
 	}
 
-	if( (ip_socket == INVALID_SOCKET && to.type == NA_IP) || (ip_socket == INVALID_SOCKET && to.type == NA_BROADCAST) ) // Cowcat BROADCAST
+	if( (ip_socket == INVALID_SOCKET && to.type == NA_IP) || (ip_socket == INVALID_SOCKET && to.type == NA_BROADCAST) )
 		return;
 
 #endif
@@ -849,9 +888,9 @@ LAN clients will have their rate var ignored
 */
 qboolean Sys_IsLANAddress( netadr_t adr )
 {
-	int	index, run, addrsize;
-	qboolean differed;
-	byte 	*compareadr, *comparemask, *compareip;
+	int		index, run, addrsize;
+	qboolean	differed;
+	byte		*compareadr, *comparemask, *compareip;
 
 	if( adr.type == NA_LOOPBACK )
 	{
@@ -944,7 +983,6 @@ Sys_ShowIP
 void Sys_ShowIP(void)
 {
 	int i;
-
 	char addrbuf[NET_ADDRSTRMAXLEN];
 
 	for(i = 0; i < numIP; i++)
@@ -1855,7 +1893,6 @@ void NET_Config( qboolean enableNetworking )
 NET_Init
 ====================
 */
-void NET_Restart_f( void );
 
 void NET_Init( void )
 {
@@ -2127,7 +2164,7 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen, char *node, socklen_
 
 	//Com_Printf("DEBUG: buf is '%s'", buf);
 
-	if ( (strlen(buf) <= nodelen) && (strlen(buf) < sizeof(buf)) ) // was < 32 - Cowcat
+	if ( (strlen(buf) <= nodelen) && (strlen(buf) < sizeof(buf)) )
 	{
 		strncpy(node, buf, strlen(buf) + 1);
 		

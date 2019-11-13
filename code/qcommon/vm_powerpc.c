@@ -1865,6 +1865,14 @@ static void VM_CompileFunction( source_instruction_t * const i_first )
 				gpr_pos--;
 				break;
 
+			/*
+			case OP_MULI:
+				MAYBE_EMIT_CONST();
+				in( iMULLI, rSECOND, rSECOND, rFIRST );
+				gpr_pos--;
+				break;
+			*/
+
 			case OP_MULI:
 			case OP_MULU:
 				MAYBE_EMIT_CONST();
@@ -2074,6 +2082,7 @@ static void PPC_ComputeCode( vm_t *vm )
 	// mem to be marked as executable (whill change later)
 
 	#if !defined(AMIGAOS)
+
 	unsigned char *dataAndCode = mmap( NULL, codeLength, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0 );
 
 	if (dataAndCode == MAP_FAILED)
@@ -2464,3 +2473,5 @@ int VM_CallCompiled( vm_t *vm, int *args )
 
 	return retVal;
 }
+
+

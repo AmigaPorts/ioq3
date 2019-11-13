@@ -162,7 +162,6 @@ struct vm_s {
 	void		*dllHandle;
 	//intptr_t	(QDECL *entryPoint)( int callNum, ... );
 	intptr_t	(QDECL *entryPoint)( int callNum, int arg0, int arg1, int arg2 ); // Cowcat
-	//intptr_t	(QDECL *entryPoint)( int callNum, int, int, int, int, int, int, int, int, int, int, int, int); // Cowcat
 	void 		(*destroy)(vm_t* self);
 
 	// for interpreted modules

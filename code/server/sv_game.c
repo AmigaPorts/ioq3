@@ -26,19 +26,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../botlib/botlib.h"
 
 // Cowcat
-#if 0
-#if defined(AMIGAOS) && defined(__VBCC__)
-static ID_INLINE float _vmf(intptr_t x)
-{
-	floatint_t fi;
-	fi.i = (int) x;
-	return fi.f;
-}
-#define VMF(x)	_vmf(args[x])
-#endif
-#endif
-
-// Cowcat
 #if defined(__VBCC__)
 #define VMF(x)	((float *)args)[x]
 #endif
@@ -329,6 +316,7 @@ static int FloatAsInt( float f )
 	return fi.i;
 }
 
+
 /*
 ====================
 SV_GameSystemCalls
@@ -342,10 +330,19 @@ extern float rint(float x);
 #define round rint
 #elif defined(__GNUC__) && defined (__PPC__)
 #define round roundf
+//#define round fround
+//extern float fround(float x);
 #endif
+
+//#define fgetenv() ({ float env; asm("mffs %0" : "=f" (env)); env; })
+//#define fsetenv(env) ({ double d = (env); asm("mtfsf 0xff, %0" : : "f" (d)); })
 
 intptr_t SV_GameSystemCalls( intptr_t *args )
 {
+	#if defined(__PPC__) && defined(__GNUC__)
+	//float oldround;
+	#endif
+
 	switch( args[0] )
 	{
 	case G_PRINT:
@@ -525,7 +522,18 @@ intptr_t SV_GameSystemCalls( intptr_t *args )
 		return Com_RealTime( VMA(1) );
 
 	case G_SNAPVECTOR:
+		
+		#if defined(__PPC__) && defined(__GNUC__)
+		//oldround = fgetenv();
+		//asm("mtfsfi 7,1"); // rounding to zero
+		#endif
+
 		Q_SnapVector( VMA(1) );
+
+		#if defined(__PPC__) && defined(__GNUC__)
+		//fsetenv(oldround);
+		#endif
+
 		return 0;
 
 		//====================================
@@ -576,7 +584,15 @@ intptr_t SV_GameSystemCalls( intptr_t *args )
 		return SV_BotGetConsoleMessage( args[1], VMA(2), args[3] );
 
 	case BOTLIB_USER_COMMAND:
-		SV_ClientThink( &svs.clients[args[1]], VMA(2) );
+		{
+			int clientNum = args[1];
+
+			if ( clientNum >= 0 && clientNum < sv_maxclients->integer )
+			{
+				SV_ClientThink( &svs.clients[clientNum], VMA(2) );
+			}
+		}
+
 		return 0;
 
 	case BOTLIB_AAS_BBOX_AREAS:

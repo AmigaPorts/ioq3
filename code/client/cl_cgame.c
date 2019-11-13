@@ -460,10 +460,19 @@ extern float rint(float x);
 #define round rint
 #elif defined(__GNUC__) && defined (__PPC__)
 #define round roundf
+//#define round fround
+//extern float fround(float x);
 #endif
+
+//#define fgetenv() ({ float env; asm("mffs %0" : "=f" (env)); env; })
+//#define fsetenv(env) ({ double d = (env); asm("mtfsf 0xff, %0" : : "f" (d)); })
 
 intptr_t CL_CgameSystemCalls( intptr_t *args )
 {
+	#if defined(__PPC__) && defined(__GNUC__)
+	//float oldround;
+	#endif
+
 	switch( args[0] )
 	{
 	case CG_PRINT:
@@ -710,8 +719,20 @@ intptr_t CL_CgameSystemCalls( intptr_t *args )
 
 	case CG_REAL_TIME:
 		return Com_RealTime( VMA(1) );
+
 	case CG_SNAPVECTOR:
+
+		#if defined(__PPC__) && defined(__GNUC__)
+		//oldround = fgetenv();
+		//asm("mtfsfi 7,1"); // rounding to zero for ppc
+		#endif
+
 		Q_SnapVector( VMA(1) );
+
+		#if defined(__PPC__) && defined(__GNUC__)
+		//fsetenv(oldround);
+		#endif
+
 		return 0;
 
 	case CG_CIN_PLAYCINEMATIC:

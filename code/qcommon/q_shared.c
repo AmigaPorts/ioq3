@@ -96,6 +96,7 @@ void COM_StripExtension( const char *in, char *out, int destsize )
 	else
 		Q_strncpyz(out, in, destsize);
 }
+
 /*
 ============
 COM_CompareExtension
@@ -248,12 +249,15 @@ float FloatSwap (const float *f)
 
 #else
 
+#define __LittleLong(x) (((uint32_t)(x) << 24 ) | (((uint32_t)(x) & 0xff00) << 8 ) | (((uint32_t)(x) & 0x00ff0000) >> 8 ) | ((uint32_t)(x) >> 24))
+
 float FloatSwap (const float *f)
 {
 	floatint_t out;
 
 	out.f = *f;
-	out.ui = LongSwap(out.ui);
+	//out.ui = LongSwap(out.ui);
+	out.ui = __LittleLong(out.ui);
 
 	return out.f;
 }
@@ -757,45 +761,6 @@ Com_HexStrToInt
 ===================
 */
 
-#if 0
-
-static inline size_t __strlen (const char *string)
-{
-	const char *s;
-
-	s = string;
-
-	while( *s )
-		s++;
-
-	return s - string;
-}
-
-#undef strlen
-#define strlen __strlen
-
-static inline int __tolower( int c ) {
-	if ( c >= 'A' && c <= 'Z' ) {
-		c += 'a' - 'A';
-	}
-	return c;
-}
-
-
-static inline int __toupper( int c ) {
-	if ( c >= 'a' && c <= 'z' ) {
-		c += 'A' - 'a';
-	}
-	return c;
-}
-
-#undef tolower
-#undef toupper
-#define tolower __tolower
-#define toupper __toupper
-
-#endif
-
 int Com_HexStrToInt( const char *str )
 {
 	if ( !str )
@@ -905,6 +870,7 @@ Q_strncpyz
 Safe strncpy that ensures a trailing zero
 =============
 */
+
 void Q_strncpyz( char *dest, const char *src, int destsize )
 {
 	if ( !dest )
@@ -922,8 +888,19 @@ void Q_strncpyz( char *dest, const char *src, int destsize )
 		Com_Error(ERR_FATAL,"Q_strncpyz: destsize < 1" ); 
 	}
 
+	#if 1
+
 	strncpy( dest, src, destsize-1 );
 	dest[destsize-1] = 0;
+
+	#else
+
+	while( --destsize > 0 && (*dest++ = *src++) != '\0' )
+		;
+
+	*dest = '\0';
+
+	#endif
 }
 		 
 int Q_stricmpn (const char *s1, const char *s2, int n)
@@ -1008,12 +985,6 @@ int Q_stricmp (const char *s1, const char *s2)
 
 #else // ec-/Quake3e
 
-
-
-
-
-#if 1
-
 int Q_stricmp (const char *s1, const char *s2)
 {
 	unsigned char	c1, c2;
@@ -1057,26 +1028,6 @@ int Q_stricmp (const char *s1, const char *s2)
 	
 	return 0;
 }
-
-#else
-
-int Q_stricmp (const char *s1, const char *s2)
-{
-	char f, l;
-
-	do
-	{
-		f = ((*s1 <= 'Z' ) && (*s1 >= 'A')) ? *s1 + 'a' - 'A' : *s1;
-		l = ((*s2 <= 'Z' ) && (*s2 >= 'A')) ? *s2 + 'a' - 'A' : *s2;
-
-		s1++;
-		s2++;
-
-	} while ((f) && ( f == l));
-
-	return (int) (f - l);
-}
-#endif
 
 #endif
 
@@ -1258,6 +1209,7 @@ does a varargs printf into a temp buffer, so I don't need to have
 varargs versions of all text functions.
 ============
 */
+
 #if defined( Q3_VM )
 
 char *QDECL va( char *format, ... )
@@ -1764,3 +1716,4 @@ char *Com_SkipTokens( char *s, int numTokens, char *sep )
 	else
 		return s;
 }
+
