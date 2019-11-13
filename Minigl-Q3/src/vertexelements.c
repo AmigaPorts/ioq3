@@ -347,7 +347,7 @@ static INLINE ULONG TransformRange(GLcontext context, const int first, const int
 {
 	int	i;
 	ULONG	border;
-	int	offs = first+context->ArrayPointer.transformed;
+	int	offs = first + context->ArrayPointer.transformed;
 
 	#define a(x) (context->CombinedMatrix.v[OF_##x])
 
@@ -595,7 +595,7 @@ static INLINE void ProjectRange(GLcontext context, const int first, const int si
 	UBYTE	*pointer;
 	float	az;
 
-	int offs = first+context->ArrayPointer.transformed;
+	int offs = first + context->ArrayPointer.transformed;
 	MGLVertex *v = &context->VertexBuffer[offs];
 	stride = context->ArrayPointer.texcoordstride;
 	pointer = context->ArrayPointer.w_buffer + first * stride;
@@ -669,7 +669,7 @@ static INLINE void ProjectRangeByOutcode(GLcontext context, const int first, con
 	UBYTE	*pointer;
 	float	az;
 
-	int offs = first+context->ArrayPointer.transformed;
+	int offs = first + context->ArrayPointer.transformed;
 	MGLVertex *v = &context->VertexBuffer[offs];
 	stride = context->ArrayPointer.texcoordstride;
 	pointer = context->ArrayPointer.w_buffer + first * stride;
@@ -2506,7 +2506,7 @@ static INLINE ULONG TestRangeGuardBand(GLcontext context, const GLuint first, co
 
 	ret = 0;
 
-	v = &context->VertexBuffer[first+context->ArrayPointer.transformed];
+	v = &context->VertexBuffer[first + context->ArrayPointer.transformed];
 	i = count;
 
 	do
@@ -2539,7 +2539,7 @@ static INLINE ULONG EncodeRangeGuardBand(GLcontext context, const GLuint first, 
 	ULONG mustclip;
 	ULONG ret;
 
-	v = &context->VertexBuffer[first+context->ArrayPointer.transformed];
+	v = &context->VertexBuffer[first + context->ArrayPointer.transformed];
 	mustclip = context->ClipFlags;
 	ret = 0;
 

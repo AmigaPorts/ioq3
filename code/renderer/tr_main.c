@@ -378,7 +378,7 @@ R_RotateForViewer
 Sets up the modelview matrix for a given viewParm
 =================
 */
-void R_RotateForViewer (void) 
+static void R_RotateForViewer (void) 
 {
 	float	viewerMatrix[16];
 	vec3_t	origin;
@@ -498,7 +498,7 @@ the projection matrix.
 =================
 */
 
-void R_SetupFrustum (viewParms_t *dest, float xmin, float xmax, float ymax, float zProj, float stereoSep)
+static void R_SetupFrustum (viewParms_t *dest, float xmin, float xmax, float ymax, float zProj, float stereoSep)
 {
 	vec3_t	ofsorigin;
 	float	oppleg, adjleg, length;
@@ -659,7 +659,7 @@ extern float SGN(float a);
 #if defined(__PPC__) && defined(__GNUC__)
 static inline double _fsel ( double t, double a, double b)
 {
-	double res;
+	float res;
 	__asm__("fsel %0,%1,%2,%3" : "=f" (res) : "f" (t), "f" (a), "f" (b));
 	return res;
 }
@@ -689,7 +689,7 @@ static inline float SGN(float a)
 #define DotProduct4(a,b)	((a)[0]*(b)[0] + (a)[1]*(b)[1] + (a)[2]*(b)[2] + (a)[3]*(b)[3])
 #define VectorScale4(a,b,c)	((c)[0]=(a)[0]*(b), (c)[1]=(a)[1]*(b), (c)[2]=(a)[2]*(b), (c)[3]=(a)[3]*(b))
 
-void R_SetupProjectionZ(viewParms_t *dest)
+static void R_SetupProjectionZ(viewParms_t *dest)
 {
 	float zNear, zFar, depth;
 	
@@ -744,7 +744,7 @@ void R_SetupProjectionZ(viewParms_t *dest)
 R_MirrorPoint
 =================
 */
-void R_MirrorPoint (vec3_t in, orientation_t *surface, orientation_t *camera, vec3_t out)
+static void R_MirrorPoint (vec3_t in, orientation_t *surface, orientation_t *camera, vec3_t out)
 {
 	int	i;
 	vec3_t	local;
@@ -764,7 +764,7 @@ void R_MirrorPoint (vec3_t in, orientation_t *surface, orientation_t *camera, ve
 	VectorAdd( transformed, camera->origin, out );
 }
 
-void R_MirrorVector (vec3_t in, orientation_t *surface, orientation_t *camera, vec3_t out)
+static void R_MirrorVector (vec3_t in, orientation_t *surface, orientation_t *camera, vec3_t out)
 {
 	int	i;
 	float	d;
@@ -784,7 +784,7 @@ void R_MirrorVector (vec3_t in, orientation_t *surface, orientation_t *camera, v
 R_PlaneForSurface
 =============
 */
-void R_PlaneForSurface (surfaceType_t *surfType, cplane_t *plane)
+static void R_PlaneForSurface (surfaceType_t *surfType, cplane_t *plane)
 {
 	srfTriangles_t	*tri;
 	srfPoly_t	*poly;
@@ -838,7 +838,7 @@ be moving and rotating.
 Returns qtrue if it should be mirrored
 =================
 */
-qboolean R_GetPortalOrientations( drawSurf_t *drawSurf, int entityNum, orientation_t *surface, orientation_t *camera,
+static qboolean R_GetPortalOrientations( drawSurf_t *drawSurf, int entityNum, orientation_t *surface, orientation_t *camera,
 		vec3_t pvsOrigin, qboolean *mirror )
 {
 	int		i;
@@ -999,7 +999,7 @@ static qboolean IsMirror( const drawSurf_t *drawSurf, int entityNum )
 
 		// translate the original plane
 		originalPlane.dist = originalPlane.dist + DotProduct( originalPlane.normal, tr.or.origin );
-	} 
+	}
 
 	// locate the portal entity closest to this plane.
 	// origin will be the origin of the portal, origin2 will be
@@ -1142,7 +1142,7 @@ R_MirrorViewBySurface
 Returns qtrue if another view has been rendered
 ========================
 */
-qboolean R_MirrorViewBySurface (drawSurf_t *drawSurf, int entityNum)
+static qboolean R_MirrorViewBySurface (drawSurf_t *drawSurf, int entityNum)
 {
 	//vec4_t	clipDest[128]; // Quake3e
 	viewParms_t	newParms;
@@ -1156,7 +1156,7 @@ qboolean R_MirrorViewBySurface (drawSurf_t *drawSurf, int entityNum)
 		return qfalse;
 	}
 
-	if ( r_noportals->integer /* || (r_fastsky->integer == 1) */) // Cowcat
+	if ( r_noportals->integer /* || (r_fastsky->integer == 1) */) // Quake3e
 	{
 		return qfalse;
 	}
@@ -1204,7 +1204,7 @@ R_SpriteFogNum
 See if a sprite is inside a fog volume
 =================
 */
-int R_SpriteFogNum( trRefEntity_t *ent )
+static int R_SpriteFogNum( trRefEntity_t *ent )
 {
 	int	i, j;
 	fog_t	*fog;
@@ -1353,7 +1353,7 @@ void R_DecomposeSort( unsigned sort, int *entityNum, shader_t **shader, int *fog
 R_SortDrawSurfs
 =================
 */
-void R_SortDrawSurfs( drawSurf_t *drawSurfs, int numDrawSurfs )
+static void R_SortDrawSurfs( drawSurf_t *drawSurfs, int numDrawSurfs )
 {
 	shader_t	*shader;
 	int		fogNum;
@@ -1398,7 +1398,8 @@ void R_SortDrawSurfs( drawSurf_t *drawSurfs, int numDrawSurfs )
 				return;
 			}
 
-			break;		// only one mirror view at a time
+			if ( r_fastsky->integer == 0 ) // Quake3e
+				break;		// only one mirror view at a time
 		}
 	}
 
@@ -1434,7 +1435,7 @@ void R_AddEntitySurfaces (void)
 		// we don't want the hacked weapon position showing in 
 		// mirrors, because the true body position will already be drawn
 		//
-		if ( (ent->e.renderfx & RF_FIRST_PERSON) && tr.viewParms.isPortal)
+		if ( (ent->e.renderfx & RF_FIRST_PERSON) && tr.viewParms.isPortal )
 		{
 			continue;
 		}
@@ -1453,7 +1454,7 @@ void R_AddEntitySurfaces (void)
 				// self blood sprites, talk balloons, etc should not be drawn in the primary
 				// view.  We can't just do this check for all entities, because md3
 				// entities may still want to cast shadows from them
-				if ( (ent->e.renderfx & RF_THIRD_PERSON) && !tr.viewParms.isPortal)
+				if ( (ent->e.renderfx & RF_THIRD_PERSON) && !tr.viewParms.isPortal )
 				{
 					continue;
 				}
@@ -1491,7 +1492,7 @@ void R_AddEntitySurfaces (void)
 
 						case MOD_BAD:	// null model axis
 
-							if ( (ent->e.renderfx & RF_THIRD_PERSON) && !tr.viewParms.isPortal)
+							if ( (ent->e.renderfx & RF_THIRD_PERSON) && !tr.viewParms.isPortal )
 							{
 								break;
 							}
@@ -1511,7 +1512,6 @@ void R_AddEntitySurfaces (void)
 				ri.Error( ERR_DROP, "R_AddEntitySurfaces: Bad reType" );
 		}
 	}
-
 }
 
 

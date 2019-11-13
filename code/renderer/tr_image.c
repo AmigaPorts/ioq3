@@ -968,8 +968,6 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 	long		hash;
 	int		glWrapClampMode;
 
-	cinematic = qfalse; // Cowcat
-
 	if (strlen(name) >= MAX_QPATH )
 	{
 		ri.Error (ERR_DROP, "R_CreateImage: \"%s\" is too long\n", name);
@@ -981,10 +979,14 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 	}
 
 	#if defined(AMIGAOS) // Cowcat
+
+	cinematic = qfalse; // Cowcat
+
 	if ( !strncmp( name, "*scratch", 8 ) )
 	{
 		cinematic = qtrue;
 	}
+
 	#endif
 
 	if ( tr.numImages == MAX_DRAWIMAGES )

@@ -58,8 +58,7 @@ static unsigned short callback[] = {
 };
 
 
-// pragma(2) here ? 
-#pragma amiga-align
+#pragma pack(push,2)
 
 struct ChannelInfo
 {
@@ -67,7 +66,7 @@ struct ChannelInfo
   	ULONG x[1];
 };
 
-#pragma default-align
+#pragma pack(pop)
 
 
 struct Library *AHIBase = NULL;
@@ -103,8 +102,8 @@ qboolean SNDDMA_Init(void)
 	UBYTE 			name[256];
 	ULONG 			mode;
 	ULONG 			type;
-	int 			ahichannels = 2;
-	int 			ahibits = 16;
+	int 			ahichannels;
+	int 			ahibits;
 
 	info.cinfo.ahieci_Channels = 1;
 	info.cinfo.ahieci_Func = &EffHook;
@@ -112,7 +111,7 @@ qboolean SNDDMA_Init(void)
 	EffHook.h_Data = 0;
 
 	sndbits = Cvar_Get("sndbits", "16", CVAR_ARCHIVE);
-	sndspeed = Cvar_Get("sndspeed", "22050", CVAR_ARCHIVE); // was 441000 - Cowcat
+	sndspeed = Cvar_Get("sndspeed", "22050", CVAR_ARCHIVE); // was 44100 - Cowcat
 	sndchannels = Cvar_Get("sndchannels", "2", CVAR_ARCHIVE);
 
 	switch ((int)sndspeed->value)
@@ -130,19 +129,13 @@ qboolean SNDDMA_Init(void)
 
 	}
 	
-	if (sndchannels->value == 2) 
-		ahichannels = 2;
-
-	else if (sndchannels->value == 1) 
+	if (sndchannels->value == 1) 
 		ahichannels = 1;
 
 	else 
 		ahichannels = 2;
 
-	if (sndbits->value == 16) 
-		ahibits = 16;
-
-	else if (sndbits->value == 8) 
+	if (sndbits->value == 8) 
 		ahibits = 8;
 
 	else 

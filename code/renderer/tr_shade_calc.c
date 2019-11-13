@@ -1136,7 +1136,7 @@ void RB_CalcEnvironmentTexCoords( float *st )
 
 		#endif
 		
-                st[0] = 0.5 + reflected[1] * 0.5;
+                st[0] = 0.5 + reflected[1] * 0.5; // 0.5f ? Cowcat
                 st[1] = 0.5 - reflected[2] * 0.5;
         }
 	}

@@ -9,7 +9,7 @@ CC = gcc --specs=warpup
 AR = ar
 RANLIB = ranlib
 
-CODEGEN = -noixemul -fomit-frame-pointer -ffast-math -fno-strict-aliasing
+CODEGEN = -Wall -noixemul -fomit-frame-pointer -ffast-math -fno-strict-aliasing
 OPTIMIZE = -O2 
 
 CFLAGS=  $(OPTIMIZE) $(CODEGEN)

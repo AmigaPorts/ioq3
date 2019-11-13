@@ -16,7 +16,7 @@ DO_CC68K = $(CC68K) -o $@ -c $<
 
 DO_CC_ALTIVEC = $(CC) $(CFLAGS) -maltivec -o $@ -c $<
 
-LIBS  = -lmglQ3 -lamigawos
+LIBS  = -lmglQ3
 
 OBJS = \
 	$(B)/snd_adpcm.o \

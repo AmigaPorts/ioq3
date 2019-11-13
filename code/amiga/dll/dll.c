@@ -35,7 +35,7 @@ void dllInternalFreeLibrary(int);
 
 struct dllOpenedDLL
 {
-	struct dll_sInstance 	*inst;
+	struct dll_sInstance	*inst;
 	int			usecount;
 	char			name[100];
 };
@@ -169,13 +169,11 @@ void *dllInternalLoadLibrary(char *filename,char *portname,int raiseusecount)
 		return 0L;  // No free slot available
 
 	if( !(inst = malloc(sizeof(struct dll_sInstance))) )
-	//if( !(inst = AllocVecPPC( sizeof(struct dll_sInstance), MEMF_ANY, 0 )) ) // Cowcat
 		return 0L;
 
 	if(!(myport = CreateMsgPort()))
 	{
 		free(inst);
-		//FreeVecPPC(inst); // Cowcat
 		return 0L;
 	}
 
@@ -192,8 +190,8 @@ void *dllInternalLoadLibrary(char *filename,char *portname,int raiseusecount)
 		SystemTags(commandline,
 			SYS_Asynch, TRUE,
 			SYS_Output, output,
-			SYS_Input,  NULL, 	//FIXME: some dll's might need stdin
-			NP_StackSize, 10000, 	//Messagehandler doesn't need a big stack (FIXME: but DLL_(De)Init might)
+			SYS_Input,  NULL,	//FIXME: some dll's might need stdin
+			NP_StackSize, 10000,	//Messagehandler doesn't need a big stack (FIXME: but DLL_(De)Init might)
 			TAG_DONE);
 
 		for (i=0; i<20; i++)
@@ -212,7 +210,6 @@ void *dllInternalLoadLibrary(char *filename,char *portname,int raiseusecount)
 	{
 		DeleteMsgPort(myport);
 		free(inst);
-		//FreeVecPPC(inst); // Cowcat
 		return 0L;
 	}
 
@@ -235,7 +232,6 @@ void *dllInternalLoadLibrary(char *filename,char *portname,int raiseusecount)
 		{
 			DeleteMsgPort(myport);
 			free(inst);
-			//FreeVecPPC(inst); // Cowcat
 			return 0L;
 		}
 		
@@ -260,7 +256,6 @@ void *dllInternalLoadLibrary(char *filename,char *portname,int raiseusecount)
 		//FIXME: Must/Can I send a Close message here ??
 		DeleteMsgPort(myport);
 		free(inst);
-		//FreeVecPPC(inst); // Cowcat
 		return 0L;
 	}
 
@@ -326,7 +321,6 @@ void dllInternalFreeLibrary(int i)
 
 	DeleteMsgPort(myport);
 	free(inst);
-	//FreeVecPPC(inst); // Cowcat
 
 	bzero(&dllOpenedDLLs[i],sizeof(dllOpenedDLLs[i]));
 
@@ -339,7 +333,7 @@ void *dllGetProcAddress(void *hinst, char *name)
 	dll_tMessage		msg, *reply;
 	struct MsgPort		*myport;
 	struct dll_sInstance	*inst = (struct dll_sInstance *)hinst;
-	void 			*sym;
+	void			*sym;
 
 	if(!hinst)
 		return NULL;

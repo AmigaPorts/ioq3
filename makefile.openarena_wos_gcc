@@ -179,7 +179,7 @@ OBJS = \
 	  $(B)/amiga_glimp.o \
 	  $(B)/amiga_shared.o \
 	  $(B)/amiga_68k.o \
-	  #$(B)/wos_asm_gcc.o \
+	  $(B)/wos_asm_gcc.o \
 
 OBJSVEC  = \
 	  $(B)/snd_altivec.o \

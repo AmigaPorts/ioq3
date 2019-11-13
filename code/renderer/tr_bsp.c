@@ -339,6 +339,7 @@ static shader_t *ShaderForShaderNum( int shaderNum, int lightmapNum )
 ParseFace
 ===============
 */
+
 static void ParseFace( dsurface_t *ds, drawVert_t *verts, msurface_t *surf, int *indexes )
 {
 	int			i, j;

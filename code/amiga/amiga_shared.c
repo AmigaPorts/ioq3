@@ -113,7 +113,7 @@ int Sys_Milliseconds(void)
 	static struct Device *TimerBase;
 
 	if (!TimerBase)
-		TimerBase = (struct Device *)FindName(&SysBase->DeviceList,"timer.device");
+		TimerBase = (struct Device *)FindName(&SysBase->DeviceList, "timer.device");
 
  	GetSysTime(&tv);
 
@@ -121,10 +121,10 @@ int Sys_Milliseconds(void)
 
   	currenttime = tv.tv_secs;
 
-	if (!inittime)
+	if ( !inittime )
 		inittime = currenttime;
 
-  	currenttime = currenttime-inittime;
+  	currenttime = currenttime - inittime;
 
   	return currenttime * 1000 + tv.tv_micro / 1000;
 }

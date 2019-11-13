@@ -167,10 +167,10 @@ typedef enum {
 
 typedef enum {
 	GLDRV_ICD,			// driver is integrated with window system
-						// WARNING: there are tests that check for
-						// > GLDRV_ICD for minidriverness, so this
-						// should always be the lowest value in this
-						// enum set
+					// WARNING: there are tests that check for
+					// > GLDRV_ICD for minidriverness, so this
+					// should always be the lowest value in this
+					// enum set
 	GLDRV_STANDALONE,		// driver is a non-3Dfx standalone driver
 	GLDRV_VOODOO			// driver is a 3Dfx standalone driver
 
@@ -179,8 +179,8 @@ typedef enum {
 typedef enum {
 	GLHW_GENERIC,			// where everthing works the way it should
 	GLHW_3DFX_2D3D,			// Voodoo Banshee or Voodoo3, relevant since if this is
-						// the hardware type then there can NOT exist a secondary
-						// display adapter
+					// the hardware type then there can NOT exist a secondary
+					// display adapter
 	GLHW_RIVA128,			// where you can't interpolate alpha
 	GLHW_RAGEPRO,			// where you can't modulate alpha on alpha textures
 	GLHW_PERMEDIA2			// where you don't have src*dst
@@ -193,8 +193,8 @@ typedef struct {
 	char				version_string[MAX_STRING_CHARS];
 	char				extensions_string[BIG_INFO_STRING];
 
-	int				maxTextureSize;			// queried from GL
-	int				numTextureUnits;		// multitexture ability
+	int				maxTextureSize;		// queried from GL
+	int				numTextureUnits;	// multitexture ability
 
 	int				colorBits, depthBits, stencilBits;
 

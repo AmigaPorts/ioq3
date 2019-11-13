@@ -93,8 +93,8 @@ void ProjectDlightTexture_altivec( void )
 		if(r_greyscale->integer)
 		{
 			float luminance;
-			
-			luminance = (dl->color[0] * 255.0f + dl->color[1] * 255.0f + dl->color[2] * 255.0f) / 3;
+
+			luminance = LUMA(dl->color[0], dl->color[1], dl->color[2]) * 255.0f;
 			floatColor[0] = floatColor[1] = floatColor[2] = luminance;
 		}
 
@@ -169,7 +169,8 @@ void ProjectDlightTexture_altivec( void )
 
 				else
 				{
-					dist2 = Q_fabs(dist2);
+					//dist2 = Q_fabs(dist2);
+					dist2 = fabs(dist2); // Cowcat
 
 					if ( dist2 < radius * 0.5f )
 					{
@@ -232,15 +233,18 @@ void ProjectDlightTexture_altivec( void )
 
 		// include GLS_DEPTHFUNC_EQUAL so alpha tested surfaces don't add light
 		// where they aren't rendered
-		if ( dl->additive ) {
+		if ( dl->additive )
+		{
 			GL_State( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL );
 		}
 
-		else {
+		else
+		{
 			GL_State( GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ONE | GLS_DEPTHFUNC_EQUAL );
 		}
 
 		R_DrawElements( numIndexes, hitIndexes );
+
 		backEnd.pc.c_totalIndexes += numIndexes;
 		backEnd.pc.c_dlightIndexes += numIndexes;
 	}
@@ -258,15 +262,16 @@ void RB_CalcDiffuseColor_altivec( unsigned char *colors )
                                                0x00, 0x00, 0x00, 0xff,
                                                0x00, 0x00, 0x00, 0xff,
                                                0x00, 0x00, 0x00, 0xff);
-	vector float ambientLightVec;
-	vector float directedLightVec;
-	vector float lightDirVec;
-	vector float normalVec0, normalVec1;
-	vector float incomingVec0, incomingVec1, incomingVec2;
-	vector float zero, jVec;
-	vector signed int jVecInt;
-	vector signed short jVecShort;
-	vector unsigned char jVecChar, normalPerm;
+	vector float		ambientLightVec;
+	vector float		directedLightVec;
+	vector float		lightDirVec;
+	vector float		normalVec0, normalVec1;
+	vector float		incomingVec0, incomingVec1, incomingVec2;
+	vector float		zero, jVec;
+	vector signed int	jVecInt;
+	vector signed short	jVecShort;
+	vector unsigned char	jVecChar, normalPerm;
+
 	ent = backEnd.currentEntity;
 	ambientLightInt = ent->ambientLightInt;
 

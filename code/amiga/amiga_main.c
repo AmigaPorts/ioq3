@@ -495,7 +495,10 @@ sysEvent_t Sys_GetEvent(void)
 */
 
 //static char __attribute__((used)) stackcookie[] = "$STACK:2000000";
+
+#ifdef __VBCC__
 unsigned long __stack = 0x200000; // auto stack Cowcat
+#endif
 
 int main(int argc, char **argv)
 {
@@ -598,7 +601,7 @@ int kprintf(char *format, ...)
 	return n;
 }
 #else
-int Qkprintf(char *format, ...)
+int kprintf(char *format, ...)
 {
 	return 0;
 }

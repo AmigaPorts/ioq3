@@ -20,7 +20,7 @@
 #DEBUG=
 
 # for 68k glquake use -DFIXPOINT
-CFLAGS = -c99 -O2 -speed -cpu=603 -maxoptpasses=20 -merge-constants -DNDEBUG $(INCLUDE)
+CFLAGS = -c99 -O2 -speed -cpu=603 -maxoptpasses=30 -merge-constants -DNDEBUG $(INCLUDE)
 //CFLAGS = -c99 $(INCLUDE) $(DEBUG)
 
 #OF added -lauto for gears powerpc.library/GetSysTimePPC() etc.

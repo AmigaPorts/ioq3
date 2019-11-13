@@ -456,8 +456,8 @@ The cgame module is making a system call
 */
 
 #if defined(__PPC__) && defined(__VBCC__)
-extern float rint(float x);
-#define round rint
+extern float fround(float x);
+#define round fround
 #elif defined(__GNUC__) && defined (__PPC__)
 #define round roundf
 //#define round fround

@@ -12,16 +12,20 @@ struct MsgStruct
 	UWORD rawkey;
 };
 
+
 int GetMessages68k( __reg("a1") struct MsgPort *port, __reg("a0") struct MsgStruct *msg, __reg("d0") int maxmsg )
 {
 	int i = 0;
 	struct IntuiMessage *imsg;
 	struct InputEvent ie;
-	
+	struct ExecBase *SysBase;
+
 	#define BUFFERLEN 4
 
 	UBYTE buf[BUFFERLEN];
 	UWORD result;
+
+	SysBase = *(struct ExecBase **)4L;
 
 	while ((imsg = (struct IntuiMessage *)GetMsg(port)))
 	{
@@ -39,7 +43,7 @@ int GetMessages68k( __reg("a1") struct MsgPort *port, __reg("a0") struct MsgStru
 				ie.ie_Qualifier = imsg->Qualifier;
 
 				result = MapRawKey(&ie, buf, BUFFERLEN, 0);
-				
+
 				if (result != 1 )
 					msg[i].rawkey = 0;
 
