@@ -193,7 +193,7 @@ void GL_TexEnv( GLint env ) // Quake3e cleanup
 		case GL_REPLACE:
 		case GL_DECAL:
 		//case GL_ADD: // Cowcat
-			qglTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, env );
+			qglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, env );
 			break;
 
 		default:
@@ -498,7 +498,7 @@ to actually render the visible surfaces for this view
 =================
 */
 
-void RB_BeginDrawingView (void)
+static void RB_BeginDrawingView (void)
 {
 	int clearBits = 0;
 
@@ -609,7 +609,7 @@ void RB_BeginDrawingView (void)
 RB_RenderDrawSurfList
 ==================
 */
-void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
+static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 {
 	shader_t	*shader, *oldShader;
 	int		fogNum, oldFogNum;
@@ -656,6 +656,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 		// change the tess parameters if needed
 		// a "entityMergable" shader is a shader that can have surfaces from seperate
 		// entities merged into a single batch, like smoke and blood puff sprites
+
 		if ( shader != NULL && ( shader != oldShader || fogNum != oldFogNum || dlighted != oldDlighted 
 			|| ( entityNum != oldEntityNum && !shader->entityMergable ) ) )
 		{
@@ -969,7 +970,7 @@ RB_SetColor
 
 =============
 */
-const void *RB_SetColor( const void *data )
+static const void *RB_SetColor( const void *data )
 {
 	const setColorCommand_t	*cmd;
 
@@ -989,7 +990,7 @@ RB_StretchPic
 =============
 */
 
-const void *RB_StretchPic ( const void *data )
+static const void *RB_StretchPic ( const void *data )
 {
 	const stretchPicCommand_t	*cmd;
 	shader_t 			*shader;
@@ -1072,7 +1073,7 @@ RB_DrawSurfs
 
 =============
 */
-const void *RB_DrawSurfs( const void *data )
+static const void *RB_DrawSurfs( const void *data )
 {
 	const drawSurfsCommand_t	*cmd;
 
@@ -1099,7 +1100,7 @@ RB_DrawBuffer
 
 =============
 */
-const void *RB_DrawBuffer( const void *data )
+static const void *RB_DrawBuffer( const void *data )
 {
 	const drawBufferCommand_t	*cmd;
 
@@ -1190,7 +1191,7 @@ RB_ColorMask
 
 =============
 */
-const void *RB_ColorMask(const void *data)
+static const void *RB_ColorMask(const void *data)
 {
 	const colorMaskCommand_t *cmd = data;
 	
@@ -1205,7 +1206,7 @@ RB_ClearDepth
 
 =============
 */
-const void *RB_ClearDepth(const void *data)
+static const void *RB_ClearDepth(const void *data)
 {
 	const clearDepthCommand_t *cmd = data;
 
@@ -1227,7 +1228,7 @@ RB_SwapBuffers
 
 =============
 */
-const void *RB_SwapBuffers( const void *data )
+static const void *RB_SwapBuffers( const void *data )
 {
 	const swapBuffersCommand_t	*cmd;
 

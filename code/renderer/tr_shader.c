@@ -2756,7 +2756,7 @@ static shader_t *FinishShader( void )
 		shader.sort = SS_OPAQUE;
 	}
 
-	// avoid redundand comparisons on›in R_ComputeColors - quake3e
+	// avoid redundand comparisons in R_ComputeColors - quake3e
 	for (i = 0; i < MAX_SHADER_STAGES; i++)
 	{
 		shaderStage_t *pStage = &stages[i];

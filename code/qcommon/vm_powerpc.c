@@ -1865,14 +1865,6 @@ static void VM_CompileFunction( source_instruction_t * const i_first )
 				gpr_pos--;
 				break;
 
-			/*
-			case OP_MULI:
-				MAYBE_EMIT_CONST();
-				in( iMULLI, rSECOND, rSECOND, rFIRST );
-				gpr_pos--;
-				break;
-			*/
-
 			case OP_MULI:
 			case OP_MULU:
 				MAYBE_EMIT_CONST();

@@ -150,6 +150,12 @@ static void R_LoadLightmaps( lump_t *l )
 	float	maxIntensity = 0;
 	double	sumIntensity = 0;
 
+	// if we are in r_vertexLight mode, we don't need the lightmaps at all
+	if ( r_vertexLight->integer || glConfig.hardwareType == GLHW_PERMEDIA2 )
+	{
+		return;
+	}
+
 	len = l->filelen;
 
 	if ( !len )
@@ -170,11 +176,13 @@ static void R_LoadLightmaps( lump_t *l )
 		tr.numLightmaps++;
 	}
 
+	/*
 	// if we are in r_vertexLight mode, we don't need the lightmaps at all
 	if ( r_vertexLight->integer || glConfig.hardwareType == GLHW_PERMEDIA2 )
 	{
 		return;
 	}
+	*/
 
 	tr.lightmaps = ri.Hunk_Alloc( tr.numLightmaps * sizeof(image_t *), h_low );
 

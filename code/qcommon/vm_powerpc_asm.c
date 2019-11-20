@@ -958,7 +958,6 @@ static const struct powerpc_opcode powerpc_opcodes[] = {
 { "not",     XRC(31,124,0), X_MASK,	COM,		{ RA, RS, RBS } },
 { "stwx",    X(31,151), X_MASK,		PPCCOM,		{ RS, RA0, RB } },
 { "stbx",    X(31,215),	X_MASK,		COM,		{ RS, RA0, RB } },
-//{ "mulli",   OP(7),	OP_MASK,	PPCCOM,		{ RS, RS, SI } },
 { "mullw",   XO(31,235,0,0), XO_MASK,	PPCCOM,		{ RT, RA, RB } },
 { "add",     XO(31,266,0,0), XO_MASK,	PPCCOM,		{ RT, RA, RB } },
 { "lhzx",    X(31,279),	X_MASK,		COM,		{ RT, RA0, RB } },

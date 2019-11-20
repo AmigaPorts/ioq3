@@ -1637,7 +1637,7 @@ void R_RenderView (viewParms_t *parms)
 
 	firstDrawSurf = tr.refdef.numDrawSurfs;
 
-	tr.viewCount++; // needed ? - Cowcat
+	//tr.viewCount++; // needed ? - Cowcat
 
 	// set viewParms.world
 	R_RotateForViewer ();
