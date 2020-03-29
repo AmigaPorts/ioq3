@@ -36,9 +36,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 extern botlib_export_t *botlib_export;
 
-extern qboolean loadCamera(const char *name);
-extern void startCamera(int time);
-extern qboolean getCameraInfo(int time, vec3_t *origin, vec3_t *angles);
+//extern qboolean loadCamera(const char *name);
+//extern void startCamera(int time);
+//extern qboolean getCameraInfo(int time, vec3_t *origin, vec3_t *angles);
 
 /*
 ====================
@@ -456,23 +456,14 @@ The cgame module is making a system call
 */
 
 #if defined(__PPC__) && defined(__VBCC__)
-extern float fround(float x);
-#define round fround
+extern float frint(float x);
+#define rint frint
 #elif defined(__GNUC__) && defined (__PPC__)
-#define round roundf
-//#define round fround
-//extern float fround(float x);
+#define rint rintf
 #endif
-
-//#define fgetenv() ({ float env; asm("mffs %0" : "=f" (env)); env; })
-//#define fsetenv(env) ({ double d = (env); asm("mtfsf 0xff, %0" : : "f" (d)); })
 
 intptr_t CL_CgameSystemCalls( intptr_t *args )
 {
-	#if defined(__PPC__) && defined(__GNUC__)
-	//float oldround;
-	#endif
-
 	switch( args[0] )
 	{
 	case CG_PRINT:
@@ -721,18 +712,7 @@ intptr_t CL_CgameSystemCalls( intptr_t *args )
 		return Com_RealTime( VMA(1) );
 
 	case CG_SNAPVECTOR:
-
-		#if defined(__PPC__) && defined(__GNUC__)
-		//oldround = fgetenv();
-		//asm("mtfsfi 7,1"); // rounding to zero for ppc
-		#endif
-
 		Q_SnapVector( VMA(1) );
-
-		#if defined(__PPC__) && defined(__GNUC__)
-		//fsetenv(oldround);
-		#endif
-
 		return 0;
 
 	case CG_CIN_PLAYCINEMATIC:

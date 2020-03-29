@@ -326,23 +326,14 @@ The module is making a system call
 */
 
 #if defined(__PPC__) && defined(__VBCC__)
-extern float fround(float x);
-#define round fround
+extern float frint(float x);
+#define rint frint
 #elif defined(__GNUC__) && defined (__PPC__)
-#define round roundf
-//#define round fround
-//extern float fround(float x);
+#define rint rintf
 #endif
-
-//#define fgetenv() ({ float env; asm("mffs %0" : "=f" (env)); env; })
-//#define fsetenv(env) ({ double d = (env); asm("mtfsf 0xff, %0" : : "f" (d)); })
 
 intptr_t SV_GameSystemCalls( intptr_t *args )
 {
-	#if defined(__PPC__) && defined(__GNUC__)
-	//float oldround;
-	#endif
-
 	switch( args[0] )
 	{
 	case G_PRINT:
@@ -522,18 +513,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args )
 		return Com_RealTime( VMA(1) );
 
 	case G_SNAPVECTOR:
-		
-		#if defined(__PPC__) && defined(__GNUC__)
-		//oldround = fgetenv();
-		//asm("mtfsfi 7,1"); // rounding to zero
-		#endif
-
 		Q_SnapVector( VMA(1) );
-
-		#if defined(__PPC__) && defined(__GNUC__)
-		//fsetenv(oldround);
-		#endif
-
 		return 0;
 
 		//====================================

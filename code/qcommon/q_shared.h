@@ -426,14 +426,15 @@ extern	vec3_t	axisDefault[3];
 
 #define	IS_NAN(x) (((*(int *)&x)&nanmask)==nanmask)
 
+//now rint instead of round - Cowcat
 #define Q_SnapVector(vec)\
 	do\
 	{\
 		vec3_t *temp = (vec);\
 		\
-		(*temp)[0] = round((*temp)[0]);\
-		(*temp)[1] = round((*temp)[1]);\
-		(*temp)[2] = round((*temp)[2]);\
+		(*temp)[0] = rint((*temp)[0]);\
+		(*temp)[1] = rint((*temp)[1]);\
+		(*temp)[2] = rint((*temp)[2]);\
 	} while(0)
 
 #if idppc

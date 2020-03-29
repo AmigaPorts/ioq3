@@ -39,10 +39,10 @@ int GetMessages68k( __reg("a1") struct MsgPort *port, __reg("a0") struct MsgStru
 			if(msg[i].Class == IDCMP_RAWKEY)
 			{
 				ie.ie_Class = IECLASS_RAWKEY;
-                ie.ie_SubClass = 0;
+				ie.ie_SubClass = 0;
 				ie.ie_Code = imsg->Code;
 				ie.ie_Qualifier = imsg->Qualifier;
-                ie.ie_EventAddress = NULL;
+				ie.ie_EventAddress = NULL;
 
 				result = MapRawKey(&ie, buf, BUFFERLEN, 0);
 
