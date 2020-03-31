@@ -2399,6 +2399,7 @@ int VM_CallCompiled( vm_t *vm, int *args )
 {
 	int retVal;
 	int *argPointer;
+	int i;
 
 	vm_data_t *vm_dataAndCode = (void *)( vm->codeBase );
 	int programStack = vm->programStack;
@@ -2410,16 +2411,26 @@ int VM_CallCompiled( vm_t *vm, int *args )
 
 	vm->currentlyInterpreting = qtrue;
 
-	//programStack -= ( 8 + 4 * MAX_VMMAIN_ARGS );
-	programStack -= ( 8 + 4 * 4 ); // we ony need 4 - Cowcat
+	programStack -= 8 + (MAX_VMMAIN_ARGS * 4);
 
+#if 0
 	argPointer = (int *)&image[ programStack + 8 ];
 
-	//memcpy( argPointer, args, 4 * MAX_VMMAIN_ARGS );
-	memcpy( argPointer, args, 4 * 4 ); // we ony need 4 - Cowcat
+	memcpy( argPointer, args, MAX_VMMAIN_ARGS * 4);
 
 	argPointer[ -1 ] = 0;
 	argPointer[ -2 ] = -1;
+
+#else
+	argPointer = (int *)&image[ programStack ];
+	
+	for ( i = 0; i < MAX_VMMAIN_ARGS; i++ )
+		argPointer[ i + 2 ] = args[ i ];
+	
+	argPointer[ 1 ] = 0;
+	argPointer[ 0 ] = -1;
+
+#endif
 
 #ifdef VM_TIMES
 	struct tms start_time, stop_time;

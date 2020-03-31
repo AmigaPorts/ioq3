@@ -2004,14 +2004,16 @@ This function is called directly by the generated code
 ==============
 */
 
+#define MAX_STACK 256 // originally 1024 - Cowcat
+
 int VM_CallCompiled( vm_t *vm, int *args )
 {
-	//int	stack[1024];
-	int	stack[256]; // Cowcat
+	int	stack[MAX_STACK];
 	int	programStack;
 	int	stackOnEntry;
 	byte	*image;
-	int	arg; // Cowcat
+	int	*img;
+	int	i;
 
 	currentVM = vm;
 		
@@ -2019,21 +2021,24 @@ int VM_CallCompiled( vm_t *vm, int *args )
 	vm->currentlyInterpreting = qtrue;
 
 	// we might be called recursively, so this might not be the very top
-	programStack = vm->programStack;
-	stackOnEntry = programStack;
+	programStack = stackOnEntry = vm->programStack;
+
 	image = vm->dataBase;
 	
 	// set up the stack frame
 
-	//programStack -= ( 8 + 4 * MAX_VMMAIN_ARGS );
-	programStack -= ( 8 + 4 * 4 ); //  We only need 4 args - Cowcat
+	programStack -= 8 + (MAX_VMMAIN_ARGS * 4);
 	
-	//for ( arg = 0; arg < MAX_VMMAIN_ARGS ; arg++ )
-	for ( arg = 0; arg < 4 ; arg++ ) // We only need 4 args - Cowcat
-		*(int *)&image[ programStack + 8 + arg * 4 ] = args[ arg ];
+	img = (int *)&image[ programStack ];
 
-	*(int *)&image[ programStack + 4 ] = 0; // return stack
-	*(int *)&image[ programStack ] = -1;	// will terminate the loop on return
+	for ( i = 0; i < MAX_VMMAIN_ARGS ; i++ )
+		//*(int *)&image[ programStack + 8 + i * 4 ] = args[ i ];
+		img[ i + 2 ] = args[ i ];
+
+	//*(int *)&image[ programStack + 4 ] = 0; // return stack
+	//*(int *)&image[ programStack ] = -1;	// will terminate the loop on return
+	img[ 1 ] = 0;
+	img[ 0 ] = -1;
 
 	// Cheesy... manually save registers used by VM call...
 	// off we go into generated code...
@@ -2043,11 +2048,10 @@ int VM_CallCompiled( vm_t *vm, int *args )
 	((void(*)(int, int, int, int, int, int, int, int))(vm->codeBase)) ( 
 		programStack, (int)&stack, 
 		(int)image, vm->dataMask, (int)&AsmCall,
-		(int)vm->instructionPointers, vm->instructionPointersLength,
+		(int)vm->instructionPointers, vm->instructionCount,
 		(int)vm );
 
 	vm->programStack = stackOnEntry;
-
 	vm->currentlyInterpreting = qfalse;
 
 	return stack[1];
@@ -2072,24 +2076,25 @@ asm (
 
 	// see if it is a system trap
 "	cmpwi	%r12,0			\n"	// RG_TOP, 0 \n"
-"	bc	12,0,systemTrap		\n"
+"	bc	12,0,.systemTrap	\n"
 
 	// calling another VM function, so lookup in instructionPointers
 "	slwi	%r12,%r12,2		\n"	// RG_TOP,RG_TOP,2
-                        // FIXME: range check
+
+	// FIXME: range check
 "	lwzx	%r12,%r8,%r12		\n"	// RG_TOP, RG_INSTRUCTIONS(RG_TOP)	
 "	mtctr	%r12			\n"	// RG_TOP
 
 "	bcctr	20,0			\n"	// when it hits a leave, it will branch to the current link register
 
 	// calling a system trap
-"systemTrap:			\n"
+".systemTrap:				\n"
 	// convert to positive system call number
 "	subfic %r12,%r12,-1		\n"
 
 	// save all our registers, including the current link register
 "	mflr	%r13			\n"	// RG_SECOND		// copy off our link register
-"	addi	%r1,%r1,-92		\n"	// required 24 byets of linkage, 32 bytes of parameter, plus our saves
+"	addi	%r1,%r1,-92		\n"	// required 24 bytes of linkage, 32 bytes of parameter, plus our saves
 "	stw	%r3,56(%r1)		\n"	// RG_STACK, -36(REAL_STACK)
 "	stw	%r4,60(%r1)		\n"	// RG_OPSTACK, 4(RG_REAL_STACK)
 "	stw	%r5,64(%r1)		\n"	// RG_MEMBASE, 8(RG_REAL_STACK)

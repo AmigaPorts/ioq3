@@ -60,10 +60,12 @@ void *VM_VM2C( vmptr_t p, int length )
 }
 #endif
 
+#if DEBUG_VM
 void VM_Debug( int level )
 {
 	vm_debugLevel = level;
 }
+#endif
 
 /*
 ==============
@@ -273,7 +275,7 @@ void VM_LoadSymbols( vm_t *vm )
 		return;
 	}
 
-	numInstructions = vm->instructionPointersLength >> 2;
+	numInstructions = vm->instructionCount;
 
 	// parse the symbols
 	text_p = mapfile.c;
@@ -421,9 +423,9 @@ Load a .qvm file
 */
 vmHeader_t *VM_LoadQVM( vm_t *vm, qboolean alloc, qboolean unpure )
 {
-	int		dataLength;
-	int		i;
-	char		filename[MAX_QPATH];
+	int	dataLength;
+	int	i;
+	char	filename[MAX_QPATH];
 	
 	union {
 		vmHeader_t	*h;
@@ -723,10 +725,8 @@ vm_t *VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *), vmInte
 	vm->systemCall = systemCalls;
 	
 	// allocate space for the jump targets, which will be filled in by the compile/prep functions
-	vm->instructionPointersLength = header->instructionCount * 4;
-	vm->instructionPointers = Hunk_Alloc( vm->instructionPointersLength, h_high );
-	//vm->instructionCount = header->instructionCount; 						// new ioq3 -Cowcat
-	//vm->instructionPointers = Hunk_Alloc( vm->instructionCount * sizeof(*vm->instructionPointers), h_high );
+	vm->instructionCount = header->instructionCount;
+	vm->instructionPointers = Hunk_Alloc( vm->instructionCount * sizeof(*vm->instructionPointers), h_high );
 
 	// copy or compile the instructions
 	vm->codeLength = header->codeLength;
@@ -933,10 +933,12 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
 	currentVM = vm;
 	lastVM = vm;
 
+#if DEBUG_VM
 	if ( vm_debugLevel )
 	{
 		Com_Printf( "VM_Call( %d )\n", callnum );
 	}
+#endif
 
 	++vm->callLevel;
 
@@ -944,9 +946,9 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
 	if ( vm->entryPoint )
 	{
 		//rcg010207 -  see dissertation at top of VM_DllSyscall() in this file.
-		//int args[MAX_VMMAIN_ARGS - 1]; //
-		int args[3]; // Cowcat
-		va_list ap;
+		int	args[MAX_VMMAIN_ARGS - 1];
+		va_list	ap;
+
 		va_start(ap, callnum);
 		
 		for (i = 0; i < ARRAY_LEN(args); i++)
@@ -967,83 +969,42 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... )
 	else
 	{
 
-#if id386 // i386 calling convention doesn't need conversion
+#if id386 || defined __VBCC__ // calling convention doesn't need conversion in some cases
 
 #ifndef NO_VM_COMPILED
 		if ( vm->compiled )
 			r = VM_CallCompiled( vm, (int*)&callnum );
-
 		else
 #endif
 			r = VM_CallInterpreted( vm, (int*)&callnum );
 
-#else // no i386
+#else
 
+		struct
+		{
+			int callnum;
+			int args[MAX_VMMAIN_ARGS - 1];
+		} a;
+
+		va_list ap;
+
+		a.callnum = callnum;
+		va_start(ap, callnum);
+
+		for (i = 0; i < ARRAY_LEN(a.args); i++)
+		{
+			a.args[i] = va_arg(ap, int);
+		}
+
+		va_end(ap);
 
 #ifndef NO_VM_COMPILED
-
-		#if defined (__VBCC__)
-
-		if ( vm->compiled ) // seems that no conversion is needed - Cowcat
-		{
-			//r = VM_CallCompiled( vm, &a.callnum );
-			r = VM_CallCompiled( vm, &callnum );
-		}
-
-		#else // gcc
-
 		if ( vm->compiled ) 
-		{
-			struct
-			{
-				int callnum;
-				//int args[MAX_VMMAIN_ARGS-1];
-				int args[3]; // Cowcat
-			
-			} a;
-
-			va_list ap;
-
-			a.callnum = callnum;
-			va_start(ap, callnum);
-
-			for (i = 0; i < ARRAY_LEN(a.args); i++)
-			{
-				a.args[i] = va_arg(ap, int);
-			}
-
-			va_end(ap);
-
 			r = VM_CallCompiled( vm, &a.callnum );
-			
-		}
-
-		#endif
-
 		else
-#endif
-		{
-			struct
-			{
-				int callnum;
-				//int args[MAX_VMMAIN_ARGS-1];
-				int args[3]; // Cowcat
-			} a;
-
-			va_list ap;
-
-			a.callnum = callnum;
-			va_start(ap, callnum);
-
-			for (i = 0; i < ARRAY_LEN(a.args); i++)
-			{
-				a.args[i] = va_arg(ap, int);
-			}
-
-			va_end(ap);
-				
+#endif	
 			r = VM_CallInterpreted( vm, &a.callnum );
-		}
+
 #endif
 	}
 
@@ -1172,8 +1133,7 @@ void VM_VmInfo_f( void )
 		}
 
 		Com_Printf( "    code length : %7i\n", vm->codeLength );
-		Com_Printf( "    table length: %7i\n", vm->instructionPointersLength );
-		//Com_Printf( "    table length: %7i\n", vm->instructionCount * 4 ); // Cowcat
+		Com_Printf( "    table length: %7i\n", vm->instructionCount * 4 );
 		Com_Printf( "    data length : %7i\n", vm->dataMask + 1 );
 	}
 }
@@ -1185,6 +1145,7 @@ VM_LogSyscalls
 Insert calls to this while debugging the vm compiler
 ===============
 */
+#if DEBUG_VM
 void VM_LogSyscalls( int *args )
 {
 	static	int	callnum;
@@ -1199,7 +1160,7 @@ void VM_LogSyscalls( int *args )
 	fprintf(f, "%i: %p (%i) = %i %i %i %i\n", callnum, (void*)(args - (int *)currentVM->dataBase),
 		args[0], args[1], args[2], args[3], args[4] );
 }
-
+#endif
 
 /*
 =================

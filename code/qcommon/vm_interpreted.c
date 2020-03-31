@@ -238,6 +238,7 @@ void VM_PrepareInterpreter( vm_t *vm, vmHeader_t *header )
 	code = (byte *)header + header->codeOffset;
 	codeBase = (int *)vm->codeBase;
 
+	// Copy and expand instructions to words while building instruction table
 	while ( instruction < header->instructionCount )
 	{
 		vm->instructionPointers[ instruction ] = int_pc;
@@ -323,8 +324,8 @@ void VM_PrepareInterpreter( vm_t *vm, vmHeader_t *header )
 			case OP_LEF:
 			case OP_GTF:
 			case OP_GEF:
-				//if(codeBase[int_pc] < 0 || codeBase[int_pc] > vm->instructionCount)
-					//Com_Error(ERR_DROP, "VM_PrepareInterpreter: Jump to invalid instruction number");
+				if(codeBase[int_pc] < 0 || codeBase[int_pc] > vm->instructionCount)
+					Com_Error(ERR_DROP, "VM_PrepareInterpreter: Jump to invalid instruction number");
 
 				// codeBase[pc] is the instruction index. Convert that into an offset into
 				// the int-aligned codeBase[] by the lookup table.
@@ -373,7 +374,7 @@ locals from sp
 ==============
 */
 
-#define MAX_STACK	256
+#define MAX_STACK 256
 
 #define DEBUGSTR va("%s%i", VM_Indent(vm), opStack-stack )
 
@@ -388,7 +389,8 @@ int VM_CallInterpreted( vm_t *vm, int *args )
 	int		*codeImage;
 	int		v1;
 	int		dataMask;
-	int		arg; //
+	int		*img;
+	int		i;
 #ifdef DEBUG_VM
 	vmSymbol_t	*profileSymbol;
 #endif
@@ -429,19 +431,24 @@ int VM_CallInterpreted( vm_t *vm, int *args )
 
 	#else
 
-	//programStack -= ( 8 + 4 * MAX_VMMAIN_ARGS );
-	programStack -= ( 8 + 4 * 4 ); // Cowcat 
+	programStack -= 8 + (MAX_VMMAIN_ARGS * 4);
+	
+	img = (int *)&image[ programStack ];
 
-	//for ( arg = 0; arg < MAX_VMMAIN_ARGS; arg++ )
-	for ( arg = 0; arg < 4 ; arg++ ) // Cowcat
-		*(int *)&image[ programStack + 8 + arg * 4 ] = args[ arg ];
+	for ( i = 0; i < MAX_VMMAIN_ARGS; i++ )
+		//*(int *)&image[ programStack + 8 + arg * 4 ] = args[ arg ];
+		img [ i + 2 ]= args[ i ];
 
 	#endif
 	
-	*(int *)&image[ programStack + 4 ] = 0; // return stack
-	*(int *)&image[ programStack ] = -1;	// will terminate the loop on return
+	//*(int *)&image[ programStack + 4 ] = 0; // return stack
+	//*(int *)&image[ programStack ] = -1;	// will terminate the loop on return
+	img [ 1 ] = 0;
+	img [ 0 ] = -1;
 
+#if DEBUG_VM
 	VM_Debug(0);
+#endif
 
 	// leave a free spot at start of stack so
 	// that as long as opStack is valid, opStack-1 will
@@ -685,9 +692,11 @@ nextInstruction2:
 #endif
 			}
 
-			else if ( (unsigned)programCounter >= vm->codeLength )
+			//else if ( (unsigned)programCounter >= vm->codeLength )
+			else if ( (unsigned)programCounter >= vm->instructionCount )
 			{
 				Com_Error( ERR_DROP, "VM program counter out of range in OP_CALL" );
+				return 0;
 			}
 
 			else
@@ -774,9 +783,14 @@ nextInstruction2:
 		*/
 
 		case OP_JUMP:
-			//programCounter = r0;
-			//programCounter = vm->instructionPointers[ programCounter ];
-			programCounter = vm->instructionPointers[ r0 ]; // Cowcat
+			
+			if ( (unsigned)r0 >= vm->instructionCount )
+			{
+				Com_Error( ERR_DROP, "Vm program counter out of range in OP_JUMP" );
+				return 0;
+			}
+
+			programCounter = vm->instructionPointers[ r0 ];
 			opStack--;
 			goto nextInstruction;
 

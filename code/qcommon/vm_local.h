@@ -26,7 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 // Max number of arguments to pass from engine to vm's vmMain function.
 // command number + 12 arguments
-#define MAX_VMMAIN_ARGS 13
+#define MAX_VMMAIN_ARGS 4 // was 13 - we only need 4 - Cowcat
 
 // Max number of arguments to pass from a vm to engine's syscall handler function for the vm.
 // syscall number + 15 arguments
@@ -156,7 +156,7 @@ struct vm_s {
 	//------------------------------------
    
     	char		name[MAX_QPATH];
-	void		*searchPath;		// hint for FS_ReadFileDir() - new Cowcat
+	void		*searchPath;		// hint for FS_ReadFileDir()
 
 	// for dynamic linked modules
 	void		*dllHandle;
@@ -171,9 +171,8 @@ struct vm_s {
 	byte		*codeBase;
 	int		codeLength;
 
-	int		*instructionPointers;
-	int		instructionPointersLength;
-	//int		instructionCount;	// future (remove ipointerslength )- Cowcat
+	intptr_t	*instructionPointers;
+	int		instructionCount;
 
 	byte		*dataBase;
 	int		dataMask;
