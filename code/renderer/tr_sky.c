@@ -790,7 +790,7 @@ void RB_DrawSun(float scale, shader_t *shader)
 	VectorScale( vec2, size, vec2 );
 
 	// farthest depth range
-	qglDepthRange( 1.0, 1.0 );
+	//qglDepthRange( 1.0, 1.0 ); // Quake3e
 
 	RB_BeginSurface( shader, 0);
 
@@ -799,7 +799,7 @@ void RB_DrawSun(float scale, shader_t *shader)
 	RB_EndSurface();
 
 	// back to normal depth range
-	qglDepthRange( 0.0, 1.0 );
+	//qglDepthRange( 0.0, 1.0 ); // Quake3e
 }
 
 
@@ -827,6 +827,7 @@ void RB_StageIteratorSky( void )
 	// r_showsky will let all the sky blocks be drawn in
 	// front of everything to allow developers to see how
 	// much sky is getting sucked in
+	#if 0 // Quake3e
 	if ( r_showsky->integer )
 	{
 		qglDepthRange( 0.0, 0.0 );
@@ -836,6 +837,7 @@ void RB_StageIteratorSky( void )
 	{
 		qglDepthRange( 1.0, 1.0 );
 	}
+	#endif
 
 	// draw the outer skybox
 	if ( tess.shader->sky.outerbox[0] && tess.shader->sky.outerbox[0] != tr.defaultImage )
@@ -863,7 +865,7 @@ void RB_StageIteratorSky( void )
 
 
 	// back to normal depth range
-	qglDepthRange( 0.0, 1.0 );
+	//qglDepthRange( 0.0, 1.0 ); // Quake3e
 
 	// note that sky was drawn so we will draw a sun later
 	backEnd.skyRenderedThisView = qtrue;

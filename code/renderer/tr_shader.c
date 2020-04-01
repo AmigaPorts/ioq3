@@ -1233,7 +1233,7 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 		//
 		// depthmask
 		//
-		else if ( !Q_stricmp( token, "depthwrite" ) || !Q_stricmp( token, "depthmask" ) ) // spearmint added mask - sCowcat
+		else if ( !Q_stricmp( token, "depthwrite" ) || !Q_stricmp( token, "depthmask" ) ) // spearmint added mask - Cowcat
 		{
 			depthMaskBits = GLS_DEPTHMASK_TRUE;
 			depthMaskExplicit = qtrue;
@@ -1637,7 +1637,7 @@ typedef struct {
 
 } infoParm_t;
 
-infoParm_t infoParms[] = {
+static const infoParm_t infoParms[] = {
 
 	// server relevant contents
 	{"water",		1,	0,		CONTENTS_WATER },
@@ -2221,7 +2221,8 @@ static qboolean CollapseMultitexture( void )
 
 	// set the new blend state bits
 	shader.multitextureEnv = collapse[i].multitextureEnv;
-	stages[0].stateBits &= ~( GLS_DSTBLEND_BITS | GLS_SRCBLEND_BITS );
+	//stages[0].stateBits &= ~( GLS_DSTBLEND_BITS | GLS_SRCBLEND_BITS );
+	stages[0].stateBits &= ~GLS_DSTBLEND_BITS; // Quake3e
 	stages[0].stateBits |= collapse[i].multitextureBlend;
 
 	//
@@ -2254,7 +2255,7 @@ static void FixRenderCommandList( int newShader )
 
 		while ( 1 )
 		{
-			curCmd = PADP(curCmd, sizeof(void *)); // test - Cowcat
+			curCmd = PADP(curCmd, sizeof(void *));
 
 			switch ( *(const int *)curCmd )
 			{
@@ -2756,6 +2757,40 @@ static shader_t *FinishShader( void )
 		shader.sort = SS_OPAQUE;
 	}
 
+	// Quake3e
+	if ( shader.isSky || Q_stricmp ( shader.name, "sun" ) == 0 )
+	{
+		if ( shader.isSky )
+		{
+			if ( r_showsky->integer )
+			{
+				// disable depth tests, set highest sort level to draw on top of everything
+				shader.sort = SS_NEAREST;
+
+				for ( i = 0; i < stage; i++ )
+					stages[i].stateBits |= GLS_DEPTHTEST_DISABLE;
+			}
+
+			else
+			{
+				// disable depth writes for skybox shaders
+				for ( i = 0; i < stage; i++ )
+				{
+					stages[i].stateBits &= ~GLS_DEPTHMASK_TRUE;
+					//stages[i].stateBits |= GLS_DEPTHTEST_DISABLE; // mirror messed up
+				}
+			}
+		}
+
+		else
+		{
+			// disable depth writes for sun shader
+			for ( i = 0; i < stage; i++ )
+				stages[i].stateBits &= ~GLS_DEPTHMASK_TRUE;
+		}
+	}
+	//
+
 	// avoid redundand comparisons in R_ComputeColors - quake3e
 	for (i = 0; i < MAX_SHADER_STAGES; i++)
 	{
@@ -2976,7 +3011,6 @@ static void SetImplicitShaderStages( image_t *image ) // spearmint idea - Cowcat
 			stages[0].bundle[0].image[0] = image;
 			stages[0].active = qtrue;
 			stages[0].rgbGen = CGEN_LIGHTING_DIFFUSE;
-			//stages[0].alphaGen = AGEN_SKIP;	// needed ? - Cowcat
 			stages[0].stateBits = GLS_DEFAULT;
 			break;
 
