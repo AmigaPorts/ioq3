@@ -2525,11 +2525,16 @@ GLboolean AllocMtex(int size)
 void FreeMtex(void)
 {
 	if(mtex_pbuffer)
+    {
 		free(mtex_pbuffer);
+        mtex_pbuffer = NULL;
+    }
 
 	if(pidx)
+    {
 		free(pidx);
-
+        pidx = NULL;
+    }
 }
 
 #define CPACK(r,g,b,a) \
