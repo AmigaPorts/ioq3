@@ -1001,6 +1001,11 @@ static qboolean IsMirror( const drawSurf_t *drawSurf, int entityNum )
 		originalPlane.dist = originalPlane.dist + DotProduct( originalPlane.normal, tr.or.origin );
 	}
 
+	else
+	{
+		plane = originalPlane;
+	}
+
 	// locate the portal entity closest to this plane.
 	// origin will be the origin of the portal, origin2 will be
 	// the origin of the camera
@@ -1047,7 +1052,6 @@ static qboolean SurfIsOffscreen( const drawSurf_t *drawSurf ) // not used vec4_t
 	int		dlighted;
 	vec4_t		clip, eye;
 	int		i;
-	unsigned int	pointOr = 0;
 	unsigned int	pointAnd = (unsigned int)~0;
 
 	R_RotateForViewer();
@@ -1079,7 +1083,6 @@ static qboolean SurfIsOffscreen( const drawSurf_t *drawSurf ) // not used vec4_t
 		}
 
 		pointAnd &= pointFlags;
-		pointOr |= pointFlags;
 	}
 
 	// trivially reject
@@ -1156,7 +1159,7 @@ static qboolean R_MirrorViewBySurface (drawSurf_t *drawSurf, int entityNum)
 		return qfalse;
 	}
 
-	if ( r_noportals->integer /* || (r_fastsky->integer == 1) */) // Quake3e
+	if ( r_noportals->integer || r_fastsky->integer )
 	{
 		return qfalse;
 	}
@@ -1398,7 +1401,7 @@ static void R_SortDrawSurfs( drawSurf_t *drawSurfs, int numDrawSurfs )
 				return;
 			}
 
-			if ( r_fastsky->integer == 0 ) // Quake3e
+			//if ( r_fastsky->integer == 0 ) // Quake3e
 				break;		// only one mirror view at a time
 		}
 	}

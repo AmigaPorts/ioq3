@@ -91,11 +91,11 @@ void MouseHandler (void)
 	{
 		//Com_Printf("mousehandler\n");
 
-		if ( InputPort = CreateMsgPort() )
+		if ( ( InputPort = CreateMsgPort() ) )
 		{
-			if ( InputIO = (struct IOStdReq *) CreateIORequest(InputPort, sizeof(struct IOStdReq)) )
+			if ( ( InputIO = (struct IOStdReq *) CreateIORequest(InputPort, sizeof(struct IOStdReq)) ) )
 			{
-				if(!OpenDevice( "input.device", 0, (struct IORequest *)InputIO, 0 ))
+				if( !OpenDevice( "input.device", 0, (struct IORequest *)InputIO, 0 ) )
 				{
 					InputHandler.is_Node.ln_Type = NT_INTERRUPT;
 					InputHandler.is_Node.ln_Pri = 90;

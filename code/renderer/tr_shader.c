@@ -3506,7 +3506,7 @@ a single large text block that can be scanned for shader names
 static void ScanAndLoadShaderFiles( void )
 {
 	char	**shaderFiles;
-	char	*buffers[MAX_SHADER_FILES] = {0};
+	char	*buffers[MAX_SHADER_FILES]; // = {0};
 	char	*p;
 	int	numShaderFiles;
 	int	i;
@@ -3537,7 +3537,7 @@ static void ScanAndLoadShaderFiles( void )
 		char filename[MAX_QPATH];
 
 		Com_sprintf( filename, sizeof( filename ), "scripts/%s", shaderFiles[i] );
-		ri.Printf( PRINT_DEVELOPER, "...loading '%s'\n", filename );
+		//ri.Printf( PRINT_DEVELOPER, "...loading '%s'\n", filename ); // spam Cowcat
 		summand = ri.FS_ReadFile( filename, (void **)&buffers[i] );
 		
 		if ( !buffers[i] )
@@ -3645,7 +3645,7 @@ static void ScanAndLoadShaderFiles( void )
 		hashMem = ((char *) hashMem) + ((shaderTextHashTableSizes[i] + 1) * sizeof(char *));
 	}
 
-	//Com_Memset(shaderTextHashTableSizes, 0, sizeof(shaderTextHashTableSizes)); // why twice? - Cowcat
+	Com_Memset(shaderTextHashTableSizes, 0, sizeof(shaderTextHashTableSizes)); // why twice? - Cowcat
 
 	p = s_shaderText;
 

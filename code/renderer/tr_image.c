@@ -720,6 +720,13 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 			internalFormat = GL_RGB;
 	}
 
+	#if defined(AMIGAOS) // minigl workaround for scratch image - not really ALPHA .... 
+	else if(cinematic)
+	{
+		internalFormat = GL_ALPHA;
+
+	}
+	#endif
 	else
 	{
 		for ( i = 0; i < c; i++ )
@@ -750,12 +757,15 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 			}
 		}
 
+		#if 0
 		#if defined(AMIGAOS) // Cowcat
 		
 		if(cinematic)
-			internalFormat = GL_ALPHA; // minigl workaround for scratch image - not really ALPHA .... 
-			
+		{
+			internalFormat = 0; // minigl workaround for scratch image - not really ALPHA .... 
+		}
 		else
+		#endif
 		#endif
 
 		// select proper internal format
@@ -1434,7 +1444,7 @@ void R_CreateBuiltinImages( void )
 	for(x = 0; x < ARRAY_LEN( tr.scratchImage ); x++) // ec-/Quake3e
 	{
 		// scratchimage is usually used for cinematic drawing
-		tr.scratchImage[x] = R_CreateImage( "*scratch", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE, 0 );
+		tr.scratchImage[x] = R_CreateImage( "*scratch", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, IMGTYPE_COLORALPHA, IMGFLAG_CLAMPTOEDGE, 0 );
 	}
 
 	R_CreateDlightImage();

@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 backEndData_t	*backEndData;
 backEndState_t	backEnd;
 
+#if 0
 static float s_flipMatrix[16] = 
 {
 	// convert from our coordinate system (looking down X)
@@ -37,6 +38,7 @@ static float s_flipMatrix[16] =
 	0, 1, 0, 0,
 	0, 0, 0, 1
 };
+#endif
 
 /*
 ** GL_Bind
@@ -461,6 +463,7 @@ RB_Hyperspace
 A player has predicted a teleport, but hasn't arrived yet
 ================
 */
+
 static void RB_Hyperspace( void )
 {
 	float	c;
@@ -476,7 +479,6 @@ static void RB_Hyperspace( void )
 
 	backEnd.isHyperspace = qtrue;
 }
-
 
 static void SetViewportAndScissor( void )
 {
@@ -591,13 +593,6 @@ static void RB_BeginDrawingView (void)
 	else
 	{
 		qglDisable (GL_CLIP_PLANE0);
-	}
-
-	#else
-
-	if ( backEnd.viewParms.isPortal )
-	{
-		qglLoadMatrixf( s_flipMatrix );
 	}
 
 	#endif

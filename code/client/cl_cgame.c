@@ -861,7 +861,10 @@ CL_CGameRendering
 void CL_CGameRendering( stereoFrame_t stereo )
 {
 	VM_Call( cgvm, CG_DRAW_ACTIVE_FRAME, cl.serverTime, stereo, clc.demoplaying );
+
+	#if DEBUG_VM
 	VM_Debug( 0 );
+	#endif
 }
 
 
