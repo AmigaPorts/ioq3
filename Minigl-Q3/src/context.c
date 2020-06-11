@@ -159,13 +159,11 @@ void GLScissor(GLcontext context, GLint x, GLint y, GLsizei width, GLsizei heigh
 {
 	//LOG(1, glScissor, "%d %d %d %d",x,y,width,height);
 
-	#if 1
-
 	if(context->Scissor_State == GL_TRUE)
 	{
 		static W3D_Scissor scissor;
 
-		#if 1 // update - Cowcat
+		// update - Cowcat
 
 		if (y < 0)
 		{
@@ -185,10 +183,10 @@ void GLScissor(GLcontext context, GLint x, GLint y, GLsizei width, GLsizei heigh
 		if ( (width + x) > context->w3dWindow->Width )
 			width = context->w3dWindow->Width - x;
 
-		#endif
+		//
 
 		scissor.left = x;
-		scissor.top = context->w3dWindow->Height - y - height;
+		scissor.top = context->w3dWindow->Height - context->w3dWindow->BorderTop - context->w3dWindow->BorderBottom - y - height;
 		scissor.width = width;
 		scissor.height = height;
 
@@ -198,50 +196,10 @@ void GLScissor(GLcontext context, GLint x, GLint y, GLsizei width, GLsizei heigh
 	else
 	{
 		context->scissor.left = x;
-		context->scissor.top = context->w3dWindow->Height - y - height;
+		context->scissor.top = y; //context->w3dWindow->Height - y - height; // needed ? - Cowcat
 		context->scissor.width = width;
 		context->scissor.height = height;
 	}
-
-	#else // test
-
-	context->scissor.left = x;
-	context->scissor.top = y;
-	context->scissor.width = width;
-	context->scissor.height = height;
-
-	if(context->Scissor_State == GL_TRUE)
-	{
-		if (y < 0)
-		{
-			height += y;
-			y = 0;
-		}
-
-		if (x < 0)
-		{
-			width += x;
-			x = 0;
-		}
-
-		if ( (height + y) > context->w3dWindow->Height )
-			height = context->w3dWindow->Height- y;
-
-		if ( (width + x) > context->w3dWindow->Width )
-			width = context->w3dWindow->Width - x;
-
-		static W3D_Scissor scissor;
-
-		scissor.left = x;
-		scissor.top = context->w3dWindow->Height - y - height;
-		scissor.width = width;
-		scissor.height = height;
-
-		if(context->Scissor_State == GL_TRUE)
-			W3D_SetScissor(context->w3dContext, &scissor);
-	}
-
-	#endif
 }
 
 static void vid_CloseDisplay(GLcontext context)
@@ -1782,7 +1740,7 @@ void MGLSetState(GLcontext context, const GLenum cap, const GLboolean flag) //su
 
 			if(flag == GL_FALSE) //restore
 				W3D_SetScissor(context->w3dContext, &(context->scissor));
-			
+
 			break;
 
 		case GL_CULL_FACE:

@@ -801,9 +801,9 @@ void GLViewport(GLcontext context, GLint x, GLint y, GLsizei w, GLsizei h)
 	#else
 
 	context->ax = (float)x + (float)w * 0.5;
-	context->ay = (float)(context->w3dWindow->Height - context->w3dWindow->BorderTop - context->w3dWindow->BorderBottom)
-		- (float)y - (float)h * 0.5;
-	//context->ay = (float)(context->scissor.height) - (float)y - (float)h * 0.5; // test - Cowcat
+	//context->ay = (float)(context->w3dWindow->Height - context->w3dWindow->BorderTop - context->w3dWindow->BorderBottom)
+		//- (float)y - (float)h * 0.5;
+	context->ay = (float)(context->scissor.height) - (float)y - (float)h * 0.5; // Cowcat
 	context->sx = (float)w * 0.5;
 	context->sy = (float)h * 0.5;
 	
