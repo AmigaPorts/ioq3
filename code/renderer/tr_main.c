@@ -1159,7 +1159,7 @@ static qboolean R_MirrorViewBySurface (drawSurf_t *drawSurf, int entityNum)
 		return qfalse;
 	}
 
-	if ( r_noportals->integer || r_fastsky->integer )
+	if ( r_noportals->integer /* || r_fastsky->integer */ ) // quake3e - nofastsky
 	{
 		return qfalse;
 	}
@@ -1401,7 +1401,7 @@ static void R_SortDrawSurfs( drawSurf_t *drawSurfs, int numDrawSurfs )
 				return;
 			}
 
-			//if ( r_fastsky->integer == 0 ) // Quake3e
+			if ( r_fastsky->integer == 0 ) // Quake3e
 				break;		// only one mirror view at a time
 		}
 	}

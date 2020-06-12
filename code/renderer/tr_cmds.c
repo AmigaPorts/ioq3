@@ -421,6 +421,18 @@ void RE_BeginFrame( stereoFrame_t stereoFrame )
 			ri.Error(ERR_FATAL, "RE_BeginFrame() - glGetError() failed (0x%x)!\n", err);
 	}
 
+	if ( r_fastsky->integer ) // Quake3e
+	{
+		if ( stereoFrame != STEREO_RIGHT )
+		{
+			if ( r_anaglyphMode->integer )
+				qglColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
+
+			qglClearColor ( 0.0f, 0.0f, 0.0f, 1.0f );
+			qglClear ( GL_COLOR_BUFFER_BIT );
+		}
+	}
+
 	if (glConfig.stereoEnabled)
 	{
 		if( !(cmd = R_GetCommandBuffer(sizeof(*cmd))) )
