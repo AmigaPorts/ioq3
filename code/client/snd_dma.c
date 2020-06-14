@@ -37,9 +37,9 @@ void S_Play_f(void);
 void S_SoundList_f(void);
 void S_Music_f(void);
 
-void S_Update_( void );
-void S_Base_StopAllSounds(void);
-void S_Base_StopBackgroundTrack( void );
+static void S_Update_( void );
+static void S_Base_StopAllSounds(void);
+static void S_Base_StopBackgroundTrack( void );
 
 snd_stream_t	*s_backgroundStream = NULL;
 static char	s_backgroundLoop[MAX_QPATH];
@@ -98,7 +98,7 @@ portable_samplepair_t s_rawsamples[MAX_RAW_STREAMS][MAX_RAW_SAMPLES];
 // User-setable variables
 // ====================================================================
 
-void S_Base_SoundInfo(void)
+static void S_Base_SoundInfo(void)
 {	
 	Com_Printf("----- Sound Info -----\n" );
 
@@ -109,8 +109,7 @@ void S_Base_SoundInfo(void)
 
 	else
 	{
-		//Com_Printf("%5d stereo\n", dma.channels - 1); //
-		Com_Printf("%5d channels\n", dma.channels); // new Cowcat
+		Com_Printf("%5d channels\n", dma.channels);
 		Com_Printf("%5d samples\n", dma.samples);
 		Com_Printf("%5d samplebits\n", dma.samplebits);
 		Com_Printf("%5d submission_chunk\n", dma.submission_chunk);
@@ -168,20 +167,14 @@ static void S_Base_MasterGain( float val )
 S_Base_SoundList
 =================
 */
-void S_Base_SoundList( void )
+static void S_Base_SoundList( void )
 {
-	int	i;
-	sfx_t	*sfx;
-	int	size, total;
-	char	type[4][16];
-	char	mem[2][16];
+	int		i;
+	sfx_t		*sfx;
+	int		size, total;
+	const char	*type[4] = { "16bit", "adpcm", "daub4", "mulaw" };
+	const char	*mem[2] = { "paged out", "resident " };
 
-	strcpy(type[0], "16bit");
-	strcpy(type[1], "adpcm");
-	strcpy(type[2], "daub4");
-	strcpy(type[3], "mulaw");
-	strcpy(mem[0], "paged out");
-	strcpy(mem[1], "resident ");
 	total = 0;
 
 	for (sfx=s_knownSfx, i=0 ; i<s_numSfx ; i++, sfx++)
@@ -196,14 +189,14 @@ void S_Base_SoundList( void )
 }
 
 
-void S_ChannelFree(channel_t *v)
+static void S_ChannelFree(channel_t *v)
 {
 	v->thesfx = NULL;
 	*(channel_t **)v = freelist;
 	freelist = (channel_t*)v;
 }
 
-channel_t* S_ChannelMalloc( void )
+static channel_t* S_ChannelMalloc( void )
 {
 	channel_t *v;
 
@@ -218,7 +211,7 @@ channel_t* S_ChannelMalloc( void )
 	return v;
 }
 
-void S_ChannelSetup( void )
+static void S_ChannelSetup( void )
 {
 	channel_t *p, *q;
 
@@ -287,21 +280,26 @@ static sfx_t *S_FindName( const char *name )
 
 	sfx_t	*sfx;
 
-	if (!name) {
-		Com_Error (ERR_FATAL, "S_FindName: NULL\n");
+	if (!name)
+	{
+		Com_Error (ERR_FATAL, "S_FindName: Sound name is NULL");
 	}
 
-	if (!name[0]) {
-		Com_Error (ERR_FATAL, "S_FindName: empty name\n");
+	if (!name[0])
+	{
+		Com_Printf (S_COLOR_YELLOW "WARNING: Sound name is empty\n");
+		return NULL;
 	}
 
-	if (strlen(name) >= MAX_QPATH) {
-		Com_Error (ERR_FATAL, "Sound name too long: %s", name);
+	if (strlen(name) >= MAX_QPATH)
+	{
+		Com_Printf (S_COLOR_YELLOW "WARNING: Sound name is too long: %s\n", name);
+		return NULL;
 	}
 
 	if (name[0] == '*')
 	{
-		Com_Printf(S_COLOR_YELLOW "WARNING: Tried to load player sound directly: %s \n", name);
+		Com_Printf(S_COLOR_YELLOW "WARNING: Tried to load player sound directly: %s\n", name);
 		return NULL;
 	}
 
@@ -351,7 +349,8 @@ static sfx_t *S_FindName( const char *name )
 S_DefaultSound
 =================
 */
-void S_DefaultSound( sfx_t *sfx )
+#if 0
+static void S_DefaultSound( sfx_t *sfx )
 {
 	int	i;
 
@@ -364,6 +363,7 @@ void S_DefaultSound( sfx_t *sfx )
 		sfx->soundData->sndChunk[i] = i;
 	}
 }
+#endif
 
 /*
 ===================
@@ -374,7 +374,7 @@ This is called when the hunk is cleared and the sounds
 are no longer valid.
 ===================
 */
-void S_Base_DisableSounds( void )
+static void S_Base_DisableSounds( void )
 {
 	S_Base_StopAllSounds();
 	s_soundMuted = qtrue;
@@ -387,7 +387,7 @@ S_RegisterSound
 Creates a default buzz sound if the file can't be loaded
 ==================
 */
-sfxHandle_t S_Base_RegisterSound( const char *name, qboolean compressed )
+static sfxHandle_t S_Base_RegisterSound( const char *name, qboolean compressed )
 {
 	sfx_t	*sfx;
 
@@ -436,7 +436,7 @@ S_BeginRegistration
 
 =====================
 */
-void S_Base_BeginRegistration( void )
+static void S_Base_BeginRegistration( void )
 {
 	s_soundMuted = qfalse;		// we can play again
 
@@ -460,7 +460,7 @@ void S_memoryLoad(sfx_t *sfx)
 	// load the sound file
 	if ( !S_LoadSound ( sfx ) )
 	{
-//		Com_Printf( S_COLOR_YELLOW "WARNING: couldn't load sound: %s\n", sfx->soundName );
+		Com_Printf( S_COLOR_YELLOW "WARNING: couldn't load sound: %s\n", sfx->soundName );
 		sfx->defaultSound = qtrue;
 	}
 
@@ -476,7 +476,7 @@ S_SpatializeOrigin
 Used for spatializing s_channels
 =================
 */
-void S_SpatializeOrigin (vec3_t origin, int master_vol, int *left_vol, int *right_vol)
+static void S_SpatializeOrigin (const vec3_t origin, int master_vol, int *left_vol, int *right_vol)
 {
 	vec_t		dot;
 	vec_t		dist;
@@ -548,7 +548,7 @@ if pos is NULL, the sound will be dynamically sourced from the entity
 Entchannel 0 will never override a playing sound
 ====================
 */
-void S_Base_StartSound(vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfxHandle )
+static void S_Base_StartSound(vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfxHandle )
 {
 	channel_t	*ch;
 	sfx_t		*sfx;
@@ -708,7 +708,7 @@ void S_Base_StartSound(vec3_t origin, int entityNum, int entchannel, sfxHandle_t
 S_StartLocalSound
 ==================
 */
-void S_Base_StartLocalSound( sfxHandle_t sfxHandle, int channelNum )
+static void S_Base_StartLocalSound( sfxHandle_t sfxHandle, int channelNum )
 {
 	if ( !s_soundStarted || s_soundMuted )
 	{
@@ -733,7 +733,7 @@ If we are about to perform file access, clear the buffer
 so sound doesn't stutter.
 ==================
 */
-void S_Base_ClearSoundBuffer( void )
+static void S_Base_ClearSoundBuffer( void )
 {
 	int	clear;
 		
@@ -768,7 +768,7 @@ void S_Base_ClearSoundBuffer( void )
 S_StopAllSounds
 ==================
 */
-void S_Base_StopAllSounds(void)
+static void S_Base_StopAllSounds(void)
 {
 	if ( !s_soundStarted )
 	{
@@ -1055,7 +1055,7 @@ S_RawSamples
 Music streaming
 ============
 */
-void S_Base_RawSamples( int stream, int samples, int rate, int width, int s_channels, const byte *data, float volume )
+static void S_Base_RawSamples( int stream, int samples, int rate, int width, int s_channels, const byte *data, float volume )
 {
 	int			i;
 	int			src, dst;
@@ -1075,7 +1075,7 @@ void S_Base_RawSamples( int stream, int samples, int rate, int width, int s_chan
 
 	rawsamples = s_rawsamples[stream];
 
-	intVolume = 256 * volume * s_volume->value; // new Cowcat
+	intVolume = 256 * volume * s_volume->value;
 
 	if ( s_rawend[stream] < s_soundtime )
 	{
@@ -1098,7 +1098,6 @@ void S_Base_RawSamples( int stream, int samples, int rate, int width, int s_chan
 				s_rawend[stream]++;
 				rawsamples[dst].left = ((short *)data)[i*2] * intVolume;
 				rawsamples[dst].right = ((short *)data)[i*2+1] * intVolume;
-				
 			}
 		}
 
@@ -1348,7 +1347,7 @@ void S_Base_Update( void )
 	S_Update_();
 }
 
-void S_GetSoundtime(void)
+static void S_GetSoundtime(void)
 {
 	int		samplepos;
 	static	int	buffers;
@@ -1405,7 +1404,7 @@ void S_GetSoundtime(void)
 }
 
 
-void S_Update_(void)
+static void S_Update_(void)
 {
 	unsigned	endtime;
 	int		samps;
@@ -1486,7 +1485,7 @@ background music functions
 S_StopBackgroundTrack
 ======================
 */
-void S_Base_StopBackgroundTrack( void )
+static void S_Base_StopBackgroundTrack( void )
 {
 	if(!s_backgroundStream)
 		return;
@@ -1526,7 +1525,7 @@ static void S_OpenBackgroundStream( const char *filename )
 S_StartBackgroundTrack
 ======================
 */
-void S_Base_StartBackgroundTrack( const char *intro, const char *loop )
+static void S_Base_StartBackgroundTrack( const char *intro, const char *loop )
 {
 	if ( !intro )
 	{
@@ -1684,7 +1683,7 @@ void S_FreeOldestSound( void )
 // Shutdown sound engine
 // =======================================================================
 
-void S_Base_Shutdown( void )
+static void S_Base_Shutdown( void )
 {
 	if ( !s_soundStarted )
 	{

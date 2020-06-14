@@ -27,9 +27,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 static portable_samplepair_t paintbuffer[PAINTBUFFER_SIZE];
 static int snd_vol;
 
-int*	 snd_p;	 
-int	 snd_linear_count;
-short*	 snd_out;
+int*	snd_p;	 
+int	snd_linear_count;
+short*	snd_out;
 
 #if !id386	// if configured not to use asm
 
@@ -196,7 +196,7 @@ void S_TransferPaintBuffer(int endtime)
 		{
 			short *out = (short *) pbuf;
 
-			while (count--)
+			while (count-- > 0)
 			{
 				val = *p >> 8;
 				p+= step;
@@ -219,7 +219,7 @@ void S_TransferPaintBuffer(int endtime)
 			// Amiga needs signed 8 bit data
 			char *out = (char *) pbuf;
 
-			while (count--)
+			while (count-- > 0)
 			{
 				val = *p >> 8;
 				p+= step;
@@ -238,7 +238,7 @@ void S_TransferPaintBuffer(int endtime)
 
 			unsigned char *out = (unsigned char *) pbuf;
 
-			while (count--)
+			while (count-- > 0)
 			{
 				val = *p >> 8;
 				p+= step;
@@ -312,6 +312,12 @@ static void S_PaintChannelFrom16_scalar( channel_t *ch, const sfx_t *sc, int cou
 			if (sampleOffset == SND_CHUNK_SIZE)
 			{
 				chunk = chunk->next;
+
+				if(!chunk)
+				{
+					chunk = sc->soundData;
+				}
+
 				samples = chunk->sndChunk;
 				sampleOffset = 0;
 			}
@@ -578,6 +584,8 @@ void S_PaintChannels( int endtime )
 		// clear the paint buffer and mix any raw samples...
 		Com_Memset(paintbuffer, 0, sizeof (paintbuffer));
 
+		#if 1
+
 		for (stream = 0; stream < MAX_RAW_STREAMS; stream++)
 		{
 			if ( s_rawend[stream] >= s_paintedtime )
@@ -594,6 +602,23 @@ void S_PaintChannels( int endtime )
 				}
 			}
 		}
+
+		#else
+
+		if ( s_rawend >= s_paintedtime )
+		{
+			// copy from the streaming sound source
+			const int stop = (end < s_rawend) ? end : s_rawend;
+
+			for ( i = s_paintedtime ; i < stop ; i++ )
+			{
+				const int s = i&(MAX_RAW_SAMPLES-1);
+				paintbuffer[i-s_paintedtime].left += s_rawsamples[s].left;
+				paintbuffer[i-s_paintedtime].right += s_rawsamples[s].right;
+			}
+		}
+
+		#endif
 
 		// paint in the channels.
 		ch = s_channels;
@@ -701,6 +726,7 @@ void S_PaintChannels( int endtime )
 
 					ltime += count;
 				}
+
 			} while ( ltime < end);
 		}
 

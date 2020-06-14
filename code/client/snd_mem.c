@@ -87,13 +87,14 @@ void SND_setup(void)
 
 	scs = (cv->integer*1536);
 
-	buffer = malloc(scs*sizeof(sndBuffer) );
+	buffer = malloc(scs * sizeof(sndBuffer) );
+
 	// allocate the stack based hunk allocator
 	sfxScratchBuffer = malloc(SND_CHUNK_SIZE * sizeof(short) * 4);	//Hunk_Alloc(SND_CHUNK_SIZE * sizeof(short) * 4);
 	sfxScratchPointer = NULL;
 
-	inUse = scs*sizeof(sndBuffer);
-	p = buffer;;
+	inUse = scs * sizeof(sndBuffer);
+	p = buffer;
 	q = p + scs;
 
 	while (--q > p)
@@ -212,7 +213,8 @@ short __LittleShort(__reg("d0") short ) =
 
 #endif
 
-static int ResampleSfxRaw( short *sfx, int channels, int inrate, int inwidth, int samples, byte *data )
+//static int ResampleSfxRaw( short *sfx, int channels, int inrate, int inwidth, int samples, byte *data )
+static int ResampleSfxRaw( short *sfx, int inrate, int inwidth, int samples, byte *data )
 {
 	int	outcount;
 	int	srcsample;
@@ -283,7 +285,8 @@ qboolean S_LoadSound( sfx_t *sfx )
 		Com_DPrintf(S_COLOR_YELLOW "WARNING: %s is not a 22kHz wav file\n", sfx->soundName);
 	}
 
-	samples = Hunk_AllocateTempMemory(info.channels * info.samples * sizeof(short) * 2);
+	//samples = Hunk_AllocateTempMemory(info.channels * info.samples * sizeof(short) * 2);
+	samples = Hunk_AllocateTempMemory(info.samples * sizeof(short) * 2);
 
 	sfx->lastTimeUsed = Com_Milliseconds()+1;
 
@@ -293,11 +296,13 @@ qboolean S_LoadSound( sfx_t *sfx )
 	// manager to do the right thing for us and page
 	// sound in as needed
 
-	if( info.channels && sfx->soundCompressed == qtrue)
+	//if( info.channels && sfx->soundCompressed == qtrue)
+	if( sfx->soundCompressed == qtrue)
 	{
 		sfx->soundCompressionMethod = 1;
 		sfx->soundData = NULL;
-		sfx->soundLength = ResampleSfxRaw( samples, info.channels, info.rate, info.width, info.samples, data + info.dataofs );
+		//sfx->soundLength = ResampleSfxRaw( samples, info.channels, info.rate, info.width, info.samples, data + info.dataofs );
+		sfx->soundLength = ResampleSfxRaw( samples, info.rate, info.width, info.samples, data + info.dataofs );
 		S_AdpcmEncodeSound(sfx, samples);
 #if 0
 	} else if (info.samples>(SND_CHUNK_SIZE*16) && info.width >1) {
