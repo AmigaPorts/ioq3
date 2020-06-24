@@ -27,9 +27,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 static portable_samplepair_t paintbuffer[PAINTBUFFER_SIZE];
 static int snd_vol;
 
-int*	snd_p;	 
+int	*snd_p;
 int	snd_linear_count;
-short*	snd_out;
+short	*snd_out;
 
 #if !id386	// if configured not to use asm
 
@@ -378,7 +378,7 @@ static void S_PaintChannelFrom16( channel_t *ch, const sfx_t *sc, int count, int
 	S_PaintChannelFrom16_scalar( ch, sc, count, sampleOffset, bufferOffset );
 }
 
-void S_PaintChannelFromWavelet( channel_t *ch, sfx_t *sc, int count, int sampleOffset, int bufferOffset )
+static void S_PaintChannelFromWavelet( channel_t *ch, sfx_t *sc, int count, int sampleOffset, int bufferOffset )
 {
 	int			data;
 	int			leftvol, rightvol;
@@ -426,7 +426,7 @@ void S_PaintChannelFromWavelet( channel_t *ch, sfx_t *sc, int count, int sampleO
 	}
 }
 
-void S_PaintChannelFromADPCM( channel_t *ch, sfx_t *sc, int count, int sampleOffset, int bufferOffset )
+static void S_PaintChannelFromADPCM( channel_t *ch, sfx_t *sc, int count, int sampleOffset, int bufferOffset )
 {
 	int			data;
 	int			leftvol, rightvol;
@@ -479,7 +479,7 @@ void S_PaintChannelFromADPCM( channel_t *ch, sfx_t *sc, int count, int sampleOff
 	}
 }
 
-void S_PaintChannelFromMuLaw( channel_t *ch, sfx_t *sc, int count, int sampleOffset, int bufferOffset )
+static void S_PaintChannelFromMuLaw( channel_t *ch, sfx_t *sc, int count, int sampleOffset, int bufferOffset )
 {
 	int			data;
 	int			leftvol, rightvol;
@@ -584,8 +584,6 @@ void S_PaintChannels( int endtime )
 		// clear the paint buffer and mix any raw samples...
 		Com_Memset(paintbuffer, 0, sizeof (paintbuffer));
 
-		#if 1
-
 		for (stream = 0; stream < MAX_RAW_STREAMS; stream++)
 		{
 			if ( s_rawend[stream] >= s_paintedtime )
@@ -602,23 +600,6 @@ void S_PaintChannels( int endtime )
 				}
 			}
 		}
-
-		#else
-
-		if ( s_rawend >= s_paintedtime )
-		{
-			// copy from the streaming sound source
-			const int stop = (end < s_rawend) ? end : s_rawend;
-
-			for ( i = s_paintedtime ; i < stop ; i++ )
-			{
-				const int s = i&(MAX_RAW_SAMPLES-1);
-				paintbuffer[i-s_paintedtime].left += s_rawsamples[s].left;
-				paintbuffer[i-s_paintedtime].right += s_rawsamples[s].right;
-			}
-		}
-
-		#endif
 
 		// paint in the channels.
 		ch = s_channels;

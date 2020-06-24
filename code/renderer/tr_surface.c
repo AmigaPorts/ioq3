@@ -89,12 +89,9 @@ void RB_AddQuadStampExt( vec3_t origin, vec3_t left, vec3_t up, byte *color, flo
 	tess.indexes[ tess.numIndexes ] = ndx;
 	tess.indexes[ tess.numIndexes + 1 ] = ndx + 1;
 	tess.indexes[ tess.numIndexes + 2 ] = ndx + 3;
-
 	tess.indexes[ tess.numIndexes + 3 ] = ndx + 3;
 	tess.indexes[ tess.numIndexes + 4 ] = ndx + 1;
 	tess.indexes[ tess.numIndexes + 5 ] = ndx + 2;
-
-	#if 0
 
 	tess.xyz[ndx][0] = origin[0] + left[0] + up[0];
 	tess.xyz[ndx][1] = origin[1] + left[1] + up[1];
@@ -111,26 +108,6 @@ void RB_AddQuadStampExt( vec3_t origin, vec3_t left, vec3_t up, byte *color, flo
 	tess.xyz[ndx+3][0] = origin[0] + left[0] - up[0];
 	tess.xyz[ndx+3][1] = origin[1] + left[1] - up[1];
 	tess.xyz[ndx+3][2] = origin[2] + left[2] - up[2];
-	
-	#else // Cowcat
-
-	tess.xyz[ndx][0] = origin[0] + left[0] + up[0];
-	tess.xyz[ndx][1] = origin[1] + left[1] + up[1];
-	tess.xyz[ndx][2] = origin[2] + left[2] + up[2];
-
-	tess.xyz[ndx+1][0] = origin[0] - left[0] + up[0];
-	tess.xyz[ndx+1][1] = origin[1] - left[1] + up[1];
-	tess.xyz[ndx+1][2] = origin[2] - left[2] + up[2];
-	
-	tess.xyz[ndx+2][0] = tess.xyz[ndx+1][0];
-	tess.xyz[ndx+2][1] = tess.xyz[ndx+1][1];
-	tess.xyz[ndx+2][2] = tess.xyz[ndx+1][2];
-
-	tess.xyz[ndx+3][0] = tess.xyz[ndx][0];
-	tess.xyz[ndx+3][1] = tess.xyz[ndx][1];
-	tess.xyz[ndx+3][2] = tess.xyz[ndx][2];
-
-	#endif
 
 	// constant normal all the way around
 	VectorSubtract( vec3_origin, backEnd.viewParms.or.axis[0], normal );
