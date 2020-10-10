@@ -936,7 +936,7 @@ void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int
 		image->height = image->uploadHeight = rows;
 
 		#if defined(AMIGAOS)
-		qglTexImage2D( GL_TEXTURE_2D, 0, 0, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data ); // minigl workaround - Cowcat
+		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
 		#else
 		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
 		#endif

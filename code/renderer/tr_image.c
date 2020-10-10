@@ -75,7 +75,11 @@ static long generateHashValue( const char *fname )
 
 	while (fname[i] != '\0')
 	{
+		#if defined(AMIGA) || defined (__GCC__)
+		letter = tolower((unsigned char)fname[i]);
+		#else
 		letter = tolower(fname[i]);
+		#endif
 
 		if (letter =='.')
 			break;		// don't include extension
@@ -617,10 +621,6 @@ Upload32
 ===============
 */
 
-#if defined(AMIGAOS) // Cowcat
-qboolean cinematic;
-#endif
-
 static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qboolean picmip, 
 	qboolean lightMap, int *format, int *pUploadWidth, int *pUploadHeight )
 {
@@ -720,13 +720,6 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 			internalFormat = GL_RGB;
 	}
 
-	#if defined(AMIGAOS) // minigl workaround for scratch image - not really ALPHA .... 
-	else if(cinematic)
-	{
-		internalFormat = GL_ALPHA;
-
-	}
-	#endif
 	else
 	{
 		for ( i = 0; i < c; i++ )
@@ -756,17 +749,6 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 				break;
 			}
 		}
-
-		#if 0
-		#if defined(AMIGAOS) // Cowcat
-		
-		if(cinematic)
-		{
-			internalFormat = 0; // minigl workaround for scratch image - not really ALPHA .... 
-		}
-		else
-		#endif
-		#endif
 
 		// select proper internal format
 		if ( samples == 3 )
@@ -987,17 +969,6 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 	{
 		isLightmap = qtrue;
 	}
-
-	#if defined(AMIGAOS) // Cowcat
-
-	cinematic = qfalse; // Cowcat
-
-	if ( !strncmp( name, "*scratch", 8 ) )
-	{
-		cinematic = qtrue;
-	}
-
-	#endif
 
 	if ( tr.numImages == MAX_DRAWIMAGES )
 	{
@@ -1269,7 +1240,7 @@ static void R_CreateDlightImage( void )
 			data[y][x][0] = 
 			data[y][x][1] = 
 			data[y][x][2] = b;
-			data[y][x][3] = 255;			
+			data[y][x][3] = 255;
 		}
 	}
 

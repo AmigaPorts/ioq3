@@ -1108,10 +1108,6 @@ ULONG MGLConvert(GLcontext context, const GLvoid *inputp, UWORD *output, int wid
 			}
 
 			break;
-
-		case 0: // dummy - workaround for cinematics in Q3 engines - Cowcat
-			return context->w3dAlphaFormat;
-			break;
 	}
 	
 	return 0; /* ERROR */ // glhexen2 fixes - Cowcat
@@ -1383,6 +1379,13 @@ void GLTexImage2DNoMIP(GLcontext context, GLenum gltarget, GLint level, GLint in
 
 	w = (ULONG)width;
 	h = (ULONG)height;
+	
+	// Cowcat
+	if (context->w3dTexBuffer[current] && ( w != context->w3dTexBuffer[current]->texwidth || h != context->w3dTexBuffer[current]->texheight ) )
+	{
+		W3D_FreeTexObj(context->w3dContext, context->w3dTexBuffer[current]);
+		context->w3dTexBuffer[current] = NULL;
+	}
 
 	if (context->w3dTexBuffer[current] == NULL)
 	{
@@ -1409,7 +1412,7 @@ void GLTexImage2DNoMIP(GLcontext context, GLenum gltarget, GLint level, GLint in
 	*/
 
 	useFormat = MGLConvert(context, pixels, (UWORD *)target, width, height, internalformat, format);
-
+	
 	/*
 	** Create a new W3D_Texture if none was present, using the converted
 	** data.
