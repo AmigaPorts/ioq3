@@ -296,12 +296,6 @@ static void IN_ProcessEvents(qboolean keycatch)
 					//Com_Printf ("key encoded %d %d\n", imsg->Code, imsg->Qualifier);
 					//Com_Printf ("key encoded $%04x $%04lx\n", imsg->Code, imsg->Qualifier);
 
-					ie.ie_Class = IECLASS_RAWKEY;
-					ie.ie_SubClass = 0;
-					ie.ie_Code = imsg->Code;
-					ie.ie_Qualifier = imsg->Qualifier;
-					ie.ie_EventAddress = 0;
-
 					if (key == '`')
 					{
 						key = K_CONSOLE;
@@ -309,14 +303,23 @@ static void IN_ProcessEvents(qboolean keycatch)
 					}
 
 					else
-						res = MapRawKey(&ie, buf, 4, 0);
+					{
+						if( imsg->Code & ~IECODE_UP_PREFIX )
+						{
+							ie.ie_Class = IECLASS_RAWKEY;
+							ie.ie_SubClass = 0;
+							ie.ie_Code = imsg->Code;
+							ie.ie_Qualifier = imsg->Qualifier;
+							ie.ie_EventAddress = NULL;
+
+							res = MapRawKey(&ie, buf, 4, 0);
+						}
+					}
 
 					Com_QueueEvent(msgTime, SE_KEY, key, keyDown(imsg->Code), 0, NULL);
 
-					if (res == 1)
-					{
+					if ( res == 1 )
 						Com_QueueEvent(msgTime, SE_CHAR, buf[0], 0, 0, NULL);
-					}
 				}
 			}
 				
@@ -457,7 +460,7 @@ static void IN_ProcessEvents(qboolean keycatch)
 
 					Com_QueueEvent(msgTime, SE_KEY, key, keyDown(events[i].Code), 0, NULL);
 
-					if (res == 1)
+					if ( events[i].Code & ~IECODE_UP_PREFIX && res == 1 )
 						Com_QueueEvent(msgTime, SE_CHAR, events[i].rawkey, 0, 0, NULL);
 				}
 

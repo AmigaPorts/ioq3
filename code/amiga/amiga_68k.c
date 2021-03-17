@@ -36,7 +36,7 @@ int GetMessages68k( __reg("a1") struct MsgPort *port, __reg("a0") struct MsgStru
 			msg[i].MouseX = imsg->MouseX;
 			msg[i].MouseY = imsg->MouseY;
 
-			if(msg[i].Class == IDCMP_RAWKEY)
+			if( msg[i].Class == IDCMP_RAWKEY && imsg->Code & ~IECODE_UP_PREFIX )
 			{
 				ie.ie_Class = IECLASS_RAWKEY;
 				ie.ie_SubClass = 0;
