@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef AMIGAOS
 #include <mgl/mglmacros.h>
+extern cvar_t *r_mintriarea;
 #endif
 
 /*
@@ -73,7 +74,7 @@ static void APIENTRY R_ArrayElement( GLint index )
 static void R_DrawStripElements( int numIndexes, const glIndex_t *indexes, void ( APIENTRY *element )(GLint) )
 {
 	int		i;
-	int 	 	last0, last1, last2;
+	glIndex_t	last0, last1, last2;
 	qboolean	even;
 
 	if ( numIndexes <= 0 )
@@ -81,9 +82,9 @@ static void R_DrawStripElements( int numIndexes, const glIndex_t *indexes, void 
 
 	qglBegin( GL_TRIANGLE_STRIP );
 
-	int indexes0 = indexes[0];
-	int indexes1 = indexes[1];
-	int indexes2 = indexes[2];
+	glIndex_t indexes0 = indexes[0];
+	glIndex_t indexes1 = indexes[1];
+	glIndex_t indexes2 = indexes[2];
 
 	// prime the strip
 	element( indexes0 );
@@ -160,7 +161,7 @@ R_DrawStripElements
 static void R_DrawStripElementsAmiga( int numIndexes, const glIndex_t *indexes )
 {
 	int		i;
-	int		last0, last1, last2;
+	glIndex_t	last0, last1, last2;
 	qboolean	even;
 	
 	if ( numIndexes <= 0 )
@@ -170,9 +171,9 @@ static void R_DrawStripElementsAmiga( int numIndexes, const glIndex_t *indexes )
 
 	unsigned int VertexBufferPointer = 0;
 	
-	int indexes0 = indexes[0];
-	int indexes1 = indexes[1];
-	int indexes2 = indexes[2];
+	glIndex_t indexes0 = indexes[0];
+	glIndex_t indexes1 = indexes[1];
+	glIndex_t indexes2 = indexes[2];
 
 	// prime the strip
 	ElementIndex[VertexBufferPointer++] = indexes0;
@@ -293,6 +294,16 @@ void R_DrawElements( int numIndexes, const glIndex_t *indexes )
 	// anything else will cause no drawing
 
 	#else // Cowcat
+
+	if(r_mintriarea->value)
+	{
+		// models at distance got wrong rendering with default mgl mintriarea 0.5
+		if( backEnd.currentEntity->e.hModel && !backEnd.projection2D )
+			CC->MinTriArea = 0.3;
+
+		else
+			CC->MinTriArea = r_mintriarea->value;
+	}
 
 	int primitives = r_primitives->integer;
 
