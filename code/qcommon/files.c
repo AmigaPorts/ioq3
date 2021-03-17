@@ -385,7 +385,11 @@ static long FS_HashFileName( const char *fname, int hashSize )
 
 	while (fname[i] != '\0')
 	{
+		#if defined(AMIGAOS) || defined (__GCC__)
+		letter = tolower((unsigned char)fname[i]);
+		#else
 		letter = tolower(fname[i]);
+		#endif
 
 		if (letter =='.') break;			// don't include extension
 		if (letter =='\\') letter = '/';		// damn path names

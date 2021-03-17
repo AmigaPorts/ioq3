@@ -492,7 +492,12 @@ int StringContains(char *str1, char *str2, int casesensitive)
 			} //end if
 			else
 			{
+				#if defined(AMIGAOS) || defined (__GCC__)
+				if (toupper((unsigned char)str1[j]) != toupper((unsigned char)str2[j])) break;
+				#else
 				if (toupper(str1[j]) != toupper(str2[j])) break;
+				#endif
+
 			} //end else
 		} //end for
 		if (!str2[j]) return index;
@@ -529,7 +534,12 @@ char *StringContainsWord(char *str1, char *str2, int casesensitive)
 			} //end if
 			else
 			{
+				#if defined(AMIGAOS) || defined (__GCC__)
+				if (toupper((unsigned char)str1[j]) != toupper((unsigned char)str2[j])) break;
+				#else
 				if (toupper(str1[j]) != toupper(str2[j])) break;
+				#endif
+
 			} //end else
 		} //end for
 		//if there was a word match

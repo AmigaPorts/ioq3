@@ -907,7 +907,11 @@ int Key_StringToKeynum( char *str )
 
 	if ( !str[1] )
 	{
+		#if defined(AMIGAOS) || defined (__GCC__)
+		return tolower( (unsigned char)str[0] );
+		#else
 		return tolower( str[0] );
+		#endif
 	}
 
 	// check for hex code
@@ -1308,7 +1312,11 @@ void CL_ParseBinding( int key, qboolean down, unsigned time )
 
 	while( 1 )
 	{
+		#if defined(AMIGAOS) || defined (__GCC__)
+		while( isspace( (unsigned char)*p ) )
+		#else
 		while( isspace( *p ) )
+		#endif
 			p++;
 
 		end = strchr( p, ';' );

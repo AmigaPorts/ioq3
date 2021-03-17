@@ -668,7 +668,11 @@ char *Com_StringContains(char *str1, char *str2, int casesensitive)
 
 			else
 			{
+				#if defined(AMIGAOS) || defined (__GCC__)
+				if (toupper((unsigned char)str1[j]) != toupper((unsigned char)str2[j]))
+				#else
 				if (toupper(str1[j]) != toupper(str2[j]))
+				#endif
 				{
 					break;
 				}
@@ -754,7 +758,11 @@ int Com_Filter(char *filter, char *name, int casesensitive)
 
 					else
 					{
+						#if defined(AMIGAOS) || defined (__GCC__)
+						if (toupper((unsigned char)*name) >= toupper((unsigned char)*filter) && toupper((unsigned char)*name) <= toupper((unsigned char)*(filter+2)))
+						#else
 						if (toupper(*name) >= toupper(*filter) && toupper(*name) <= toupper(*(filter+2)))
+						#endif
 							found = qtrue;
 					}
 
@@ -771,7 +779,11 @@ int Com_Filter(char *filter, char *name, int casesensitive)
 
 					else
 					{
+						#if defined(AMIGAOS) || defined (__GCC__)
+						if (toupper((unsigned char)*filter) == toupper((unsigned char)*name))
+						#else
 						if (toupper(*filter) == toupper(*name))
+						#endif
 							found = qtrue;
 					}
 
@@ -804,7 +816,11 @@ int Com_Filter(char *filter, char *name, int casesensitive)
 
 			else
 			{
+				#if defined(AMIGAOS) || defined (__GCC__)
+				if (toupper((unsigned char)*filter) != toupper((unsigned char)*name))
+				#else
 				if (toupper(*filter) != toupper(*name))
+				#endif
 					return qfalse;
 			}
 
@@ -3786,7 +3802,11 @@ static void FindMatches( const char *s )
 			break;
 		}
 
+		#if defined(AMIGAOS) || defined (__GCC__)
+		if ( tolower((unsigned char)shortestMatch[i]) != tolower((unsigned char)s[i]) )
+		#else
 		if ( tolower(shortestMatch[i]) != tolower(s[i]) )
+		#endif
 			shortestMatch[i] = 0;
 	}
 }

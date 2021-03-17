@@ -388,7 +388,12 @@ extern	vec4_t		colorMdGrey;
 extern	vec4_t		colorDkGrey;
 
 #define Q_COLOR_ESCAPE	'^'
+
+#if defined(AMIGAOS) || defined (__GCC__)
+#define Q_IsColorString(p)	( p && *(p) == Q_COLOR_ESCAPE && *((p)+1) && isalnum((unsigned char)*((p)+1)) ) // ^[0-9a-zA-Z]
+#else
 #define Q_IsColorString(p)	( p && *(p) == Q_COLOR_ESCAPE && *((p)+1) && isalnum(*((p)+1)) ) // ^[0-9a-zA-Z]
+#endif
 
 #define COLOR_BLACK	'0'
 #define COLOR_RED	'1'

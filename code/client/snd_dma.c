@@ -253,7 +253,11 @@ static long S_HashSFXName(const char *name)
 
 	while (name[i] != '\0')
 	{
+		#if defined (AMIGAOS) || defined (__GCC__)
+		letter = tolower((unsigned char)name[i]);
+		#else
 		letter = tolower(name[i]);
+		#endif
 
 		if (letter =='.') break;		// don't include extension
 		if (letter =='\\') letter = '/';	// damn path names

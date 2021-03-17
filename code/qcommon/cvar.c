@@ -52,7 +52,12 @@ static long generateHashValue( const char *fname )
 
 	while (fname[i] != '\0')
 	{
+		#if defined(AMIGAOS) || defined (__GCC__)
+		letter = tolower((unsigned char)fname[i]);
+		#else
 		letter = tolower(fname[i]);
+		#endif
+
 		hash+=(long)(letter)*(i+119);
 		i++;
 	}

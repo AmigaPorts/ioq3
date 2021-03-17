@@ -777,7 +777,11 @@ int Com_HexStrToInt( const char *str )
 
 			n *= 16;
 
+			#if defined(AMIGAOS) || defined (__GCC__)
+			digit = tolower( (unsigned char) str[ i ] );
+			#else
 			digit = tolower( str[ i ] );
+			#endif
 
 			if( digit >= '0' && digit <= '9' )
 				digit -= '0';
@@ -1039,7 +1043,12 @@ char *Q_strlwr( char *s1 )
 
 	while ( *s )
 	{
+		#if defined (AMIGAOS) || defined (__GCC__)
+		*s = tolower((unsigned char)*s);
+		#else
 		*s = tolower(*s);
+		#endif
+
 		s++;
 	}
 
@@ -1054,7 +1063,12 @@ char *Q_strupr( char *s1 )
 
 	while ( *s )
 	{
+		#if defined (AMIGAOS) || defined (__GCC__)
+		*s = toupper((unsigned char)*s);
+		#else
 		*s = toupper(*s);
+		#endif
+
 		s++;
 	}
 
