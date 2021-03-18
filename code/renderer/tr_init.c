@@ -409,6 +409,7 @@ RB_TakeScreenshotJPEG
 */  
 void RB_TakeScreenshotJPEG( int x, int y, int width, int height, char *fileName )
 {
+/*
 	byte	*buffer;
 
 	buffer = ri.Hunk_AllocateTempMemory(glConfig.vidWidth*glConfig.vidHeight*4);
@@ -424,6 +425,7 @@ void RB_TakeScreenshotJPEG( int x, int y, int width, int height, char *fileName 
 	SaveJPG( fileName, 90, glConfig.vidWidth, glConfig.vidHeight, buffer);
 
 	ri.Hunk_FreeTempMemory( buffer );
+*/
 }
 
 /*
@@ -746,6 +748,7 @@ RB_TakeVideoFrameCmd
 */
 const void *RB_TakeVideoFrameCmd( const void *data )
 {
+/*
 	const videoFrameCommand_t	*cmd;
 	int				frameSize;
 	int				i;
@@ -778,7 +781,8 @@ const void *RB_TakeVideoFrameCmd( const void *data )
 		ri.CL_WriteAVIVideoFrame( cmd->encodeBuffer, frameSize * 3 );
 	}
 
-	return (const void *)(cmd + 1);	
+	return (const void *)(cmd + 1);
+*/
 }
 
 //============================================================================
