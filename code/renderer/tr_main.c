@@ -273,13 +273,14 @@ myGlMultMatrix
 
 ==========================
 */
-
 void myGlMultMatrix( const float *a, const float *b, float *out )
 {
 	int	i, j;
 
 	for ( i = 0 ; i < 4 ; i++ )
 	{
+		#if 0
+
 		for ( j = 0 ; j < 4 ; j++ )
 		{
 			out[ i * 4 + j ] =
@@ -288,6 +289,21 @@ void myGlMultMatrix( const float *a, const float *b, float *out )
 				+ a [ i * 4 + 2 ] * b [ 2 * 4 + j ]
 				+ a [ i * 4 + 3 ] * b [ 3 * 4 + j ];
 		}
+
+		#else // Cowcat
+
+		float a0 = a[i * 4 + 0];
+		float a1 = a[i * 4 + 1];
+		float a2 = a[i * 4 + 2];
+		float a3 = a[i * 4 + 3];
+
+		for ( j = 0 ; j < 4 ; j++ )
+		{
+			out[ i * 4 + j ] = a0 * b [ 0 * 4 + j ] + a1 * b [ 1 * 4 + j ] + a2 * b [ 2 * 4 + j ] + a3 * b [ 3 * 4 + j ];
+		}
+
+		#endif
+		
 	}
 }
 

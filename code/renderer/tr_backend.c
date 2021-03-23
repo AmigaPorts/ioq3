@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 
 #ifdef AMIGAOS
-//#include <mgl/mglmacros.h>
+#include <mgl/mglmacros.h>
 #endif
 
 backEndData_t	*backEndData;
@@ -145,7 +145,6 @@ void GL_BindMultitexture( image_t *image0, GLuint env0, image_t *image1, GLuint 
 /*
 ** GL_Cull
 */
-
 void GL_Cull( int cullType )
 {
 	if ( glState.faceCulling == cullType )
@@ -463,7 +462,6 @@ RB_Hyperspace
 A player has predicted a teleport, but hasn't arrived yet
 ================
 */
-
 static void RB_Hyperspace( void )
 {
 	float	c;
@@ -499,7 +497,6 @@ Any mirrored or portaled views have already been drawn, so prepare
 to actually render the visible surfaces for this view
 =================
 */
-
 static void RB_BeginDrawingView (void)
 {
 	int clearBits = 0;
@@ -819,7 +816,6 @@ RB_SetGL2D
 
 ================
 */
-
 void RB_SetGL2D (void)
 {
 	backEnd.projection2D = qtrue;
@@ -827,7 +823,7 @@ void RB_SetGL2D (void)
 	// set 2D virtual screen size
 	qglViewport( 0, 0, glConfig.vidWidth, glConfig.vidHeight);
 	qglScissor( 0, 0, glConfig.vidWidth, glConfig.vidHeight);
-	
+
 	qglMatrixMode(GL_PROJECTION);
 	qglLoadIdentity ();
 	qglOrtho (0, glConfig.vidWidth, glConfig.vidHeight, 0, 0, 1);
@@ -984,7 +980,6 @@ static const void *RB_SetColor( const void *data )
 RB_StretchPic
 =============
 */
-
 static const void *RB_StretchPic ( const void *data )
 {
 	const stretchPicCommand_t	*cmd;
@@ -1125,7 +1120,6 @@ was there.  This is used to test for texture thrashing.
 Also called by RE_EndRegistration
 ===============
 */
-
 void RB_ShowImages( void )
 {
 	int	i;
