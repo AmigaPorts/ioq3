@@ -275,7 +275,7 @@ static void IN_ProcessEvents(qboolean keycatch)
 	if ( !Sys_EventPort )
 		return;
 
-	const ULONG msgTime = 0; //Sys_Milliseconds();
+	const ULONG msgTime = Sys_Milliseconds();
 
 	while ( (imsg = (struct IntuiMessage *)GetMsg(Sys_EventPort)) )
 	{
@@ -419,7 +419,7 @@ static void IN_ProcessEvents(qboolean keycatch)
 		return;
 
 	struct MsgStruct events[50];
-	const ULONG msgTime = 0; //Sys_Milliseconds();
+	const ULONG msgTime = Sys_Milliseconds();
 
 	int messages = GetEvents(Sys_EventPort, events, 50);
 

@@ -2282,125 +2282,13 @@ EVENT LOOP
 ========================================================================
 */
 
-#if 0
-
-#define MAX_QUEUED_EVENTS  256
-#define MASK_QUEUED_EVENTS ( MAX_QUEUED_EVENTS - 1 )
-
-static sysEvent_t  eventQueue[ MAX_QUEUED_EVENTS ];
-static int         eventHead = 0;
-static int         eventTail = 0;
-
-/*
-================
-Com_QueueEvent
-
-A time of 0 will get the current time
-Ptr should either be null, or point to a block of data that can
-be freed by the game later.
-================
-*/
-void Com_QueueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr )
-{
-	sysEvent_t  *ev;
-
-	// combine mouse movement with previous mouse event
-	if( type == SE_MOUSE && eventHead != eventTail )
-	{
-		ev = &eventQueue[ (eventHead + MAX_QUEUED_EVENTS - 1 ) & MASK_QUEUED_EVENTS ];
-
-		if ( ev->evType == SE_MOUSE )
-		{
-			ev->evValue += value;
-			ev->evValue2 += value2;
-			return;
-		}
-	}
-
-	ev = &eventQueue[ eventHead & MASK_QUEUED_EVENTS ];
-
-	if ( eventHead - eventTail >= MAX_QUEUED_EVENTS )
-	{
-		Com_Printf("Com_QueueEvent: overflow\n");
-
-		// we are discarding an event, but don't leak memory
-		if ( ev->evPtr )
-		{
-			Z_Free( ev->evPtr );
-		}
-
-		eventTail++;
-	}
-
-	eventHead++;
-
-	if ( time == 0 )
-	{
-		time = Sys_Milliseconds();
-	}
-
-	ev->evTime = time;
-	ev->evType = type;
-	ev->evValue = value;
-	ev->evValue2 = value2;
-	ev->evPtrLength = ptrLength;
-	ev->evPtr = ptr;
-}
-
-/*
-================
-Com_GetSystemEvent
-
-================
-*/
-sysEvent_t Com_GetSystemEvent( void )
-{
-	sysEvent_t  ev;
-	char        *s;
-
-	// return if we have data
-	if ( eventHead > eventTail )
-	{
-		eventTail++;
-		return eventQueue[ ( eventTail - 1 ) & MASK_QUEUED_EVENTS ];
-	}
-
-	// check for console commands
-	s = Sys_ConsoleInput();
-
-	if ( s )
-	{
-		char  *b;
-		int   len;
-
-		len = strlen( s ) + 1;
-		b = Z_Malloc( len );
-		strcpy( b, s );
-		Com_QueueEvent( 0, SE_CONSOLE, 0, 0, len, b );
-	}
-
-	// return if we have data
-	if ( eventHead > eventTail )
-	{
-		eventTail++;
-		return eventQueue[ ( eventTail - 1 ) & MASK_QUEUED_EVENTS ];
-	}
-
-	// create an empty event to return
-	memset( &ev, 0, sizeof( ev ) );
-	ev.evTime = Sys_Milliseconds();
-
-	return ev;
-}
-
-#else // ec-/Quake3e
+// ec-/Quake3e
 
 #define MAX_QUEUED_EVENTS  128
 #define MASK_QUEUED_EVENTS ( MAX_QUEUED_EVENTS - 1 )
 
 static sysEvent_t	eventQueue[ MAX_QUEUED_EVENTS ];
-//static sysEvent_t	*lastEvent = NULL;
-static sysEvent_t	*lastEvent = eventQueue + MAX_QUEUED_EVENTS - 1; // new
+static sysEvent_t	*lastEvent = eventQueue + MAX_QUEUED_EVENTS - 1;
 static unsigned int	eventHead = 0;
 static unsigned int	eventTail = 0;
 
@@ -2428,33 +2316,10 @@ void Com_QueueEvent( int evTime, sysEventType_t evType, int value, int value2, i
 {
 	sysEvent_t  *ev;
 
-	if ( evTime == 0)
+	if ( evTime == 0 )
 		evTime = Sys_Milliseconds();
 
 	// combine mouse movement with previous mouse event
-
-	#if 0
-
-	if( evType == SE_MOUSE && lastEvent && lastEvent->evType == SE_MOUSE )
-	{
-		if ( eventTail == eventHead )
-		{
-			lastEvent->evValue = value;
-			lastEvent->evValue2 = value2;
-			eventTail--;
-		}
-			
-		else
-		{
-			lastEvent->evValue += value;
-			lastEvent->evValue2 += value2;
-		}
-
-		lastEvent->evTime = evTime;
-		return;
-	}
-
-	#else // new
 
 	if( evType == SE_MOUSE && lastEvent->evType == SE_MOUSE && eventHead != eventTail )
 	{
@@ -2463,8 +2328,6 @@ void Com_QueueEvent( int evTime, sysEventType_t evType, int value, int value2, i
 		lastEvent->evTime = evTime;
 		return;
 	}
-
-	#endif
 	
 	ev = &eventQueue[ eventHead & MASK_QUEUED_EVENTS ];
 
@@ -2507,20 +2370,8 @@ sysEvent_t Com_GetSystemEvent( void )
 
 	// return if we have data
 
-	#if 0
-
-	if ( eventHead > eventTail )
-	{
-		eventTail++;
-		return eventQueue[ ( eventTail - 1 ) & MASK_QUEUED_EVENTS ];
-	}
-
-	#else // new
-
 	if ( eventHead - eventTail > 0)
 		return eventQueue[ ( eventTail++ ) & MASK_QUEUED_EVENTS ];
-
-	#endif
 	
 	evTime = Sys_Milliseconds();
 
@@ -2540,20 +2391,8 @@ sysEvent_t Com_GetSystemEvent( void )
 
 	// return if we have data
 
-	#if 0
-
-	if ( eventHead > eventTail )
-	{
-		eventTail++;
-		return eventQueue[ ( eventTail - 1 ) & MASK_QUEUED_EVENTS ];
-	}
-
-	#else // new
-
 	if ( eventHead - eventTail > 0)
 		return eventQueue[ ( eventTail++ ) & MASK_QUEUED_EVENTS ];
-
-	#endif
 
 	// create an empty event to return
 	memset( &ev, 0, sizeof( ev ) );
@@ -2561,8 +2400,6 @@ sysEvent_t Com_GetSystemEvent( void )
 
 	return ev;
 }
-
-#endif
 
 /*
 =================
