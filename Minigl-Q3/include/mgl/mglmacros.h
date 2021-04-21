@@ -20,6 +20,10 @@ Note: The Triangle Drawfn is decided in glEnd after checking how many verts ente
 
 **********************************************************/
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 extern void d_DrawPoints		(GLcontext context);
 extern void d_DrawLines		(GLcontext context);
@@ -385,6 +389,10 @@ CC->ElementIndex[CC->VertexBufferPointer++] = (UWORD)(element);}
 #define glPointSize(size) {\
 CC->CurrentPointSize = (GLfloat)(size);}
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif
