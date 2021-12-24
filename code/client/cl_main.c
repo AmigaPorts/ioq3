@@ -3009,7 +3009,7 @@ void CL_CheckTimeout( void )
 	// check timeout
 	//
 	if ( ( !CL_CheckPaused() || !sv_paused->integer ) && clc.state >= CA_CONNECTED && clc.state != CA_CINEMATIC
-		&& cls.realtime - clc.lastPacketTime > cl_timeout->value * 1000 )
+		&& cls.realtime - clc.lastPacketTime > cl_timeout->integer * 1000 )
 	{
 		if (++cl.timeoutcount > 5)
 		{
@@ -3192,9 +3192,9 @@ void CL_Frame ( int msec )
 	// see if we need to update any userinfo
 	CL_CheckUserinfo();
 
-	// if we haven't gotten a packet in a long time,
-	// drop the connection
-	CL_CheckTimeout();
+	// if we haven't gotten a packet in a long time, drop the connection
+	if ( !clc.demoplaying ) // Quake3e
+		CL_CheckTimeout();
 
 	// send intentions now
 	CL_SendCmd();
