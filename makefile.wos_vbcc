@@ -137,43 +137,52 @@ OBJS = \
 	  $(B)/tr_image_png.o \
 	  $(B)/tr_image_pcx.o \
 	\
-	 $(B)/jcapimin.o \
-	  $(B)/jccoefct.o \
-	  $(B)/jccolor.o \
-	  $(B)/jcdctmgr.o \
-	  $(B)/jchuff.o \
-	  $(B)/jcinit.o \
-	  $(B)/jcmainct.o \
-	  $(B)/jcmarker.o \
-	  $(B)/jcmaster.o \
-	  $(B)/jcomapi.o \
-	  $(B)/jcparam.o \
-	  $(B)/jcphuff.o \
-	  $(B)/jcprepct.o \
-	  $(B)/jcsample.o \
-	  $(B)/jctrans.o \
-	  $(B)/jdapimin.o \
-	  $(B)/jdapistd.o \
-	  $(B)/jdatadst.o \
-	  $(B)/jdatasrc.o \
-	  $(B)/jdcoefct.o \
-	  $(B)/jdcolor.o \
-	  $(B)/jddctmgr.o \
-	  $(B)/jdhuff.o \
-	  $(B)/jdinput.o \
-	  $(B)/jdmainct.o \
-	  $(B)/jdmarker.o \
-	  $(B)/jdmaster.o \
-	  $(B)/jdpostct.o \
-	  $(B)/jdsample.o \
-	  $(B)/jdtrans.o \
-	  $(B)/jerror.o \
-	  $(B)/jfdctflt.o \
-	  $(B)/jidctflt.o \
-	  $(B)/jmemmgr.o \
-	  $(B)/jmemnobs.o \
-	  $(B)/jutils.o \
-	  $(B)/jcapistd.o \
+	$(B)/jaricom.o \
+	$(B)/jcapimin.o \
+	$(B)/jcapistd.o \
+	$(B)/jcarith.o \
+	$(B)/jccoefct.o \
+	$(B)/jccolor.o \
+	$(B)/jcdctmgr.o \
+	$(B)/jchuff.o \
+	$(B)/jcinit.o \
+	$(B)/jcmainct.o \
+	$(B)/jcmarker.o \
+	$(B)/jcmaster.o \
+	$(B)/jcomapi.o \
+	$(B)/jcparam.o \
+	$(B)/jcprepct.o \
+	$(B)/jcsample.o \
+	$(B)/jctrans.o \
+	$(B)/jdapimin.o \
+	$(B)/jdapistd.o \
+	$(B)/jdarith.o \
+	$(B)/jdatadst.o \
+	$(B)/jdatasrc.o \
+	$(B)/jdcoefct.o \
+	$(B)/jdcolor.o \
+	$(B)/jddctmgr.o \
+	$(B)/jdhuff.o \
+	$(B)/jdinput.o \
+	$(B)/jdmainct.o \
+	$(B)/jdmarker.o \
+	$(B)/jdmaster.o \
+	$(B)/jdmerge.o \
+	$(B)/jdpostct.o \
+	$(B)/jdsample.o \
+	$(B)/jdtrans.o \
+	$(B)/jerror.o \
+	$(B)/jfdctflt.o \
+	$(B)/jfdctfst.o \
+	$(B)/jfdctint.o \
+	$(B)/jidctflt.o \
+	$(B)/jidctfst.o \
+	$(B)/jidctint.o \
+	$(B)/jmemmgr.o \
+	$(B)/jmemnobs.o \
+	$(B)/jquant1.o \
+	$(B)/jquant2.o \
+	$(B)/jutils.o \
 	  \
 	  $(B)/amiga_main.o \
 	  $(B)/amiga_input.o \
@@ -546,80 +555,103 @@ $(B)/tr_image_png.o:  code/renderer/tr_image_png.c
 $(B)/tr_image_pcx.o:  code/renderer/tr_image_pcx.c
 	$(DO_CC)
 
-$(B)/jcapimin.o:  code/jpeg-6b/jcapimin.c
+
+$(B)/jaricom.o:  code/jpeg-8c/jaricom.c
 	$(DO_CC)
-$(B)/jccoefct.o:  code/jpeg-6b/jccoefct.c
+$(B)/jcapimin.o:  code/jpeg-8c/jcapimin.c
 	$(DO_CC)
-$(B)/jccolor.o:  code/jpeg-6b/jccolor.c
+$(B)/jcapistd.o:  code/jpeg-8c/jcapistd.c
 	$(DO_CC)
-$(B)/jcdctmgr.o:  code/jpeg-6b/jcdctmgr.c
+$(B)/jcarith.o:  code/jpeg-8c/jcarith.c
 	$(DO_CC)
-$(B)/jchuff.o:  code/jpeg-6b/jchuff.c
+$(B)/jccoefct.o:  code/jpeg-8c/jccoefct.c
 	$(DO_CC)
-$(B)/jcinit.o:  code/jpeg-6b/jcinit.c
+$(B)/jccolor.o:  code/jpeg-8c/jccolor.c
 	$(DO_CC)
-$(B)/jcmainct.o:  code/jpeg-6b/jcmainct.c
+$(B)/jcdctmgr.o:  code/jpeg-8c/jcdctmgr.c
 	$(DO_CC)
-$(B)/jcmaster.o:  code/jpeg-6b/jcmaster.c
+$(B)/jchuff.o:  code/jpeg-8c/jchuff.c
 	$(DO_CC)
-$(B)/jcmarker.o:  code/jpeg-6b/jcmarker.c
+$(B)/jcinit.o:  code/jpeg-8c/jcinit.c
 	$(DO_CC)
-$(B)/jcomapi.o:  code/jpeg-6b/jcomapi.c
+$(B)/jcmainct.o:  code/jpeg-8c/jcmainct.c
 	$(DO_CC)
-$(B)/jcparam.o:  code/jpeg-6b/jcparam.c
+$(B)/jcmarker.o:  code/jpeg-8c/jcmarker.c
 	$(DO_CC)
-$(B)/jcphuff.o:  code/jpeg-6b/jcphuff.c
+$(B)/jcmaster.o:  code/jpeg-8c/jcmaster.c
 	$(DO_CC)
-$(B)/jcprepct.o:  code/jpeg-6b/jcprepct.c
+$(B)/jcomapi.o:  code/jpeg-8c/jcomapi.c
 	$(DO_CC)
-$(B)/jcsample.o:  code/jpeg-6b/jcsample.c
+$(B)/jcparam.o:  code/jpeg-8c/jcparam.c
 	$(DO_CC)
-$(B)/jctrans.o:  code/jpeg-6b/jctrans.c
+$(B)/jcprepct.o:  code/jpeg-8c/jcprepct.c
 	$(DO_CC)
-$(B)/jdapimin.o:  code/jpeg-6b/jdapimin.c
+$(B)/jcsample.o:  code/jpeg-8c/jcsample.c
 	$(DO_CC)
-$(B)/jdapistd.o:  code/jpeg-6b/jdapistd.c
+$(B)/jctrans.o:  code/jpeg-8c/jctrans.c
 	$(DO_CC)
-$(B)/jdatadst.o:  code/jpeg-6b/jdatadst.c
+
+$(B)/jdapimin.o:  code/jpeg-8c/jdapimin.c
 	$(DO_CC)
-$(B)/jdatasrc.o:  code/jpeg-6b/jdatasrc.c
+$(B)/jdapistd.o:  code/jpeg-8c/jdapistd.c
 	$(DO_CC)
-$(B)/jdcoefct.o:  code/jpeg-6b/jdcoefct.c
+$(B)/jdarith.o:  code/jpeg-8c/jdarith.c
 	$(DO_CC)
-$(B)/jdcolor.o:  code/jpeg-6b/jdcolor.c
+$(B)/jdatadst.o:  code/jpeg-8c/jdatadst.c
 	$(DO_CC)
-$(B)/jddctmgr.o:  code/jpeg-6b/jddctmgr.c
+$(B)/jdatasrc.o:  code/jpeg-8c/jdatasrc.c
 	$(DO_CC)
-$(B)/jdhuff.o:  code/jpeg-6b/jdhuff.c
+$(B)/jdcoefct.o:  code/jpeg-8c/jdcoefct.c
 	$(DO_CC)
-$(B)/jdinput.o:  code/jpeg-6b/jdinput.c
+$(B)/jdcolor.o:  code/jpeg-8c/jdcolor.c
 	$(DO_CC)
-$(B)/jdmainct.o:  code/jpeg-6b/jdmainct.c
+$(B)/jddctmgr.o:  code/jpeg-8c/jddctmgr.c
 	$(DO_CC)
-$(B)/jdmarker.o:  code/jpeg-6b/jdmarker.c
+$(B)/jdhuff.o:  code/jpeg-8c/jdhuff.c
 	$(DO_CC)
-$(B)/jdmaster.o:  code/jpeg-6b/jdmaster.c
+
+$(B)/jdinput.o:  code/jpeg-8c/jdinput.c
 	$(DO_CC)
-$(B)/jdpostct.o:  code/jpeg-6b/jdpostct.c
+$(B)/jdmainct.o:  code/jpeg-8c/jdmainct.c
 	$(DO_CC)
-$(B)/jdsample.o:  code/jpeg-6b/jdsample.c
+$(B)/jdmarker.o:  code/jpeg-8c/jdmarker.c
 	$(DO_CC)
-$(B)/jdtrans.o:  code/jpeg-6b/jdtrans.c
+$(B)/jdmaster.o:  code/jpeg-8c/jdmaster.c
 	$(DO_CC)
-$(B)/jerror.o:  code/jpeg-6b/jerror.c
+$(B)/jdmerge.o:  code/jpeg-8c/jdmerge.c
 	$(DO_CC)
-$(B)/jfdctflt.o:  code/jpeg-6b/jfdctflt.c
+$(B)/jdpostct.o:  code/jpeg-8c/jdpostct.c
 	$(DO_CC)
-$(B)/jidctflt.o:  code/jpeg-6b/jidctflt.c
+$(B)/jdsample.o:  code/jpeg-8c/jdsample.c
 	$(DO_CC)
-$(B)/jmemmgr.o:  code/jpeg-6b/jmemmgr.c
+$(B)/jdtrans.o:  code/jpeg-8c/jdtrans.c
 	$(DO_CC)
-$(B)/jmemnobs.o:  code/jpeg-6b/jmemnobs.c
+$(B)/jerror.o:  code/jpeg-8c/jerror.c
 	$(DO_CC)
-$(B)/jutils.o:  code/jpeg-6b/jutils.c
+
+$(B)/jfdctflt.o:  code/jpeg-8c/jfdctflt.c
 	$(DO_CC)
-$(B)/jcapistd.o:  code/jpeg-6b/jcapistd.c
+$(B)/jfdctfst.o:  code/jpeg-8c/jfdctfst.c
 	$(DO_CC)
+$(B)/jfdctint.o:  code/jpeg-8c/jfdctint.c
+	$(DO_CC)
+$(B)/jidctflt.o:  code/jpeg-8c/jidctflt.c
+	$(DO_CC)
+$(B)/jidctfst.o:  code/jpeg-8c/jidctfst.c
+	$(DO_CC)
+$(B)/jidctint.o:  code/jpeg-8c/jidctint.c
+	$(DO_CC)
+$(B)/jmemmgr.o:  code/jpeg-8c/jmemmgr.c
+	$(DO_CC)
+$(B)/jmemnobs.o:  code/jpeg-8c/jmemnobs.c
+	$(DO_CC)
+$(B)/jquant1.o:  code/jpeg-8c/jquant1.c
+	$(DO_CC)
+$(B)/jquant2.o:  code/jpeg-8c/jquant2.c
+	$(DO_CC)
+$(B)/jutils.o:  code/jpeg-8c/jutils.c
+	$(DO_CC)
+
 
 $(B)/amiga_input.o:  code/amiga/amiga_input.c
 	$(DO_CC)

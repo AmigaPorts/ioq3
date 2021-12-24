@@ -187,6 +187,11 @@ typedef unsigned int JDIMENSION;
  * or code profilers that require it.
  */
 
+#if defined (__VBCC__) // Cowcat
+#undef GLOBAL
+#undef LOCAL
+#endif
+
 /* a function called through method pointers: */
 #define METHODDEF(type)		static type
 /* a function used only in its module: */
