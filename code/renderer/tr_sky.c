@@ -30,7 +30,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define HALF_SKY_SUBDIVISIONS	(SKY_SUBDIVISIONS/2)
 
 static float s_cloudTexCoords[6][SKY_SUBDIVISIONS+1][SKY_SUBDIVISIONS+1][2];
-static float s_cloudTexP[6][SKY_SUBDIVISIONS+1][SKY_SUBDIVISIONS+1];
 
 /*
 ===================================================================================
@@ -167,6 +166,7 @@ static void AddSkyPolygon (int nump, vec3_t vecs)
 
 #define	ON_EPSILON	0.1f		// point on plane side epsilon
 #define	MAX_CLIP_VERTS	64
+
 /*
 ================
 ClipSkyPolygon
@@ -174,7 +174,7 @@ ClipSkyPolygon
 */
 static void ClipSkyPolygon (int nump, vec3_t vecs, int stage) 
 {
-	float		*norm;
+	const float	*norm;
 	float		*v;
 	qboolean	front, back;
 	float		d, e;
@@ -330,7 +330,7 @@ CLOUD VERTEX GENERATION
 static void MakeSkyVec( float s, float t, int axis, float outSt[2], vec3_t outXYZ )
 {
 	// 1 = s, 2 = t, 3 = 2048
-	static int st_to_vec[6][3] =
+	static const int st_to_vec[6][3] =
 	{
 		{3,-1,2},
 		{-3,1,2},
@@ -366,40 +366,40 @@ static void MakeSkyVec( float s, float t, int axis, float outSt[2], vec3_t outXY
 		}
 	}
 
-	// avoid bilerp seam
-	s = (s+1)*0.5;
-	t = (t+1)*0.5;
-
-	if (s < sky_min)
-	{
-		s = sky_min;
-	}
-
-	else if (s > sky_max)
-	{
-		s = sky_max;
-	}
-
-	if (t < sky_min)
-	{
-		t = sky_min;
-	}
-
-	else if (t > sky_max)
-	{
-		t = sky_max;
-	}
-
-	t = 1.0 - t;
-
 	if ( outSt )
 	{
+		// avoid bilerp seam
+		s = (s+1)*0.5;
+		t = (t+1)*0.5;
+
+		if (s < sky_min)
+		{
+			s = sky_min;
+		}
+
+		else if (s > sky_max)
+		{
+			s = sky_max;
+		}
+
+		if (t < sky_min)
+		{
+			t = sky_min;
+		}
+
+		else if (t > sky_max)
+		{
+			t = sky_max;
+		}
+
+		t = 1.0 - t;
+
 		outSt[0] = s;
 		outSt[1] = t;
 	}
 }
 
-static int	sky_texorder[6] = {0,2,1,3,4,5};
+static const int sky_texorder[6] = {0, 2, 1, 3, 4, 5};
 static vec3_t	s_skyPoints[SKY_SUBDIVISIONS+1][SKY_SUBDIVISIONS+1];
 static float	s_skyTexCoords[SKY_SUBDIVISIONS+1][SKY_SUBDIVISIONS+1][2];
 
@@ -426,7 +426,7 @@ static void DrawSkySide( struct image_s *image, const int mins[2], const int max
 	}
 }
 
-static void DrawSkyBox( shader_t *shader )
+static void DrawSkyBox( const shader_t *shader )
 {
 	int	i;
 
@@ -499,14 +499,17 @@ static void DrawSkyBox( shader_t *shader )
 
 }
 
-static void FillCloudySkySide( const int mins[2], const int maxs[2], qboolean addIndexes )
+static void FillCloudySkySide( const int mins[2], const int maxs[2] )
 {
+	const int vertexStart = tess.numVertexes;
+	const int tHeight = maxs[1] - mins[1] + 1;
+	const int sWidth = maxs[0] - mins[0] + 1;
 	int s, t;
-	int vertexStart = tess.numVertexes;
-	int tHeight, sWidth;
 
-	tHeight = maxs[1] - mins[1] + 1;
-	sWidth = maxs[0] - mins[0] + 1;
+	if ( tess.numVertexes >= SHADER_MAX_VERTEXES )
+	{
+		ri.Error( ERR_DROP, "SHADER_MAX_VERTEXES hit in FillCloudySkySide()\n" );
+	}
 
 	for ( t = mins[1]+HALF_SKY_SUBDIVISIONS; t <= maxs[1]+HALF_SKY_SUBDIVISIONS; t++ )
 	{
@@ -517,40 +520,31 @@ static void FillCloudySkySide( const int mins[2], const int maxs[2], qboolean ad
 			tess.texCoords[tess.numVertexes][0][1] = s_skyTexCoords[t][s][1];
 
 			tess.numVertexes++;
-
-			if ( tess.numVertexes >= SHADER_MAX_VERTEXES )
-			{
-				ri.Error( ERR_DROP, "SHADER_MAX_VERTEXES hit in FillCloudySkySide()\n" );
-			}
 		}
 	}
 
-	// only add indexes for one pass, otherwise it would draw multiple times for each pass
-	if ( addIndexes )
-	{
-		for ( t = 0; t < tHeight-1; t++ )
-		{	
-			for ( s = 0; s < sWidth-1; s++ )
-			{
-				tess.indexes[tess.numIndexes] = vertexStart + s + t * ( sWidth );
-				tess.numIndexes++;
-				tess.indexes[tess.numIndexes] = vertexStart + s + ( t + 1 ) * ( sWidth );
-				tess.numIndexes++;
-				tess.indexes[tess.numIndexes] = vertexStart + s + 1 + t * ( sWidth );
-				tess.numIndexes++;
+	for ( t = 0; t < tHeight-1; t++ )
+	{	
+		for ( s = 0; s < sWidth-1; s++ )
+		{
+			tess.indexes[tess.numIndexes] = vertexStart + s + t * ( sWidth );
+			tess.numIndexes++;
+			tess.indexes[tess.numIndexes] = vertexStart + s + ( t + 1 ) * ( sWidth );
+			tess.numIndexes++;
+			tess.indexes[tess.numIndexes] = vertexStart + s + 1 + t * ( sWidth );
+			tess.numIndexes++;
 
-				tess.indexes[tess.numIndexes] = vertexStart + s + ( t + 1 ) * ( sWidth );
-				tess.numIndexes++;
-				tess.indexes[tess.numIndexes] = vertexStart + s + 1 + ( t + 1 ) * ( sWidth );
-				tess.numIndexes++;
-				tess.indexes[tess.numIndexes] = vertexStart + s + 1 + t * ( sWidth );
-				tess.numIndexes++;
-			}
+			tess.indexes[tess.numIndexes] = vertexStart + s + ( t + 1 ) * ( sWidth );
+			tess.numIndexes++;
+			tess.indexes[tess.numIndexes] = vertexStart + s + 1 + ( t + 1 ) * ( sWidth );
+			tess.numIndexes++;
+			tess.indexes[tess.numIndexes] = vertexStart + s + 1 + t * ( sWidth );
+			tess.numIndexes++;
 		}
 	}
 }
 
-static void FillCloudBox( const shader_t *shader, int stage )
+static void FillCloudBox( void )
 {
 	int i;
 
@@ -649,7 +643,7 @@ static void FillCloudBox( const shader_t *shader, int stage )
 		}
 
 		// only add indexes for first stage
-		FillCloudySkySide( sky_mins_subd, sky_maxs_subd, ( stage == 0 ) );
+		FillCloudySkySide( sky_mins_subd, sky_maxs_subd );
 	}
 }
 
@@ -658,12 +652,9 @@ static void FillCloudBox( const shader_t *shader, int stage )
 */
 void R_BuildCloudData( shaderCommands_t *input )
 {
-	//int		i;
-	shader_t	*shader;
+	const shader_t	*shader;
 
 	shader = input->shader;
-
-	assert( shader->isSky );
 
 	sky_min = 1.0 / 256.0f;		// FIXME: not correct?
 	sky_max = 255.0 / 256.0f;
@@ -674,23 +665,8 @@ void R_BuildCloudData( shaderCommands_t *input )
 
 	if ( shader->sky.cloudHeight )
 	{
-		#if 0
-
-		for ( i = 0; i < MAX_SHADER_STAGES; i++ )
-		{
-			if ( !tess.xstages[i] )
-			{
-				break;
-			}
-
-			FillCloudBox( input->shader, i );
-		}
-
-		#else // spearmint - Cowcat
-
-		FillCloudBox( shader, 0 );
-
-		#endif
+		if ( tess.xstages[0] )
+			FillCloudBox();
 	}
 }
 
@@ -737,8 +713,6 @@ void R_InitSkyTexCoords( float heightCloud )
 								 SQR( skyVec[1] ) * SQR( heightCloud ) + 
 								 2 * SQR( skyVec[2] ) * radiusWorld * heightCloud +
 								 SQR( skyVec[2] ) * SQR( heightCloud ) ) );
-
-				s_cloudTexP[i][t][s] = p;
 
 				// compute intersection point based on p
 				VectorScale( skyVec, p, v );
@@ -827,6 +801,7 @@ void RB_StageIteratorSky( void )
 	// r_showsky will let all the sky blocks be drawn in
 	// front of everything to allow developers to see how
 	// much sky is getting sucked in
+
 	#if 0 // Quake3e
 	if ( r_showsky->integer )
 	{
@@ -859,11 +834,9 @@ void RB_StageIteratorSky( void )
 	// by the generic shader routine
 	R_BuildCloudData( &tess );
 
+	// draw the inner skybox
 	if ( tess.numVertexes )
 		RB_StageIteratorGeneric();
-
-	// draw the inner skybox
-
 
 	// back to normal depth range
 	//qglDepthRange( 0.0, 1.0 ); // Quake3e

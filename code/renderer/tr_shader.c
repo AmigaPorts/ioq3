@@ -2688,13 +2688,11 @@ static shader_t *FinishShader( void )
 			}
 		}
 
-
 		// not a true lightmap but we want to leave existing 
 		// behaviour in place and not print out a warning
 		//if (pStage->rgbGen == CGEN_VERTEX) {
 		//  vertexLightmap = qtrue;
 		//}
-
 
 		//
 		// determine sort order and fog color adjustment
@@ -2761,7 +2759,7 @@ static shader_t *FinishShader( void )
 		shader.sort = SS_OPAQUE;
 	}
 
-	// Quake3e
+	// Quake3e - Held solely for UAE/Wazp3D (depthrange is disabled in tr_sky ) - Cowcat
 	if ( shader.isSky || Q_stricmp ( shader.name, "sun" ) == 0 )
 	{
 		if ( shader.isSky )
@@ -2793,9 +2791,8 @@ static shader_t *FinishShader( void )
 				stages[i].stateBits &= ~GLS_DEPTHMASK_TRUE;
 		}
 	}
-	//
 
-	// avoid redundand comparisons in R_ComputeColors - quake3e
+	// avoid redundand comparisons in R_ComputeColors - Quake3e
 	for (i = 0; i < MAX_SHADER_STAGES; i++)
 	{
 		shaderStage_t *pStage = &stages[i];
