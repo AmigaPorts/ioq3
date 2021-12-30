@@ -15,15 +15,9 @@
 #ifndef __MGL_MODES_H
 #define __MGL_MODES_H
 
-#ifdef __VBCC__
-#pragma amiga-align
-#endif
-
+#pragma pack(push,2)
 #include <Warp3D/Warp3D.h>
-
-#ifdef __VBCC__
-#pragma default-align
-#endif
+#pragma pack(pop)
 
 #define MGL_MAX_MODE 80
 

@@ -19,20 +19,13 @@
 #include "mgl/config.h"
 #include "mgl/vertexbuffer.h"
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined (WARPUP)
-#pragma pack(2)
-#endif
+#pragma pack(push,2)
 
 #include <intuition/intuition.h>
 
 #ifdef __PPC__
+
 #include <devices/timer.h>
-#endif
-
-
-#ifdef __PPC__
 
 typedef struct LockTimeHandle_s
 {
@@ -49,12 +42,7 @@ typedef struct LockTimeHandle_s
 
 #endif
 
-
-#ifdef __VBCC__
-#pragma default-align
-#elif defined (WARPUP)
-#pragma pack()
-#endif
+#pragma pack(pop)
 
 typedef struct GLcontext_t * GLcontext;
 

@@ -21,11 +21,7 @@ extern struct Library *Warp3DPPCBase;
 extern struct Library *Warp3DBase;
 #endif
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
-#pragma pack(2)
-#endif
+#pragma pack(push,2)
 
 #include <exec/types.h>
 #include <exec/exec.h>
@@ -39,11 +35,7 @@ extern struct Library *Warp3DBase;
 #include <Warp3D/Warp3D.h>
 #include <cybergraphx/cybergraphics.h>
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined (WARPUP)
-#pragma pack()
-#endif
+#pragma pack(pop)
 
 #if defined(__GNUC__)
 #define UNUSED  __attribute__ ((unused))
@@ -52,36 +44,39 @@ extern struct Library *Warp3DBase;
 #endif
 
 #if defined(__GNUC__)
-#include "../include/mgl/gl.h"
+
+	#include "../include/mgl/gl.h"
+
 	#ifdef __PPC__
-	#pragma pack(2)
+
+	#pragma pack(push,2)
 	#include <powerpc/memoryPPC.h>
-	#pragma pack()
+	#pragma pack(pop)
 
 	#ifndef __STORMGCC__
-		#pragma pack(2)
+		#pragma pack(push,2)
 		#include <Warp3D/Warp3D_protos.h>
-		#pragma pack()
+		#pragma pack(pop)
 	#else
 	    	#include <Warp3D/Warp3D.h>
 	    	#include <clib/Warp3D_protos.h>
 	#endif
 
 	#ifndef __STORMGCC__
-		#pragma pack(2)
+		#pragma pack(push,2)
 		#include <powerpc/powerpc_protos.h>
-		#pragma pack()
+		#pragma pack(pop)
 	#else
 		#include <clib/powerpc_protos.h>
 	#endif
 
-	#pragma pack(2)
+	#pragma pack(push,2)
 	#include <proto/intuition.h>
 	#include <proto/exec.h>
 	#include <proto/graphics.h>
 	#include <proto/dos.h>
 	#include <proto/cybergraphics.h>
-	#pragma pack()
+	#pragma pack(pop)
 
 	#else // 68k
 
@@ -110,6 +105,7 @@ extern struct Library *Warp3DBase;
    	#else
 
 	#include <pragma/Warp3D_lib.h>
+
 	#endif
 
 	#define INLINE __inline
@@ -117,7 +113,7 @@ extern struct Library *Warp3DBase;
 
 #elif defined(__VBCC__)
 
-	#pragma amiga-align
+	#pragma pack(push,2)
 
     	#include <proto/Warp3D.h>
     	#include <proto/intuition.h>
@@ -132,7 +128,7 @@ extern struct Library *Warp3DBase;
 	#include <proto/powerpc.h>
     	#endif
 
-	#pragma default-align
+	#pragma pack(pop)
 
     	#include "/include/mgl/gl.h"
 

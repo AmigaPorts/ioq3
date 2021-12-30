@@ -15,16 +15,9 @@
 #ifndef __VERTEXBUFFER_H
 #define __VERTEXBUFFER_H
 
-#ifdef __VBCC__
-#pragma amiga-align
-#endif
-
+#pragma pack(push,2)
 #include <Warp3D/Warp3D.h>
-
-#ifdef __VBCC__
-#pragma default-align
-#endif
-
+#pragma pack(pop)
 
 struct TCoord_t
 {
