@@ -26,7 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 R_PerformanceCounters
 =====================
 */
-void R_PerformanceCounters( void )
+static void R_PerformanceCounters( void )
 {
 	if ( !r_speeds->integer )
 	{
@@ -91,24 +91,17 @@ void R_PerformanceCounters( void )
 R_IssueRenderCommands
 ====================
 */
-
-//void R_IssueRenderCommands( qboolean runPerformanceCounters )
-void R_IssueRenderCommands( void ) // ec-/Quake3e
+static void R_IssueRenderCommands( void ) // ec-/Quake3e
 {
 	renderCommandList_t	*cmdList;
 
 	cmdList = &backEndData->commands;
-
-	//assert(cmdList); // Cowcat
 
 	// add an end-of-list command
 	*(int *)(cmdList->cmds + cmdList->used) = RC_END_OF_LIST;
 
 	// clear it out, in case this is a sync and not a buffer flip
 	cmdList->used = 0;
-
-	//if ( runPerformanceCounters )
-		//R_PerformanceCounters();
 
 	// actually start the commands going
 	if ( !r_skipBackEnd->integer )
@@ -127,13 +120,11 @@ R_IssuePendingRenderCommands
 Issue any pending commands and wait for them to complete.
 ====================
 */
-
 void R_IssuePendingRenderCommands(void)
 {
 	if ( !tr.registered )
 		return;
 
-	//R_IssueRenderCommands( qfalse );
 	R_IssueRenderCommands(); // ec-/Quake3e
 }
 
@@ -144,8 +135,7 @@ R_GetCommandBufferReserved
 make sure there is enough command space
 ============
 */
-
-void *R_GetCommandBufferReserved( int bytes, int reservedBytes )
+static void *R_GetCommandBufferReserved( int bytes, int reservedBytes )
 {
 	renderCommandList_t	*cmdList;
 
@@ -176,12 +166,12 @@ R_GetCommandBuffer
 returns NULL if there is not enough space for important commands
 ============
 */
-
 void *R_GetCommandBuffer( int bytes )
 {
 	//return R_GetCommandBufferReserved( bytes, PAD( sizeof( swapBuffersCommand_t ), sizeof(void *) ) ); // this is for x86_64 - Cowcat
 	return R_GetCommandBufferReserved( bytes, sizeof( swapBuffersCommand_t ) );
 }
+
 
 /*
 =============
@@ -278,7 +268,7 @@ void RE_StretchPic ( float x, float y, float w, float h, float s1, float t1, flo
 #define MODE_GREEN_MAGENTA 4
 #define MODE_MAX	MODE_GREEN_MAGENTA
 
-void R_SetColorMode(GLboolean *rgba, stereoFrame_t stereoFrame, int colormode)
+static void R_SetColorMode(GLboolean *rgba, stereoFrame_t stereoFrame, int colormode)
 {
 	rgba[0] = rgba[1] = rgba[2] = rgba[3] = GL_TRUE;
 	
@@ -346,6 +336,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame )
 	// do overdraw measurement
 	//
 	#if 0 // Cowcat
+
 	if ( r_measureOverdraw->integer )
 	{
 		if ( glConfig.stencilBits < 4 )
@@ -387,28 +378,8 @@ void RE_BeginFrame( stereoFrame_t stereoFrame )
 
 		r_measureOverdraw->modified = qfalse;
 	}
+
 	#endif
-
-	//
-	// texturemode stuff
-	//
-	if ( r_textureMode->modified )
-	{
-		R_IssuePendingRenderCommands();
-		GL_TextureMode( r_textureMode->string );
-		r_textureMode->modified = qfalse;
-	}
-
-	//
-	// gamma stuff
-	//
-	if ( r_gamma->modified )
-	{
-		r_gamma->modified = qfalse;
-
-		R_IssuePendingRenderCommands();
-		R_SetColorMappings();
-	}
 
 	// check for errors
 	if ( !r_ignoreGLErrors->integer )
@@ -421,25 +392,13 @@ void RE_BeginFrame( stereoFrame_t stereoFrame )
 			ri.Error(ERR_FATAL, "RE_BeginFrame() - glGetError() failed (0x%x)!\n", err);
 	}
 
-	if ( r_fastsky->integer ) // Quake3e
-	{
-		if ( stereoFrame != STEREO_RIGHT )
-		{
-			if ( r_anaglyphMode->integer )
-				qglColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
+	if( !(cmd = R_GetCommandBuffer(sizeof( *cmd ) ) ) )
+		return;
 
-			qglClearColor ( 0.0f, 0.0f, 0.0f, 1.0f );
-			qglClear ( GL_COLOR_BUFFER_BIT );
-		}
-	}
+	cmd->commandId = RC_DRAW_BUFFER;
 
-	if (glConfig.stereoEnabled)
+	if ( glConfig.stereoEnabled )
 	{
-		if( !(cmd = R_GetCommandBuffer(sizeof(*cmd))) )
-			return;
-			
-		cmd->commandId = RC_DRAW_BUFFER;
-		
 		if ( stereoFrame == STEREO_LEFT )
 			cmd->buffer = (int)GL_BACK_LEFT;
 
@@ -452,9 +411,15 @@ void RE_BeginFrame( stereoFrame_t stereoFrame )
 
 	else
 	{
-		if(r_anaglyphMode->integer)
+		if ( !Q_stricmp(r_drawBuffer->string, "GL_FRONT") )
+			cmd->buffer = (int)GL_FRONT;
+
+		else
+			cmd->buffer = (int)GL_BACK;
+
+		if( r_anaglyphMode->integer )
 		{
-			if(r_anaglyphMode->modified)
+			if( r_anaglyphMode->modified )
 			{
 				// clear both, front and backbuffer.
 				qglColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -468,16 +433,12 @@ void RE_BeginFrame( stereoFrame_t stereoFrame )
 				r_anaglyphMode->modified = qfalse;
 			}
 			
-			if(stereoFrame == STEREO_LEFT)
+			if ( stereoFrame == STEREO_LEFT )
 			{
-				if( !(cmd = R_GetCommandBuffer(sizeof(*cmd))) )
-					return;
-				
-				if( !(colcmd = R_GetCommandBuffer(sizeof(*colcmd))) )
-					return;
+				// first frame
 			}
 
-			else if(stereoFrame == STEREO_RIGHT)
+			else if ( stereoFrame == STEREO_RIGHT )
 			{
 				clearDepthCommand_t *cldcmd;
 				
@@ -485,45 +446,49 @@ void RE_BeginFrame( stereoFrame_t stereoFrame )
 					return;
 
 				cldcmd->commandId = RC_CLEARDEPTH;
-
-				if( !(colcmd = R_GetCommandBuffer(sizeof(*colcmd))) )
-					return;
 			}
 
 			else
 				ri.Error( ERR_FATAL, "RE_BeginFrame: Stereo is enabled, but stereoFrame was %i", stereoFrame );
 
-			R_SetColorMode(colcmd->rgba, stereoFrame, r_anaglyphMode->integer);
+			if( !(colcmd = R_GetCommandBuffer(sizeof(*colcmd))) )
+				return;
+
+			R_SetColorMode( colcmd->rgba, stereoFrame, r_anaglyphMode->integer );
 			colcmd->commandId = RC_COLORMASK;
 		}
 
-		else
+		else // !r_anaglyphmode->integer
 		{
-			if(stereoFrame != STEREO_CENTER)
+			if( stereoFrame != STEREO_CENTER )
 				ri.Error( ERR_FATAL, "RE_BeginFrame: Stereo is disabled, but stereoFrame was %i", stereoFrame );
 
-			if( !(cmd = R_GetCommandBuffer(sizeof(*cmd))) )
-				return;
-		}
-
-		if(cmd)
-		{
-			cmd->commandId = RC_DRAW_BUFFER;
-
-			if(r_anaglyphMode->modified)
+			#if 0 // maybe Cowcat
+			// reset color mask
+			if( r_anaglyphMode->modified )
 			{
-				qglColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-				r_anaglyphMode->modified = qfalse;
+				if( !(colcmd = R_GetCommandBuffer(sizeof(*colcmd))) )
+					return;
+
+				R_SetColorMode( colcmd->rgba, stereoFrame, r_anaglyphMode->integer );
+				colcmd->commandId = RC_COLORMASK;
 			}
-
-			if (!Q_stricmp(r_drawBuffer->string, "GL_FRONT"))
-				cmd->buffer = (int)GL_FRONT;
-
-			else
-				cmd->buffer = (int)GL_BACK;
+			#endif
 		}
 	}
 	
+	if ( r_fastsky->integer ) // Quake3e
+	{
+		if ( stereoFrame != STEREO_RIGHT )
+		{
+			if ( r_anaglyphMode->integer )
+				qglColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
+
+			qglClearColor ( 0.0f, 0.0f, 0.0f, 1.0f );
+			qglClear ( GL_COLOR_BUFFER_BIT );
+		}
+	}
+
 	tr.refdef.stereoFrame = stereoFrame;
 }
 
@@ -551,7 +516,6 @@ void RE_EndFrame( int *frontEndMsec, int *backEndMsec )
 
 	R_PerformanceCounters(); // ec-/Quake3e 
 
-	//R_IssueRenderCommands( qtrue );
 	R_IssueRenderCommands(); // ec-/Quake3e 
 
 	R_InitNextFrame();
@@ -565,6 +529,27 @@ void RE_EndFrame( int *frontEndMsec, int *backEndMsec )
 		*backEndMsec = backEnd.pc.msec;
 
 	backEnd.pc.msec = 0;
+
+	//
+	// texturemode stuff
+	//
+	if ( r_textureMode->modified )
+	{
+		R_IssuePendingRenderCommands();
+		GL_TextureMode( r_textureMode->string );
+		r_textureMode->modified = qfalse;
+	}
+
+	//
+	// gamma stuff
+	//
+	if ( r_gamma->modified )
+	{
+		r_gamma->modified = qfalse;
+
+		R_IssuePendingRenderCommands();
+		R_SetColorMappings();
+	}
 }
 
 /*
