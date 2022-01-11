@@ -390,8 +390,7 @@ struct MsgStruct
 };
 #pragma pack(pop)
 
-
-static int GetEvents(void *port, void *msgarray, int arraysize)
+static int GetEvents( void *port, void *msgarray )
 {
 	extern int GetMessages68k();
 	struct PPCArgs args;
@@ -403,7 +402,6 @@ static int GetEvents(void *port, void *msgarray, int arraysize)
 	args.PP_StackSize = 0;
 	args.PP_Regs[PPREG_A0] = (ULONG)msgarray;
 	args.PP_Regs[PPREG_A1] = (ULONG)port;
-	args.PP_Regs[PPREG_D0] = arraysize;
 
 	Run68K(&args);
 
@@ -418,10 +416,10 @@ static void IN_ProcessEvents(qboolean keycatch)
 	if( !Sys_EventPort )
 		return;
 
-	struct MsgStruct events[50];
+	struct MsgStruct events[10]; //  5 events max ? - Cowcat
 	const ULONG msgTime = Sys_Milliseconds();
 
-	int messages = GetEvents(Sys_EventPort, events, 50);
+	int messages = GetEvents( Sys_EventPort, events );
 
 	//if (messages > 0)
 		//Com_Printf("messages %d\n", messages);
@@ -431,7 +429,7 @@ static void IN_ProcessEvents(qboolean keycatch)
 	while ( i < messages )
 	{
 		UWORD Codekey = events[i].Code;
-		
+
 		switch( events[i].Class )
 		{
 			case IDCMP_RAWKEY:
@@ -474,21 +472,21 @@ static void IN_ProcessEvents(qboolean keycatch)
 				break;
 
 			case IDCMP_MOUSEBUTTONS:
-	
-				switch ( Codekey & ~IECODE_UP_PREFIX )
 				{
-					case IECODE_LBUTTON:
-						Com_QueueEvent( msgTime, SE_KEY, K_MOUSE1, keyDown(Codekey), 0, NULL );
-						break;
+					int b;
 
-					case IECODE_RBUTTON:
-						Com_QueueEvent( msgTime, SE_KEY, K_MOUSE2, keyDown(Codekey), 0, NULL );
-						break;
+					switch ( Codekey & ~IECODE_UP_PREFIX )
+					{
+						case IECODE_LBUTTON: b = K_MOUSE1; break;
+						case IECODE_RBUTTON: b = K_MOUSE2; break;
+						case IECODE_MBUTTON: b = K_MOUSE3; break;
+						default: b = IECODE_NOBUTTON; break;
+					}
 
-					case IECODE_MBUTTON:
-						Com_QueueEvent( msgTime, SE_KEY, K_MOUSE3, keyDown(Codekey), 0, NULL );
-						break;
+					Com_QueueEvent( msgTime, SE_KEY, b, keyDown(Codekey), 0, NULL );
 				}
+
+				break;
 		}
 
 		i++;
