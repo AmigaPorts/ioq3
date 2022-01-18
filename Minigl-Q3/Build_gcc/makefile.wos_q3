@@ -16,11 +16,11 @@ VPATH = ../src/ ../demos
 INCLUDE = -I../include
 CFLAGS = $(INCLUDE) $(DEBUG) $(ADDFLAG) -ffast-math
 DEBUG = -DNDEBUG
-LIBNAME = ../lib/libmglQ3_603.a
+LIBNAME = ../lib/libmglQ3.a
 
 #DEMOS = GLTest varray warp mtex gears driverinfo
 
-CC = gcc --specs=warpup -O3 -mcpu=603e -Wall -DINLINE=__inline
+CC = ppc-morphos-gcc-10 --specs=warpup -O3 -Wall -DINLINE=__inline
 
 AR = ar
 RANLIB = ranlib

@@ -4,7 +4,7 @@ BUI = $(B)/q3_ui
 BCG = $(B)/cgame
 BQAG = $(B)/qagame
 
-CC = gcc --specs=warpup
+CC = ppc-morphos-gcc-10 --specs=warpup
 CC68K = vc +aos68k -c99 -O2 -speed -cpu=68060
 
 ALTIVEC = -D__VECTOR__
@@ -319,7 +319,7 @@ OBJQAGAME = \
 
 ##
 
-QUAKE3 = $(B)/quake3-9-gcc
+QUAKE3 = $(B)/quake3-10-gcc
 Q3UI = $(BUI)/uippc.dll
 CGAME = $(BCG)/cgameppc.dll
 QAGAME = $(BQAG)/qagameppc.dll
@@ -665,9 +665,6 @@ $(B)/jquant2.o:  code/jpeg-8c/jquant2.c
 	$(DO_CC)
 $(B)/jutils.o:  code/jpeg-8c/jutils.c
 	$(DO_CC)
-
-
-
 
 $(B)/amiga_input.o:  code/amiga/amiga_input.c
 	$(DO_CC)

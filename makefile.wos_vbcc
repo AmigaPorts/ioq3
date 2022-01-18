@@ -313,7 +313,7 @@ OBJQAGAME = \
 
 ##
 
-QUAKE3 = $(B)/quake3-9-vbcc
+QUAKE3 = $(B)/quake3-10-vbcc
 Q3UI = $(BUI)/uippc.dll
 CGAME = $(BCG)/cgameppc.dll
 QAGAME = $(BQAG)/qagameppc.dll
