@@ -56,17 +56,15 @@ void SND_free(sndBuffer *v)
 	*(sndBuffer **)v = freelist;
 	freelist = (sndBuffer*)v;
 	inUse += sizeof(sndBuffer);
+	totalInUse -= sizeof(sndBuffer); // -EC-
 }
 
 sndBuffer* SND_malloc(void)
 {
 	sndBuffer *v;
-redo:
-	if (freelist == NULL)
-	{
+
+	while( freelist == NULL )
 		S_FreeOldestSound();
-		goto redo;
-	}
 
 	inUse -= sizeof(sndBuffer);
 	totalInUse += sizeof(sndBuffer);
@@ -81,19 +79,55 @@ void SND_setup(void)
 {
 	sndBuffer	*p, *q;
 	cvar_t		*cv;
-	int		scs;
+	int		scs, sz;
+	static int	old_scs = 1;
 
 	cv = Cvar_Get( "com_soundMegs", DEF_COMSOUNDMEGS, CVAR_LATCH | CVAR_ARCHIVE );
 
-	scs = (cv->integer*1536);
+	scs = ( cv->integer * /*1536*/ 12 * dma.speed ) / 22050;
+	scs *= 128;
 
-	buffer = malloc(scs * sizeof(sndBuffer) );
+	sz = scs * sizeof( sndBuffer );
 
-	// allocate the stack based hunk allocator
-	sfxScratchBuffer = malloc(SND_CHUNK_SIZE * sizeof(short) * 4);	//Hunk_Alloc(SND_CHUNK_SIZE * sizeof(short) * 4);
+	if ( old_scs != scs )
+	{
+		if ( buffer != NULL )
+		{
+			free(buffer);
+			buffer = NULL;
+		}
+
+		old_scs = scs;
+	}
+
+	// -EC-
+	if ( buffer == NULL )
+		buffer = malloc( sz );
+
+	if ( buffer == NULL )
+		Com_Error ( ERR_FATAL, "Error allocating %i bytes for sound buffer", sz );
+	
+	else
+		Com_Memset( buffer, 0, sz );
+
+	sz = SND_CHUNK_SIZE * sizeof(short) * 4;
+
+	// -EC-
+	if ( sfxScratchBuffer == NULL )
+		sfxScratchBuffer = malloc ( sz );
+
+	// -EC-
+	if ( sfxScratchBuffer == NULL )
+		Com_Error ( ERR_FATAL, "Error allocating %i bytes for scratchBuffer", sz );
+
+	else
+		Com_Memset( sfxScratchBuffer, 0, sz );
+
 	sfxScratchPointer = NULL;
 
 	inUse = scs * sizeof(sndBuffer);
+	totalInUse = 0; // -EC-
+
 	p = buffer;
 	q = p + scs;
 
@@ -108,8 +142,17 @@ void SND_setup(void)
 
 void SND_shutdown(void)
 {
-	free(sfxScratchBuffer);
-	free(buffer);
+	if ( sfxScratchBuffer )
+	{
+		free( sfxScratchBuffer );
+		sfxScratchBuffer = NULL;
+	}
+
+	if ( buffer )
+	{
+		free( buffer );
+		buffer = NULL;
+	}
 }
 
 /*
@@ -285,7 +328,6 @@ qboolean S_LoadSound( sfx_t *sfx )
 		Com_DPrintf(S_COLOR_YELLOW "WARNING: %s is not a 22kHz wav file\n", sfx->soundName);
 	}
 
-	//samples = Hunk_AllocateTempMemory(info.channels * info.samples * sizeof(short) * 2);
 	samples = Hunk_AllocateTempMemory(info.samples * sizeof(short) * 2);
 
 	sfx->lastTimeUsed = Com_Milliseconds()+1;
@@ -296,12 +338,10 @@ qboolean S_LoadSound( sfx_t *sfx )
 	// manager to do the right thing for us and page
 	// sound in as needed
 
-	//if( info.channels && sfx->soundCompressed == qtrue)
 	if( sfx->soundCompressed == qtrue)
 	{
 		sfx->soundCompressionMethod = 1;
 		sfx->soundData = NULL;
-		//sfx->soundLength = ResampleSfxRaw( samples, info.channels, info.rate, info.width, info.samples, data + info.dataofs );
 		sfx->soundLength = ResampleSfxRaw( samples, info.rate, info.width, info.samples, data + info.dataofs );
 		S_AdpcmEncodeSound(sfx, samples);
 #if 0
