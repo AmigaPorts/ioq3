@@ -105,7 +105,7 @@ typedef struct
 	qboolean	doppler;
 } channel_t;
 
-#define WAV_FORMAT_PCM		1
+#define WAV_FORMAT_PCM	1
 
 typedef struct {
 	int		format;
@@ -119,17 +119,17 @@ typedef struct {
 // Interface between Q3 sound "api" and the sound backend
 typedef struct
 {
-	void (*Shutdown)(void);
-	void (*StartSound)( vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx );
+	void (*Shutdown)( void );
+	void (*StartSound)( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx );
 	void (*StartLocalSound)( sfxHandle_t sfx, int channelNum );
 	void (*StartBackgroundTrack)( const char *intro, const char *loop );
 	void (*StopBackgroundTrack)( void );
-	void (*RawSamples)(int stream, int samples, int rate, int width, int channels, const byte *data, float volume);
+	void (*RawSamples)( int stream, int samples, int rate, int width, int channels, const byte *data, float volume );
 	void (*StopAllSounds)( void );
 	void (*ClearLoopingSounds)( qboolean killall );
 	void (*AddLoopingSound)( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
 	void (*AddRealLoopingSound)( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
-	void (*StopLoopingSound)(int entityNum );
+	void (*StopLoopingSound)( int entityNum );
 	void (*Respatialize)( int entityNum, const vec3_t origin, vec3_t axis[3], int inwater );
 	void (*UpdateEntityPosition)( int entityNum, const vec3_t origin );
 	void (*Update)( void );
@@ -174,27 +174,27 @@ void SNDDMA_Submit(void);
 
 #define MAX_CHANNELS	96
 
-extern	channel_t   s_channels[MAX_CHANNELS];
-extern	channel_t   loop_channels[MAX_CHANNELS];
-extern	int	numLoopChannels;
+extern channel_t	s_channels[MAX_CHANNELS];
+extern channel_t	loop_channels[MAX_CHANNELS];
+extern int		numLoopChannels;
 
-extern	int	s_paintedtime;
-extern	vec3_t	listener_forward;
-extern	vec3_t	listener_right;
-extern	vec3_t	listener_up;
-extern	dma_t	dma;
+extern int	s_paintedtime;
+extern vec3_t	listener_forward;
+extern vec3_t	listener_right;
+extern vec3_t	listener_up;
+extern dma_t	dma;
 
 #define MAX_RAW_SAMPLES 16384
 //#define MAX_RAW_STREAMS 128
 #define MAX_RAW_STREAMS (MAX_CLIENTS * 2 + 1)
-extern	portable_samplepair_t s_rawsamples[MAX_RAW_STREAMS][MAX_RAW_SAMPLES];
-extern	int	s_rawend[MAX_RAW_STREAMS];
 
-extern cvar_t *s_volume;
-extern cvar_t *s_musicVolume;
-extern cvar_t *s_doppler;
+extern portable_samplepair_t s_rawsamples[MAX_RAW_STREAMS][MAX_RAW_SAMPLES];
+extern int	s_rawend[MAX_RAW_STREAMS];
 
-extern cvar_t *s_testsound;
+extern cvar_t	*s_volume;
+extern cvar_t	*s_musicVolume;
+extern cvar_t	*s_doppler;
+extern cvar_t	*s_testsound;
 
 qboolean S_LoadSound( sfx_t *sfx );
 

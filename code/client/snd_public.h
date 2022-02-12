@@ -68,9 +68,6 @@ void S_ClearSoundBuffer( void );
 
 void SNDDMA_Activate( void );
 
-void S_UpdateBackgroundTrack( void );
-
-
 #ifdef USE_VOIP
 void S_StartCapture( void );
 int S_AvailableCaptureSamples( void );
