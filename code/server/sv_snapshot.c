@@ -387,7 +387,7 @@ SV_AddEntitiesVisibleFromPoint
 static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *frame, snapshotEntityNumbers_t *eNums, qboolean portal )
 {
 	int		e, i;
-	sharedEntity_t 	*ent;
+	sharedEntity_t	*ent;
 	svEntity_t	*svEnt;
 	int		l;
 	int		clientarea, clientcluster;
@@ -638,8 +638,8 @@ static void SV_BuildClientSnapshot( client_t *client )
 	// of an entity being included twice.
 
 	#if 0 // problems with qsort in Amiga ?? - Cowcat
-	qsort( entityNumbers.snapshotEntities, entityNumbers.numSnapshotEntities, 
-		sizeof( entityNumbers.snapshotEntities[0] ), SV_QsortEntityNumbers );
+
+	qsort( entityNumbers.snapshotEntities, entityNumbers.numSnapshotEntities, sizeof( entityNumbers.snapshotEntities[0] ), SV_QsortEntityNumbers );
 
 	#else
 
@@ -717,6 +717,7 @@ void SV_SendClientSnapshot( client_t *client )
 	// bots need to have their snapshots build, but
 	// the query them directly without needing to be sent
 	if ( client->gentity && client->gentity->r.svFlags & SVF_BOT )
+	//if ( client->netchan.remoteAddress.type == NA_BOT ) // test Cowcat
 	{
 		return;
 	}
@@ -760,37 +761,36 @@ void SV_SendClientMessages( void )
 {
 	int		i;
 	client_t	*c;
+	qboolean	lanRate;
 
 	// send a message to each connected client
 	for (i=0; i < sv_maxclients->integer; i++)
 	{
 		c = &svs.clients[i];
 
-		if (!c->state)
+		if ( !c->state )
 			continue;	// not connected
 
-		if(svs.time - c->lastSnapshotTime < c->snapshotMsec * com_timescale->value)
+		if ( *c->downloadName )
+			continue;	// Client is downloading, don't send snapshots
+
+		if( svs.time - c->lastSnapshotTime < c->snapshotMsec * com_timescale->value )
 			continue;	// It's not time yet
 		
-		if (*c->downloadName)
-			continue;	// Client is downloading, don´t send snapshots
-		
-		if ( c->netchan.unsentFragments || c->netchan_start_queue)
+		if ( c->netchan.unsentFragments || c->netchan_start_queue )
 		{
 			c->rateDelayed = qtrue;
 			continue;	// Drop this snapshot if the packet queue is still full or delta compression will break
 		}
 
-		if ( !(c->netchan.remoteAddress.type == NA_LOOPBACK ||
-			(sv_lanForceRate->integer && Sys_IsLANAddress (c->netchan.remoteAddress))) )
+		//if ( !(c->netchan.remoteAddress.type == NA_LOOPBACK || (sv_lanForceRate->integer && Sys_IsLANAddress (c->netchan.remoteAddress))) )
+		lanRate = c->netchan.remoteAddress.type == NA_LOOPBACK || ( sv_lanForceRate->integer && c->netchan.isLANAddress ); // ec-/Quake3e
+
+		if ( !lanRate && SV_RateMsec(c) > 0 ) // rate control for clients not on LAN 
 		{
-			// rate control for clients not on LAN 
-			if ( SV_RateMsec(c) > 0 )
-			{
-				// Not enough time since last packet passed through the line
-				c->rateDelayed = qtrue;
-				continue;
-			}
+			// Not enough time since last packet passed through the line
+			c->rateDelayed = qtrue;
+			continue;
 		}
 		
 		// generate and send a new message
