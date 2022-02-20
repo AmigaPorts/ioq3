@@ -161,7 +161,7 @@ punctuation_t default_punctuations[] =
 };
 
 #ifdef BOTLIB
-char basefolder[MAX_QPATH];
+static char basefolder[MAX_QPATH];
 #endif
 
 //===========================================================================
@@ -643,7 +643,7 @@ int PS_ReadNumber(script_t *script, token_t *token)
 		//hexadecimal
 		while((c >= '0' && c <= '9') ||
 					(c >= 'a' && c <= 'f') ||
-					(c >= 'A' && c <= 'A'))
+					(c >= 'A' && c <= 'F'))
 		{
 			token->string[len++] = *script->script_p++;
 			if (len >= MAX_TOKEN)
@@ -802,7 +802,7 @@ int PS_ReadPunctuation(script_t *script, token_t *token)
 			//if the script contains the punctuation
 			if (!strncmp(script->script_p, p, len))
 			{
-				Q_strncpyz(token->string, p, MAX_TOKEN);
+				Q_strncpyz(token->string, p, sizeof( token->string) );
 				script->script_p += len;
 				token->type = TT_PUNCTUATION;
 				//sub type is the number of the punctuation
@@ -1325,7 +1325,7 @@ script_t *LoadScriptFile(const char *filename)
 {
 #ifdef BOTLIB
 	fileHandle_t fp;
-	char pathname[MAX_QPATH];
+	char pathname[MAX_QPATH * 2];
 #else
 	FILE *fp;
 #endif
@@ -1334,10 +1334,11 @@ script_t *LoadScriptFile(const char *filename)
 	script_t *script;
 
 #ifdef BOTLIB
-	if (strlen(basefolder))
+	if ( basefolder[0] != '\0' )
 		Com_sprintf(pathname, sizeof(pathname), "%s/%s", basefolder, filename);
 	else
 		Com_sprintf(pathname, sizeof(pathname), "%s", filename);
+
 	length = botimport.FS_FOpenFile( pathname, &fp, FS_READ );
 	if (!fp) return NULL;
 #else
@@ -1440,6 +1441,7 @@ void FreeScript(script_t *script)
 void PS_SetBaseFolder(char *path)
 {
 #ifdef BOTLIB
-	Com_sprintf(basefolder, sizeof(basefolder), "%s", path);
+	//Com_sprintf(basefolder, sizeof(basefolder), "%s", path);
+	Q_strncpyz( basefolder, path, sizeof(basefolder) ); // test Cowcat
 #endif
 } //end of the function PS_SetBaseFolder
