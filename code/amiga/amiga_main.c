@@ -32,14 +32,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #pragma pack(push,2)
 
 #include <exec/exec.h>
-#include <exec/ports.h>
-#include <intuition/intuition.h>
 #include <dos/dos.h>
-#include <devices/timer.h>
 #include <proto/dos.h>
 #include <proto/exec.h>
-#include <proto/timer.h>
-#include <proto/intuition.h>
 
 #pragma pack(pop)
 
@@ -47,29 +42,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "dll.h"
 #endif
 
-//#include <devices/timer.h>
-//#include <inline/timer_protos.h>
-
-
-#ifdef __VBCC__
-#define CreateExtIO(p,s) CreateIORequest(p,s)
-#define DeletePort(p) DeleteMsgPort(p)
-#define DeleteExtIO(p) DeleteIORequest(p)
-#endif
-
 struct Library *SocketBase;
-
-//int	totalMsec, countMsec;
-
-/*
-#define MAX_QUED_EVENTS		256
-#define MASK_QUED_EVENTS 	(MAX_QUED_EVENTS - 1)
-
-sysEvent_t eventQue[MAX_QUED_EVENTS];
-int eventHead = 0;
-int eventTail = 0;
-byte sys_packetReceived[MAX_MSGLEN];
-*/
 
 #define MEM_THRESHOLD 96*1024*1024
 
@@ -159,62 +132,6 @@ void Sys_BeginProfiling( void )
 {
 }
 
-#if 0 // not used now - Cowcat
-
-struct timerequest *timerio;
-struct MsgPort *timerport;
-struct Library *TimerBase;
-
-void Timer_Init(void)
-{
-	if (timerport = CreateMsgPort ())
-	{
-		if (timerio = (struct timerequest *) CreateExtIO(timerport,sizeof(struct timerequest)))
-		{
-			if (OpenDevice(TIMERNAME,UNIT_MICROHZ, (struct IORequest *)timerio,0) == 0)
-			{
-				#ifdef __GNUC__
-				TimerBase = (struct Device *)timerio->tr_node.io_Device;
-				#else
-				TimerBase = (struct Library *)timerio->tr_node.io_Device;
-				#endif
-			}
-
-			else
-			{
-				DeleteExtIO((struct IORequest *)timerio);
-				DeletePort(timerport);
-			}
-		}
-
-		else
-			DeletePort(timerport);
-	}
-
-	if (!TimerBase)
-		Sys_Error("Can't open timer.device");
-
-	//TimerBase = (struct Library *)FindName(&SysBase->DeviceList,"timer.device");
-}
-
-void Timer_Term(void)
-{
-	if (TimerBase)
-	{
-		if (!CheckIO((struct IORequest *)timerio))
-		{
-			AbortIO((struct IORequest *)timerio);
-			WaitIO((struct IORequest *)timerio);
-		}
-
-		CloseDevice((struct IORequest *)timerio);
-		DeletePort(timerio->tr_node.io_Message.mn_ReplyPort);
-		DeleteExtIO((struct IORequest *)timerio);
-	}
-}
-
-#endif
-
 void LeaveAmigaLibs(void)
 {
 	if(SocketBase)
@@ -222,19 +139,15 @@ void LeaveAmigaLibs(void)
 		CloseLibrary(SocketBase);
 		SocketBase = NULL;
 	}
-
 }
 	
 void Sys_Exit(int ex)
 {
 	//Sys_DestroyConsole();
-	//Timer_Term(); // not used now - Cowcat
 
 	NET_Shutdown();
 
 	LeaveAmigaLibs();
-
-	//printf("Sys_Exit\n");
 
 	exit(ex);
 }
@@ -260,8 +173,6 @@ void QDECL Sys_Error( const char *error, ... )
 	//Conbuf_AppendText( text ); // Cowcat
 	//Sys_ShowConsole( 1, qtrue ); //
 
-	//IExec->DebugPrintF("Sys_Error: %s\n", text);
-	//fprintf(stderr, "Sys_Error: %s\n", text);
 	fprintf(stderr, "Sys_Error: %s\n", string);
 
 	Sys_Exit(1);
@@ -391,109 +302,6 @@ char *Sys_GetClipboardData(void)
 }
 
 
-
-/*
-================
-Sys_QueEvent
-
-A time of 0 will get the current time
-Ptr should either be null, or point to a block of data that can
-be freed by the game later.
-================
-*/
-
-/*
-//void Sys_QueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr )
-void Com_QueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr )
-{
-	sysEvent_t	*ev;
-
-	ev = &eventQue[ eventHead & MASK_QUED_EVENTS ];
-	
-	if ( eventHead - eventTail >= MAX_QUED_EVENTS )
-	{
-		Com_Printf("Sys_QueEvent: overflow\n");
-
-		// we are discarding an event, but don't leak memory
-		if ( ev->evPtr ) {
-			Z_Free( ev->evPtr );
-		}
-
-		eventTail++;
-	}
-
-	eventHead++;
-
-	if ( time == 0 )
-	{
-		time = Sys_Milliseconds();
-	}
-
-	ev->evTime = time;
-	ev->evType = type;
-	ev->evValue = value;
-	ev->evValue2 = value2;
-	ev->evPtrLength = ptrLength;
-	ev->evPtr = ptr;
-}
-
-sysEvent_t Sys_GetEvent(void)
-{
-	sysEvent_t ev;
-	char *s;
-	msg_t netmsg;
-	netadr_t adr;
-	
-	if (eventHead > eventTail) 
-	{
-		eventTail++;
-		return eventQue [(eventTail - 1) &MASK_QUED_EVENTS ];
-	}
-	
-	//Sys_HandleEvents();
-	IN_ProcessEvents();
-
-	s = Sys_ConsoleInput();
-
-	if (s)
-	{
-		char *b;
-		int len;
-		
-		len = strlen(s) + 1;
-		b = Z_Malloc(len);
-		strcpy (b, s);
-		Com_QueEvent(0, SE_CONSOLE, 0, 0, len, b);
-	}
-	
-	MSG_Init(&netmsg, sys_packetReceived, sizeof(sys_packetReceived));
-
-	if (Sys_GetPacket(&adr, &netmsg))
-	{
-		netadr_t *buf;
-		int len;
-		
-		len = sizeof( netadr_t ) + netmsg.cursize - netmsg.readcount;
-		buf = Z_Malloc( len );
-		*buf = adr;
-		memcpy( buf+1, &netmsg.data[netmsg.readcount], netmsg.cursize - netmsg.readcount );
-		Com_QueEvent( 0, SE_PACKET, 0, 0, len, buf );
-	}
-
-	// return if we have data
-	if ( eventHead > eventTail ) 
-	{
-		eventTail++;
-		return eventQue[ ( eventTail - 1 ) & MASK_QUED_EVENTS ];
-	}
-	
-	memset( &ev, 0, sizeof( ev ) );
-	ev.evTime = Sys_Milliseconds();
-
-	return ev;
-}	
-*/
-
 //static char __attribute__((used)) stackcookie[] = "$STACK:2000000";
 
 #ifdef __VBCC__
@@ -504,9 +312,6 @@ int main(int argc, char **argv)
 {
 	char 	*cmdline;
 	int 	i, len;
-	//int	startTime, endTime;
-
-	//Timer_Init(); // not used now - Cowcat
 	
 	if(SocketBase == NULL)
 		SocketBase = OpenLibrary("bsdsocket.library",0L);
@@ -530,9 +335,6 @@ int main(int argc, char **argv)
 		strcat(cmdline, argv[i]);
 	}
 
-	//memset( &eventQue[0], 0, MAX_QUED_EVENTS*sizeof(sysEvent_t) ); 
-	//memset( &sys_packetReceived[0], 0, MAX_MSGLEN*sizeof(byte) );
-
 	Com_Init(cmdline);
 
 	free(cmdline);
@@ -542,20 +344,14 @@ int main(int argc, char **argv)
 
 	while( 1 ) 
 	{
-		//startTime = Sys_Milliseconds();
-
 		// make sure mouse and joystick are only called once a frame
 		//IN_Frame(); // now called in common.c - Com_Frame
 
 		// run the game
 		Com_Frame();
-
-		//endTime = Sys_Milliseconds();
-		//totalMsec += endTime - startTime;
-		//countMsec++;
 	}
 
-	return 0; 
+	return 0;
 }
 
 #if 0 // not used now - Cowcat
@@ -578,31 +374,3 @@ char *Sys_ConsoleInput(void) // Cowcat
 	return NULL;
 }
 
-/*
-** This is a replacement for the amiga.lib kprintf for PowerPC.
-** It uses the WarpUp SPrintF function to do debug output
-** to the serial connector (or Sushi, if it's installed).
-*/
-
-#if 0
-int kprintf(char *format, ...)
-{
-	int n;
-
-	char msg[1024];
-	va_list marker;
-
-	va_start(marker, format);
-	n = vsnprintf(msg, 1000, format, marker);
-	va_end(marker);
-
-	//IExec->DebugPrintF("%s", msg);
-
-	return n;
-}
-#else
-int kprintf(char *format, ...)
-{
-	return 0;
-}
-#endif

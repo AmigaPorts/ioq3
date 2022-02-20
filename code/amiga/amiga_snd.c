@@ -45,18 +45,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* Implemented 100% on recycled Quake 2 code */
 
-#if 0 // Cowcat - actually snd_68k.h is this callback function manually converted to hexadecimal from a 68k vbcc compiled object...
-ULONG callback(__reg("a0") struct Hook *hook, __reg("a2") struct AHIAudioCtrl *actrl, __reg("a1") struct AHIEffChannelInfo *info)
+#if 0 // Cowcat - actual callback function manually converted to hexadecimal from a 68k vbcc compiled object...
+
+#include <devices/ahi.h>
+#include <utility/hooks.h>
+
+ULONG callback( __reg("a0") struct Hook *hook, __reg("a1") struct AHIEffChannelInfo *info )
 {
   	hook->h_Data = (APTR)(info->ahieci_Offset[0]);
   	return 0;
 }
-#endif
+
+#else
 
 static unsigned short callback[] = {
 	0x48e7, 0x0020, 0x2448, 0x2029, 0x000c, 0x2540, 0x0010, 0x7000, 0x245f, 0x4e75
 };
 
+#endif
 
 #pragma pack(push,2)
 
@@ -90,7 +96,7 @@ static int buflen;
 
 struct Hook EffHook = 
 {
-	0, 0,
+	{0, 0},
 	(HOOKFUNC)callback,
 	0, 0,
 };
@@ -249,14 +255,14 @@ qboolean SNDDMA_Init(void)
 	Com_Printf("Output: %ibit %s\n", ahibits, ahichannels == 2 ? "stereo" : "mono");
 	Com_Printf("AHI snd written by Jarmo Laakkonen and Hans-Joerg Frieden\n");
 
-	AHI_Play(actrl, 
-			AHIP_BeginChannel, 	0,
-			AHIP_Freq, 		speed,
-			AHIP_Vol, 		0x10000,
-			AHIP_Pan, 		0x8000,
-			AHIP_Sound,		0,
-			AHIP_EndChannel, 	NULL,
-			TAG_END);
+	AHI_Play(actrl,	
+		AHIP_BeginChannel,	0,
+		AHIP_Freq,		speed,
+		AHIP_Vol,		0x10000,
+		AHIP_Pan,		0x8000,
+		AHIP_Sound,		0,
+		AHIP_EndChannel,	NULL,
+		TAG_END);
 
 	AHI_SetEffect(&info, actrl);
 

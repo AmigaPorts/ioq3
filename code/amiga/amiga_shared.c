@@ -22,19 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
+
 #include "amiga_local.h"
-
-#if 0
-
-#include <sys/stat.h>
-#include <sys/dirent.h>
-#include <sys/errno.h>
-#include <pwd.h>
-
-#include <proto/exec.h>
-#include <proto/timer.h>
-
-#else
 
 #include <errno.h>
 #include <stdio.h>
@@ -47,13 +36,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <dirent.h>
 #include <fnmatch.h>
 #include <math.h>
-//#include <sys/time.h> // Cowcat
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 #include <utility/tagitem.h>
 #include <exec/exec.h>
@@ -76,13 +60,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <inline/timer_protos.h>
 #endif
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined (WARPUP)
 #pragma pack(pop)
-#endif
 
-#endif
 
 DIR *findhandle = NULL;
 
@@ -121,7 +100,7 @@ int Sys_Milliseconds(void)
 
   	currenttime = tv.tv_secs;
 
-	if ( !inittime )
+	if (!inittime)
 		inittime = currenttime;
 
   	currenttime = currenttime - inittime;
@@ -129,45 +108,6 @@ int Sys_Milliseconds(void)
   	return currenttime * 1000 + tv.tv_micro / 1000;
 }
 
-
-#if 0 // function now is inlined in cl_cgame.c/sv_game.c
-
-void Sys_SnapVector(float *v)
-{
-#if defined(__VBCC__)
-	v[0] = rint(v[0]);
-	v[1] = rint(v[1]);
-	v[2] = rint(v[2]);
-
-#else
-	v[0] = fround(v[0]);
-	v[1] = fround(v[1]);
-	v[2] = fround(v[2]);
-
-#endif
-
-}
-#endif
-
-#if 0 // test
-extern float fnearbyint(float x);
-
-#define fgetenv() ({ float env; asm("mffs %0" : "=f" (env)); env; })
-#define fsetenv(env) ({ double d = (env); asm("mtfsf 0xff, %0" : : "f" (d)); })
-
-void Sys_SnapVector(float *v)
-{
-	float oldround = fgetenv();
-
-	asm("mtfsfi 7,0"); // rounding to-nearest
-
-	v[0] = fnearbyint(v[0]);
-	v[1] = fnearbyint(v[1]);
-	v[2] = fnearbyint(v[2]);
-
-	fsetenv(oldround);
-}
-#endif
 
 void Sys_Mkdir(const char *path)
 {
@@ -459,17 +399,3 @@ cpuFeatures_t Sys_GetProcessorFeatures( void )
 {
 	return 0; //TODO: should return altivec if available
 }
-
-/*
-char *Sys_GetCurrentUser( void )
-{
-	struct passwd *p;
-
-	//if ( (p = getpwuid( getuid() )) == NULL )
-	{
-		return "player";
-	}
-	return p->pw_name;
-	
-}
-*/
