@@ -342,7 +342,7 @@ void BotQueueConsoleMessage(int chatstate, int type, char *message)
 	m->handle = cs->handle;
 	m->time = AAS_Time();
 	m->type = type;
-	Q_strncpyz(m->message, message, MAX_MESSAGE_SIZE);
+	Q_strncpyz(m->message, message, sizeof(m->message));
 	m->next = NULL;
 	if (cs->lastmessage)
 	{
@@ -1466,7 +1466,7 @@ int BotFindMatch(char *str, bot_match_t *match, unsigned long int context)
 	int i;
 	bot_matchtemplate_t *ms;
 
-	Q_strncpyz(match->string, str, MAX_MESSAGE_SIZE);
+	Q_strncpyz(match->string, str, sizeof(match->string));
 	//remove any trailing enters
 	while(strlen(match->string) &&
 			match->string[strlen(match->string)-1] == '\n')
@@ -1509,8 +1509,8 @@ void BotMatchVariable(bot_match_t *match, int variable, char *buf, int size)
 		if (match->variables[variable].length < size)
 			size = match->variables[variable].length+1;
 		assert( match->variables[variable].offset >= 0 );
-		strncpy(buf, &match->string[ (int) match->variables[variable].offset], size-1);
-		buf[size-1] = '\0';
+
+		Q_strncpyz( buf, &match->string[ (int) match->variables[variable].offset], size );
 	} //end if
 	else
 	{
@@ -2124,7 +2124,7 @@ bot_chat_t *BotLoadInitialChat(char *chatfile, char *chatname)
 						if (pass && ptr)
 						{
 							chattype = (bot_chattype_t *) ptr;
-							Q_strncpyz(chattype->name, token.string, MAX_CHATTYPE_NAME);
+							Q_strncpyz(chattype->name, token.string, sizeof(chattype->name));
 							chattype->firstchatmessage = NULL;
 							//add the chat type to the chat
 							chattype->next = chat->types;
@@ -2856,8 +2856,9 @@ void BotGetChatMessage(int chatstate, char *buf, int size)
 	if (!cs) return;
 
 	BotRemoveTildes(cs->chatmessage);
-	strncpy(buf, cs->chatmessage, size-1);
-	buf[size-1] = '\0';
+
+	Q_strncpyz ( buf, cs->chatmessage, size );
+
 	//clear the chat message from the state
 	strcpy(cs->chatmessage, "");
 } //end of the function BotGetChatMessage
@@ -2893,9 +2894,9 @@ void BotSetChatName(int chatstate, char *name, int client)
 	cs = BotChatStateFromHandle(chatstate);
 	if (!cs) return;
 	cs->client = client;
-	Com_Memset(cs->name, 0, sizeof(cs->name));
-	strncpy(cs->name, name, sizeof(cs->name)-1);
-	cs->name[sizeof(cs->name)-1] = '\0';
+	
+	Q_strncpyz ( cs->name, name, sizeof(cs->name) );
+
 } //end of the function BotSetChatName
 //===========================================================================
 //
