@@ -9,11 +9,11 @@ struct MsgStruct
 	UWORD Code;
 	WORD MouseX;
 	WORD MouseY;
-	UWORD rawkey;
+	WORD rawkey;
 };
 
 
-int GetMessages68k( __reg("a1") struct MsgPort *port, __reg("a0") struct MsgStruct *msg )
+int GetMessages68k( __reg("a1") struct MsgPort *port, __reg("a0") struct MsgStruct *msg, __reg("d1") int decodechar )
 {
 	int i = 0;
 	struct IntuiMessage *imsg;
@@ -29,34 +29,48 @@ int GetMessages68k( __reg("a1") struct MsgPort *port, __reg("a0") struct MsgStru
 
 	while ((imsg = (struct IntuiMessage *)GetMsg(port)))
 	{
-		msg[i].Class = imsg->Class;
-		msg[i].Code = imsg->Code;
-		msg[i].MouseX = imsg->MouseX;
-		msg[i].MouseY = imsg->MouseY;
-
-		if( msg[i].Class == IDCMP_RAWKEY && msg[i].Code & ~IECODE_UP_PREFIX )
+		if (i < 50) // maxmsg
 		{
-			ie.ie_Class = IECLASS_RAWKEY;
-			ie.ie_SubClass = 0;
-			ie.ie_Code = msg[i].Code;
-			ie.ie_Qualifier = imsg->Qualifier;
-			ie.ie_EventAddress = NULL;
+			msg[i].Class = imsg->Class;
+			msg[i].Code = imsg->Code;
+			msg[i].MouseX = imsg->MouseX;
+			msg[i].MouseY = imsg->MouseY;
+			msg[i].rawkey = 0;
 
-			result = MapRawKey(&ie, buf, BUFFERLEN, 0);
+			if( decodechar && msg[i].Class == IDCMP_RAWKEY ) //&& (msg[i].Code & ~IECODE_UP_PREFIX) )
+			{
+				ie.ie_Class = IECLASS_RAWKEY;
+				ie.ie_SubClass = 0;
+				ie.ie_Code = msg[i].Code;
+				ie.ie_Qualifier = imsg->Qualifier;
+				ie.ie_EventAddress = NULL;
 
-			if (result != 1 )
-				msg[i].rawkey = 0;
+				result = MapRawKey(&ie, buf, BUFFERLEN, 0);
 
-			else
-				msg[i].rawkey = buf[0];
+				#if 0
+
+				if (result != 1 )
+					msg[i].rawkey = 0;
+
+				else
+					msg[i].rawkey = buf[0];
+
+				#else
+
+				if ( result == 1 )
+					msg[i].rawkey = buf[0];
+
+				#endif
+			}
+			
+			i++;
 		}
-
-		i++;
 
 		ReplyMsg((struct Message *)imsg);
 	}
 
 	return i;
 }
+
 
 
