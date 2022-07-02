@@ -1853,16 +1853,6 @@ void GLLoadMatrixf(GLcontext context, const GLfloat *m)
 	context->CombinedValid = GL_FALSE;
 	context->InvRotValid = GL_FALSE;
 
-	/*
-	if(CurrentP)
-		if(memcmp(m, context->ProjectionStack, 16 * sizeof(GLfloat)) != 0)
-			m_LoadMatrixf(CMATRIX(context), m);
-
-	else
-		if(memcmp(m, context->ModelViewStack, 16 * sizeof(GLfloat)) != 0)
-			m_LoadMatrixf(CMATRIX(context), m);
-	*/
-
 	m_LoadMatrixf(CMATRIX(context), m);
 }
 

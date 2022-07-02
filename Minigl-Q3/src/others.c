@@ -417,14 +417,13 @@ GLboolean GLIsEnabled(GLcontext context, GLenum cap)
 			return( context->DepthTest_State );
 
 		case GL_TEXTURE_2D:
-			return (context->Texture2D_State[context->ActiveTexture]);
+			return ( context->Texture2D_State[context->ActiveTexture] );
 
 		default:
 		#ifndef __VBCC__
 			GLFlagError(context, 1, GL_INVALID_ENUM);
-		#else
-			return GL_FALSE;
 		#endif
+			return GL_FALSE; // non void function fix - Cowcat
 	}
 }
 
