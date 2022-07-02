@@ -862,7 +862,8 @@ void *VM_ArgPtr( intptr_t intValue )
 
 	if ( currentVM->entryPoint )
 	{
-		return (void *)(currentVM->dataBase + intValue);
+		//return (void *)(currentVM->dataBase + intValue);
+		return (void *)(intValue); // test Cowcat
 	}
 
 	else

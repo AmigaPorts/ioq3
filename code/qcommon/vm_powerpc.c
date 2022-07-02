@@ -368,7 +368,7 @@ typedef struct VM_Data {
 static long int VM_AsmCall( int callSyscallInvNum, int callProgramStack )
 {
 	vm_t *savedVM = currentVM;
-	long int i, ret;
+	long int ret;
 
 #ifdef VM_TIMES
 	struct tms start_time, stop_time;
@@ -379,7 +379,7 @@ static long int VM_AsmCall( int callSyscallInvNum, int callProgramStack )
 	// save the stack to allow recursive VM entry
 	currentVM->programStack = callProgramStack - 4;
 
-	#if 1
+	#if 0 // old Cowcat
 
 	#if !defined(AMIGAOS)
 	// we need to convert ints to longs on 64bit powerpcs
@@ -403,15 +403,15 @@ static long int VM_AsmCall( int callSyscallInvNum, int callProgramStack )
 
 		int *argPosition = (int *)((byte *)currentVM->dataBase + callProgramStack + 4);
 
-		for( i = 1; i < ARRAY_LEN(args); i++ )
+		for( int i = 1; i < ARRAY_LEN(args); i++ )
 			args[ i ] = argPosition[ i ];
 
 		ret = currentVM->systemCall( args );
 	}
 
-	#else // test Cowcat
+	#else // Cowcat
 
-	int *argPosition = (int *)((byte *)currentVM->dataBase + callProgramStack + 4);
+	intptr_t *argPosition = (intptr_t *)((byte *)currentVM->dataBase + callProgramStack + 4);
 
 	// generated code does not invert syscall number
 	argPosition[ 0 ] = -1 - callSyscallInvNum;
@@ -2376,6 +2376,8 @@ void VM_Compile( vm_t *vm, vmHeader_t *header )
 		DIE( "mprotect failed" );
 	}
 	#endif
+
+	//SetCache(CACHE_ICACHEINV, vm->codeBase, vm->codeLength); // test here instead of VM_CallCompiled ? Cowcat
 
 	vm->destroy = VM_Destroy_Compiled;
 	vm->compiled = qtrue;
