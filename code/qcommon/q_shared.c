@@ -512,7 +512,7 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 
 	data = *data_p;
 	len = 0;
-	com_token[0] = 0;
+	com_token[0] = '\0';
 	com_tokenline = 0;
 
 	// make sure incoming data is valid
@@ -553,7 +553,7 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 		}
 
 		// skip /* */ comments
-		else if ( c=='/' && data[1] == '*' ) 
+		else if ( c == '/' && data[1] == '*' ) 
 		{
 			data += 2;
 
@@ -583,7 +583,7 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 	com_tokenline = com_lines;
 
 	// handle quoted strings
-	if (c == '\"')
+	if ( c == '"' )
 	{
 		data++;
 
@@ -591,19 +591,19 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 		{
 			c = *data++;
 
-			if (c=='\"' || !c)
+			if ( c == '"' || !c )
 			{
-				com_token[len] = 0;
+				com_token[len] = '\0';
 				*data_p = ( char * ) data;
 				return com_token;
 			}
 
-			if( c == '\n' )
+			if ( c == '\n' )
 			{
 				com_lines++;
 			}
 
-			if (len < MAX_TOKEN_CHARS - 1)
+			if ( len < MAX_TOKEN_CHARS - 1 )
 			{
 				com_token[len] = c;
 				len++;
@@ -614,7 +614,7 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 	// parse a regular word
 	do
 	{
-		if (len < MAX_TOKEN_CHARS - 1)
+		if ( len < MAX_TOKEN_CHARS - 1 )
 		{
 			com_token[len] = c;
 			len++;
@@ -623,9 +623,9 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 		data++;
 		c = *data;
 
-	} while (c>32);
+	} while ( c > 32 );
 
-	com_token[len] = 0;
+	com_token[len] = '\0';
 
 	*data_p = ( char * ) data;
 	return com_token;
@@ -760,7 +760,6 @@ void Parse3DMatrix (char **buf_p, int z, int y, int x, float *m)
 Com_HexStrToInt
 ===================
 */
-
 int Com_HexStrToInt( const char *str )
 {
 	if ( !str )
@@ -920,7 +919,7 @@ int Q_stricmpn (const char *s1, const char *s2, int n)
 			return -1;
 	}
 
-	else if ( s2==NULL )
+	else if ( s2 == NULL )
 		return 1;
 
 	do
@@ -989,7 +988,7 @@ int Q_stricmp (const char *s1, const char *s2)
 
 #else // ec-/Quake3e
 
-int Q_stricmp (const char *s1, const char *s2)
+int Q_stricmp ( const char *s1, const char *s2 )
 {
 	unsigned char	c1, c2;
 
@@ -1028,7 +1027,7 @@ int Q_stricmp (const char *s1, const char *s2)
 			}
 		}
 
-	} while ( c1 );
+	} while ( c1 != '\0' );
 	
 	return 0;
 }
@@ -1093,12 +1092,12 @@ void Q_strcat( char *dest, int size, const char *src )
 /*
 * Find the first occurrence of find in s.
 */
-const char *Q_stristr( const char *s, const char *find)
+const char *Q_stristr( const char *s, const char *find )
 {
-	char c, sc;
-	size_t len;
+	char	c, sc;
+	size_t	len;
 
-	if ((c = *find++) != 0)
+	if ( (c = *find++) != 0 )
 	{
 		if (c >= 'a' && c <= 'z')
 		{
