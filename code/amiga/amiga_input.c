@@ -145,7 +145,7 @@ void IN_Frame (void)
 
 				win->Flags &= ~WFLG_REPORTMOUSE;
 
-				mglEnablePointer(); // new Cowcat
+				mglClearPointer(); // new Cowcat
 				MouseHandlerOff();
 				mousein = qfalse;
 			}
@@ -157,7 +157,7 @@ void IN_Frame (void)
 
 			win->Flags |= WFLG_REPORTMOUSE;
 
-			mglClearPointer(); // new Cowcat
+			mglSetPointer(); // new Cowcat
 			MouseHandler();
 			mousein = qtrue;
 		}
@@ -199,12 +199,12 @@ void IN_Init(void)
 		if(windowmode)
 			MouseHandler();
 
-		mglClearPointer();
+		mglSetPointer();
 	}
 
 	else
 	{
-		mglEnablePointer();
+		mglClearPointer();
 
 		win->IDCMPFlags &= ~IDCMP_MOUSEBUTTONS|IDCMP_MOUSEMOVE|IDCMP_DELTAMOVE;
 		//win->Flags &= ~WFLG_REPORTMOUSE;
@@ -219,7 +219,7 @@ void IN_Shutdown(void)
 {
 	MouseHandlerOff();
 
-	mglEnablePointer(); // new Cowcat
+	mglClearPointer(); // new Cowcat
 
 	mouse_avail = qfalse;
 

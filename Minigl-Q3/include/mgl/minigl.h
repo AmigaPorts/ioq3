@@ -984,14 +984,14 @@ MGLAPI void mglDrawMultitexBuffer(GLenum s, GLenum d, GLenum env)
 }
 
 // Cowcat
+MGLAPI void mglSetPointer(void)
+{
+	MGLSetPointer(CC);
+}
+
 MGLAPI void mglClearPointer(void)
 {
 	MGLClearPointer(CC);
-}
-
-MGLAPI void mglEnablePointer(void)
-{
-	MGLEnablePointer(CC);
 }
 //
 

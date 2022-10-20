@@ -539,8 +539,8 @@ void        MGLTexMemStat(GLcontext context, GLint *Current, GLint *Peak);
 void        MGLUnlockDisplay(GLcontext context);
 
 //Cowcat
+void        MGLSetPointer(GLcontext context);
 void        MGLClearPointer(GLcontext context);
-void        MGLEnablePointer(GLcontext context);
 //
 
 void        MGLWriteShotPPM(GLcontext context, char *filename);
@@ -816,8 +816,8 @@ void        GLDrawArrays(GLcontext context, GLenum mode, GLint first, GLsizei co
 #define mglUnlockDisplay() MGLUnlockDisplay(mini_CurrentContext)
 
 //Cowcat
+#define mglSetPointer() MGLSetPointer(mini_CurrentContext)
 #define mglClearPointer() MGLClearPointer(mini_CurrentContext)
-#define mglEnablePointer() MGLEnablePointer(mini_CurrentContext)
 
 #define glColor4f(red, green, blue, alpha)  GLColor4f(mini_CurrentContext, red, green, blue, alpha)
 

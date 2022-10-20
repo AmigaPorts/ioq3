@@ -144,12 +144,12 @@ static void vid_DeletePointer(struct Window *window)
 }
 
 // Cowcat
-void MGLClearPointer(GLcontext context)
+void MGLSetPointer(GLcontext context)
 {
 	vid_Pointer(context->w3dWindow);
 }
 
-void MGLEnablePointer(GLcontext context)
+void MGLClearPointer(GLcontext context)
 {
 	vid_DeletePointer(context->w3dWindow);
 }
@@ -798,11 +798,12 @@ static GLboolean vid_OpenWindow(GLcontext context, int w, int h)
 	struct TagItem OpenWinTags[] =
 	{
 		{WA_PubScreen,		 0},
-		{WA_InnerWidth,		 w}, // Cowcat
-		{WA_InnerHeight,	 h}, //
+		{WA_InnerWidth,		 0},
+		{WA_InnerHeight,	 0},
 		{WA_Left,		 90},
 		{WA_Top,		 60},
 		//{WA_Title,		 (ULONG)"Quake3"}, // Cowcat
+		{WA_Title,		 0},
 		{WA_SimpleRefresh,	 TRUE},
 		{WA_NoCareRefresh,	 TRUE},
 		{WA_DragBar,		 TRUE},
@@ -1512,7 +1513,7 @@ GLboolean MGLInitContext(GLcontext context)
 /* End Joe Sera Oct. 21, 2000 */
 
 	/* Vertex array stuff */
-	context->ClientState	    = 0;
+	context->ClientState	     = 0;
 
 //Surgeon:
 	context->VertexArrayPipeline  = GL_TRUE;
@@ -1538,10 +1539,10 @@ GLboolean MGLInitContext(GLcontext context)
 	context->ArrayPointer.transformed = 0;
 	context->ArrayPointer.state = 0; //pipeline state
 
-	  // set Vertex Array texture to NULL:
+	// set Vertex Array texture to NULL:
 	context->w3dContext->CurrentTex[0] = NULL;
 
-	  // set constant elements of vertexpointers once and for all
+	// set constant elements of vertexpointers once and for all
 	context->w3dContext->CPFlags = 0;
 	context->w3dContext->VPFlags = 0;
 
@@ -1592,7 +1593,7 @@ void *MGLCreateContext(int offx, int offy, int w, int h)
 	if (!context)
 	{
 		// printf("Error: Can't get %d bytes of memory for context\n", sizeof(struct GLcontext_t));
-		printf("Error: Can't get %lu bytes of memory for context\n", sizeof(struct GLcontext_t)); //OF
+		printf("Error: Can't get %u bytes of memory for context\n", sizeof(struct GLcontext_t)); //OF
 
 		return NULL;
 	}
@@ -1692,8 +1693,6 @@ void MGLDeleteContext(GLcontext context)
 }
 
 #define ED (flag == GL_TRUE?W3D_ENABLE:W3D_DISABLE)
-
-//extern void tex_SetEnv(GLcontext context, GLenum env);
 
 void MGLSetState(GLcontext context, const GLenum cap, const GLboolean flag) //surgeon: const
 {
@@ -1862,7 +1861,7 @@ void *MGLCreateContextFromID(GLint id, GLint *width, GLint *height)
 	if (!context)
 	{
 		// printf("Error: Can't get %d bytes of memory for context\n", sizeof(struct GLcontext_t));
-		printf("Error: Can't get %lu bytes of memory for context\n", sizeof(struct GLcontext_t)); //OF
+		printf("Error: Can't get %u bytes of memory for context\n", sizeof(struct GLcontext_t)); //OF
 
 		return NULL;
 	}
