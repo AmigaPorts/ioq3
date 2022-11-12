@@ -137,17 +137,26 @@ typedef struct aas_routingcache_s
 	struct aas_routingcache_s *time_prev, *time_next;
 	unsigned char *reachabilities;				//reachabilities used for routing
 	unsigned short int traveltimes[1];			//travel time for every area (variable sized)
+	#if defined(__M68K__)
+	unsigned short int dummy[1]; // Frank Wille (phx)
+	#endif
 } aas_routingcache_t;
 
 //fields for the routing algorithm
 typedef struct aas_routingupdate_s
 {
 	int cluster;
-	int areanum;								//area number of the update
-	vec3_t start;								//start point the area was entered
+	int areanum;						//area number of the update
+	vec3_t start;						//start point the area was entered
 	unsigned short int tmptraveltime;			//temporary travel time
-	unsigned short int *areatraveltimes;		//travel times within the area
-	qboolean inlist;							//true if the update is in the list
+	#if defined(__M68K__)
+	unsigned short int dummy;	// Frank Wille (phx)
+	#endif
+	unsigned short int *areatraveltimes;			//travel times within the area
+	#if defined(__M68K__)
+	unsigned short int *dummy2;	// Frank Wille (phx)
+	#endif
+	qboolean inlist;					//true if the update is in the list
 	struct aas_routingupdate_s *next;
 	struct aas_routingupdate_s *prev;
 } aas_routingupdate_t;
