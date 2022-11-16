@@ -467,7 +467,7 @@ void Field_KeyDownEvent( field_t *edit, int key )
 		return;
 	}
 
-	key = tolower( key );
+	//key = tolower( key ); // needed ? - Cowcat
 	len = strlen( edit->buffer );
 
 	switch ( key )
@@ -1438,9 +1438,6 @@ void CL_KeyDownEvent( int key, unsigned time )
 		return;
 	}
 
-	// send the bound action
-	CL_ParseBinding( key, qtrue, time );
-
 	// distribute the key down event to the appropriate handler
 	if ( Key_GetCatcher( ) & KEYCATCH_CONSOLE )
 	{
@@ -1471,6 +1468,12 @@ void CL_KeyDownEvent( int key, unsigned time )
 	else if ( clc.state == CA_DISCONNECTED )
 	{
 		Console_Key( key );
+	}
+
+	else
+	{
+		// send the bound action
+		CL_ParseBinding( key, qtrue, time );
 	}
 }
 

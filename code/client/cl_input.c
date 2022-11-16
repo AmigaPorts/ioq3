@@ -418,14 +418,14 @@ void CL_KeyMove( usercmd_t *cmd )
 CL_MouseEvent
 =================
 */
-void CL_MouseEvent( int dx, int dy, int time )
+void CL_MouseEvent( int dx, int dy /*, int time*/ )
 {
-	if ( Key_GetCatcher( ) & KEYCATCH_UI )
+	if ( Key_GetCatcher() & KEYCATCH_UI )
 	{
 		VM_Call( uivm, UI_MOUSE_EVENT, dx, dy );
 	}
 
-	else if (Key_GetCatcher( ) & KEYCATCH_CGAME)
+	else if (Key_GetCatcher() & KEYCATCH_CGAME)
 	{
 		VM_Call (cgvm, CG_MOUSE_EVENT, dx, dy);
 	}
