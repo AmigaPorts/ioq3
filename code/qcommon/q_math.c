@@ -431,7 +431,7 @@ void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, 
 RotateAroundDirection
 ===============
 */
-#if 1 // used by dlls....
+#if defined (DLL)
 void RotateAroundDirection( vec3_t axis[3], float yaw )
 {
 	// create an arbitrary axis[1] 
@@ -1093,43 +1093,44 @@ void MatrixMultiply(float in1[3][3], float in2[3][3], float out[3][3])
 
 void AngleVectors( const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 {
-	float		angle;
-	static float	sr, sp, sy, cr, cp, cy;
+	float	angle;
+	static	float	sr, sp, sy, cr, cp, cy;
 	// static to help MS compiler fp bugs
 
 	angle = angles[YAW] * (M_PI*2 / 360);
 	sy = sin(angle);
 	cy = cos(angle);
+
 	angle = angles[PITCH] * (M_PI*2 / 360);
 	sp = sin(angle);
 	cp = cos(angle);
 
-	if (forward)
-	{
-		forward[0] = cp*cy;
-		forward[1] = cp*sy;
-		forward[2] = -sp;
-	}
-
-	if ( right || up)
+	if ( right || up )
 	{
 		angle = angles[ROLL] * (M_PI*2 / 360);
 		sr = sin(angle);
 		cr = cos(angle);
-		
-		if (right)
-		{
-			right[0] = (-1*sr*sp*cy+-1*cr*-sy);
-			right[1] = (-1*sr*sp*sy+-1*cr*cy);
-			right[2] = -1*sr*cp;
-		}
+	}
 
-		if (up)
-		{
-			up[0] = (cr*sp*cy+-sr*-sy);
-			up[1] = (cr*sp*sy+-sr*cy);
-			up[2] = cr*cp;
-		}
+	if (forward)
+	{
+		forward[0] = cp * cy;
+		forward[1] = cp * sy;
+		forward[2] = -sp;
+	}
+		
+	if (right)
+	{
+		right[0] = (-1 * sr * sp * cy + -1 * cr * -sy);
+		right[1] = (-1 * sr * sp * sy + -1 * cr * cy);
+		right[2] = -1 * sr * cp;
+	}
+
+	if (up)
+	{
+		up[0] = (cr * sp * cy + -sr * -sy);
+		up[1] = (cr * sp * sy + -sr * cy);
+		up[2] = cr * cp;
 	}
 }
 
