@@ -138,8 +138,8 @@ void GL_TextureMode( const char *string )
 		if ( glt->flags & IMGFLAG_MIPMAP )
 		{
 			GL_Bind (glt);
-			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
-			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+			qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
+			qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 		}
 	}
 }
@@ -625,13 +625,12 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 	qboolean lightMap, int *format, int *pUploadWidth, int *pUploadHeight )
 {
 	int		samples;
-	unsigned	*scaledBuffer = NULL;
+	//unsigned	*scaledBuffer = NULL;
 	unsigned	*resampledBuffer = NULL;
 	int		scaled_width, scaled_height;
 	int		i, c;
 	byte		*scan;
 	GLenum		internalFormat = GL_RGB;
-	//float		rMax = 0, gMax = 0, bMax = 0; // Cowcat
 
 	//
 	// convert to exact power of 2 sizes
@@ -690,7 +689,7 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 		scaled_height >>= 1;
 	}
 
-	scaledBuffer = ri.Hunk_AllocateTempMemory( sizeof( unsigned ) * scaled_width * scaled_height );
+	//scaledBuffer = ri.Hunk_AllocateTempMemory( sizeof( unsigned ) * scaled_width * scaled_height );
 
 	//
 	// scan the texture for each channel's max values
@@ -724,25 +723,6 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 	{
 		for ( i = 0; i < c; i++ )
 		{
-			#if 0 // no need for this - Cowcat
-
-			if ( scan[i*4+0] > rMax )
-			{
-				rMax = scan[i*4+0];
-			}
-
-			if ( scan[i*4+1] > gMax )
-			{
-				gMax = scan[i*4+1];
-			}
-
-			if ( scan[i*4+2] > bMax )
-			{
-				bMax = scan[i*4+2];
-			}
-
-			#endif
-
 			if ( scan[i*4 + 3] != 255 ) 
 			{
 				samples = 4;
@@ -847,7 +827,7 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 			goto done;
 		}
 
-		Com_Memcpy ( scaledBuffer, data, width * height * 4 );
+		//Com_Memcpy ( scaledBuffer, data, width * height * 4 );
 	}
 
 	else
@@ -871,16 +851,16 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 			}
 		}
 
-		Com_Memcpy( scaledBuffer, data, width * height * 4 );
+		//Com_Memcpy( scaledBuffer, data, width * height * 4 );
 	}
 
-	R_LightScaleTexture (scaledBuffer, scaled_width, scaled_height, !mipmap );
+	R_LightScaleTexture (data /*scaledBuffer*/, scaled_width, scaled_height, !mipmap );
 
 	*pUploadWidth = scaled_width;
 	*pUploadHeight = scaled_height;
 	*format = internalFormat;
 
-	qglTexImage2D ( GL_TEXTURE_2D, 0, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaledBuffer );
+	qglTexImage2D ( GL_TEXTURE_2D, 0, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data /*scaledBuffer*/ );
 
 	if (mipmap)
 	{
@@ -890,7 +870,7 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 
 		while (scaled_width > 1 || scaled_height > 1)
 		{
-			R_MipMap( (byte *)scaledBuffer, scaled_width, scaled_height );
+			R_MipMap( (byte *)data /*scaledBuffer*/, scaled_width, scaled_height );
 
 			scaled_width >>= 1;
 			scaled_height >>= 1;
@@ -905,10 +885,10 @@ static void Upload32( unsigned *data, int width, int height, qboolean mipmap, qb
 
 			if ( r_colorMipLevels->integer )
 			{
-				R_BlendOverTexture( (byte *)scaledBuffer, scaled_width * scaled_height, mipBlendColors[miplevel] );
+				R_BlendOverTexture( (byte *)data /*scaledBuffer*/, scaled_width * scaled_height, mipBlendColors[miplevel] );
 			}
 
-			qglTexImage2D ( GL_TEXTURE_2D, miplevel, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaledBuffer );
+			qglTexImage2D ( GL_TEXTURE_2D, miplevel, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data /*scaledBuffer*/ );
 		}
 	}
 
@@ -920,8 +900,8 @@ done:
 			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (GLint)Com_Clamp( 1, maxAnisotropy, r_ext_max_anisotropy->integer ) );
 		#endif
 
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
+		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 	}
 
 	else
@@ -931,14 +911,14 @@ done:
 			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1 );
 		#endif
 
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	}
 
 	GL_CheckErrors();
 
-	if ( scaledBuffer != 0 )
-		ri.Hunk_FreeTempMemory( scaledBuffer );
+	//if ( scaledBuffer != 0 )
+		//ri.Hunk_FreeTempMemory( scaledBuffer );
 
 	if ( resampledBuffer != 0 )
 		ri.Hunk_FreeTempMemory( resampledBuffer );
@@ -1019,8 +999,8 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 	Upload32( (unsigned *)pic, image->width, image->height, image->flags & IMGFLAG_MIPMAP, image->flags & IMGFLAG_PICMIP, isLightmap,
 		&image->internalFormat, &image->uploadWidth, &image->uploadHeight );
 
-	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, glWrapClampMode );
-	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, glWrapClampMode );
+	qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, glWrapClampMode );
+	qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, glWrapClampMode );
 
 	glState.currenttextures[glState.currenttmu] = 0;
 	qglBindTexture( GL_TEXTURE_2D, 0 );
