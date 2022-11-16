@@ -26,28 +26,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //#include <time.h>  // Cowcat
 #include <stddef.h>
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
-#pragma pack(2)
-#endif
+#if defined(AMIGAOS)
 
-#ifdef __PPC__
+#pragma pack(push,2)
+
 #if defined(__GNUC__)
 #include <powerpc/powerpc.h>
 #include <powerpc/powerpc_protos.h>
 #else
 #include <powerpc/powerpc.h>
 #include <proto/powerpc.h>
-#endif 
 #endif
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined (WARPUP)
-#pragma pack()
-#endif
+#pragma pack(pop)
 
+#endif // AMI
 
 #ifndef MAP_ANONYMOUS
 # define MAP_ANONYMOUS MAP_ANON
@@ -2082,7 +2075,7 @@ static void PPC_ComputeCode( vm_t *vm )
 
 	#else
 
-	unsigned char *dataAndCode = AllocVecPPC(codeLength, MEMF_ANY|MEMF_PUBLIC|MEMF_CLEAR, 0); // cheat - gets freed by mos2wos gcc !! - Cowcat
+	unsigned char *dataAndCode = AllocVecPPC(codeLength, MEMF_ANY|MEMF_PUBLIC|MEMF_CLEAR, 0); // Cowcat
 
 	if (!dataAndCode)
 		DIE( "Not enough memory" );
@@ -2262,9 +2255,15 @@ static void VM_Destroy_Compiled( vm_t *self )
 {
 	if ( self->codeBase )
 	{
-		#if !defined(AMIGAOS)
+		#if defined(AMIGAOS)
+
+		FreeVecPPC(self->codeBase); // Cowcat
+
+		#else
+
 		if ( munmap( self->codeBase, self->codeLength ) )
 			Com_Printf( S_COLOR_RED "Memory unmap failed, possible memory leak\n" );
+
 		#endif
 	}
 
