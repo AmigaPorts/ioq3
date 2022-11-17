@@ -168,7 +168,7 @@ int AAS_AgainstLadder(vec3_t origin)
 		//get the plane the face is in
 		plane = &aasworld.planes[face->planenum ^ side];
 		//if the origin is pretty close to the plane
-		if (fabs(DotProduct(plane->normal, origin) - plane->dist) < 3) // Cowcat
+		if (fabs(DotProduct(plane->normal, origin) - plane->dist) < 3) // Quake3e
 		{
 			if (AAS_PointInsideFace(abs(facenum), origin, 0.1f)) return qtrue;
 		} //end if
@@ -299,7 +299,7 @@ void AAS_JumpReachRunStart(aas_reachability_t *reach, vec3_t runstart)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-float AAS_WeaponJumpZVelocity(vec3_t origin, float radiusdamage)
+static float AAS_WeaponJumpZVelocity(vec3_t origin, float radiusdamage)
 {
 	vec3_t kvel, v, start, end, forward, right, viewangles, dir;
 	float	mass, knockback, points;
@@ -373,7 +373,7 @@ float AAS_BFGJumpZVelocity(vec3_t origin)
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-void AAS_Accelerate(vec3_t velocity, float frametime, vec3_t wishdir, float wishspeed, float accel)
+static void AAS_Accelerate(vec3_t velocity, float frametime, vec3_t wishdir, float wishspeed, float accel)
 {
 	// q2 style
 	int			i;
@@ -400,8 +400,7 @@ void AAS_Accelerate(vec3_t velocity, float frametime, vec3_t wishdir, float wish
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-void AAS_ApplyFriction(vec3_t vel, float friction, float stopspeed,
-													float frametime)
+static void AAS_ApplyFriction(vec3_t vel, float friction, float stopspeed, float frametime)
 {
 	float speed, control, newspeed;
 
@@ -423,7 +422,7 @@ void AAS_ApplyFriction(vec3_t vel, float friction, float stopspeed,
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-int AAS_ClipToBBox(aas_trace_t *trace, vec3_t start, vec3_t end, int presencetype, vec3_t mins, vec3_t maxs)
+static qboolean AAS_ClipToBBox(aas_trace_t *trace, const vec3_t start, const vec3_t end, int presencetype, const vec3_t mins, const vec3_t maxs)
 {
 	int i, j, side;
 	float front, back, frac, planedist;
@@ -445,6 +444,9 @@ int AAS_ClipToBBox(aas_trace_t *trace, vec3_t start, vec3_t end, int presencetyp
 	frac = 1;
 	for (i = 0; i < 3; i++)
 	{
+		if ( fabs( dir[i] ) < 0.001f ) // this may cause denormalization or division by zero - Quake3e
+			continue;
+
 		//get plane to test collision with for the current axis direction
 		if (dir[i] > 0) planedist = absmins[i];
 		else planedist = absmaxs[i];
@@ -502,14 +504,14 @@ int AAS_ClipToBBox(aas_trace_t *trace, vec3_t start, vec3_t end, int presencetyp
 // Returns:				aas_clientmove_t
 // Changes Globals:		-
 //===========================================================================
-int AAS_ClientMovementPrediction(struct aas_clientmove_s *move,
-								int entnum, vec3_t origin,
+static int AAS_ClientMovementPrediction( aas_clientmove_t *move,
+								int entnum, const vec3_t origin,
 								int presencetype, int onground,
-								vec3_t velocity, vec3_t cmdmove,
+								const vec3_t velocity, const vec3_t cmdmove,
 								int cmdframes,
 								int maxframes, float frametime,
 								int stopevent, int stopareanum,
-								vec3_t mins, vec3_t maxs, int visualize)
+								const vec3_t mins, const vec3_t maxs, int visualize)
 {
 	float phys_friction, phys_stopspeed, phys_gravity, phys_waterfriction;
 	float phys_watergravity;
@@ -545,8 +547,10 @@ int AAS_ClientMovementPrediction(struct aas_clientmove_s *move,
 	phys_maxsteepness = aassettings.phys_maxsteepness;
 	phys_jumpvel = aassettings.phys_jumpvel * frametime;
 	//
-	Com_Memset(move, 0, sizeof(aas_clientmove_t));
-	Com_Memset(&trace, 0, sizeof(aas_trace_t));
+	//Com_Memset(move, 0, sizeof(aas_clientmove_t));
+	//Com_Memset(&trace, 0, sizeof(aas_trace_t));
+	Com_Memset(move, 0, sizeof( *move ));  // Q3e
+	Com_Memset(&trace, 0, sizeof( trace )); // Q3e
 	//start at the current origin
 	VectorCopy(origin, org);
 	org[2] += 0.25;
@@ -1000,7 +1004,9 @@ int AAS_PredictClientMovement(struct aas_clientmove_s *move,
 								int maxframes, float frametime,
 								int stopevent, int stopareanum, int visualize)
 {
-	vec3_t mins, maxs;
+	//vec3_t mins, maxs;
+	const vec3_t mins = { -4, -4, -4 }; // Q3e
+	const vec3_t maxs = { 4, 4, 4 }; // Q3e
 	return AAS_ClientMovementPrediction(move, entnum, origin, presencetype, onground,
 										velocity, cmdmove, cmdframes, maxframes,
 										frametime, stopevent, stopareanum,
@@ -1031,6 +1037,7 @@ int AAS_ClientMovementHitBBox(struct aas_clientmove_s *move,
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
+#if 0
 void AAS_TestMovementPrediction(int entnum, vec3_t origin, vec3_t dir)
 {
 	vec3_t velocity, cmdmove;
@@ -1049,6 +1056,7 @@ void AAS_TestMovementPrediction(int entnum, vec3_t origin, vec3_t dir)
 		botimport.Print(PRT_MESSAGE, "leave ground\n");
 	} //end if
 } //end of the function TestMovementPrediction
+#endif
 //===========================================================================
 // calculates the horizontal velocity needed to perform a jump from start
 // to end
