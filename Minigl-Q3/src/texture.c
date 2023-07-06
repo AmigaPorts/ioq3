@@ -229,10 +229,10 @@ ULONG tex_GLFilter2W3D(GLenum filter)
 	{
 		case GL_NEAREST:		return W3D_NEAREST;
 		case GL_LINEAR:			return W3D_LINEAR;
-		case GL_NEAREST_MIPMAP_NEAREST:	return W3D_NEAREST_MIP_NEAREST;
-		case GL_LINEAR_MIPMAP_NEAREST:	return W3D_LINEAR_MIP_NEAREST;
-		case GL_NEAREST_MIPMAP_LINEAR:	return W3D_NEAREST_MIP_LINEAR;
-		case GL_LINEAR_MIPMAP_LINEAR:	return W3D_LINEAR_MIP_LINEAR;
+		case GL_NEAREST_MIPMAP_NEAREST: return W3D_NEAREST; //W3D_NEAREST_MIP_NEAREST;
+		case GL_LINEAR_MIPMAP_NEAREST:	return W3D_LINEAR; //W3D_LINEAR_MIP_NEAREST;
+		case GL_NEAREST_MIPMAP_LINEAR:	return W3D_NEAREST; //W3D_NEAREST_MIP_LINEAR;
+		case GL_LINEAR_MIPMAP_LINEAR:	return W3D_LINEAR; //W3D_LINEAR_MIP_LINEAR;
 	}
 
 	return 0;
@@ -310,13 +310,15 @@ void GLTexParameteri(GLcontext context, GLenum target, GLenum pname, GLint param
 	{
 		case GL_TEXTURE_MIN_FILTER:
 			mag = context->MagFilter;
-			tex_SetFilter(context, mag, (GLenum)param);
+			//tex_SetFilter(context, mag, (GLenum)param);
+			tex_SetFilter(context, (GLenum)param, mag); // fix - Cowcat
 			context->MinFilter = (GLenum)param;
 			break;
 
 		case GL_TEXTURE_MAG_FILTER:
 			min = context->MinFilter;
-			tex_SetFilter(context, (GLenum)param, min);
+			//tex_SetFilter(context, (GLenum)param, min);
+			tex_SetFilter(context, min, (GLenum)param ); // fix - Cowcat
 			context->MagFilter = (GLenum)param;
 			break;
 
