@@ -1343,13 +1343,21 @@ void RB_StageIteratorGeneric( void )
 	GL_Cull( shader->cullType );
 
 	// set polygon offset if necessary
-	#if !defined(AMIGAOS)
+	
 	if ( shader->polygonOffset )
 	{
+		#if defined(AMIGAOS)
+
+		glEnable(MGL_Z_OFFSET);
+		mglSetZOffset(-0.0009); // -0.0009
+
+		#else
+
 		qglEnable( GL_POLYGON_OFFSET_FILL );
 		qglPolygonOffset( r_offsetFactor->value, r_offsetUnits->value );
+
+		#endif
 	}
-	#endif
 
 	//
 	// if there is only a single pass then we can enable color
@@ -1436,12 +1444,19 @@ void RB_StageIteratorGeneric( void )
 	//
 	// reset polygon offset
 	//
-	#if !defined(AMIGAOS)
 	if ( shader->polygonOffset )
 	{
+		#if defined(AMIGAOS)
+
+		glDisable(MGL_Z_OFFSET);
+		mglSetZOffset(0);
+
+		#else
+
 		qglDisable( GL_POLYGON_OFFSET_FILL );
+
+		#endif
 	}
-	#endif
 }
 
 
