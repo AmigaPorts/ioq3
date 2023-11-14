@@ -294,6 +294,8 @@ keyname_t keynames[] =
 	{NULL,0}
 };
 
+static void Field_CharEvent( field_t *edit, int ch );
+
 /*
 =============================================================================
 
@@ -311,7 +313,7 @@ Handles horizontal scrolling and cursor blinking
 x, y, and width are in pixels
 ===================
 */
-void Field_VariableSizeDraw( field_t *edit, int x, int y, int width, int size, qboolean showCursor, qboolean noColorEscape )
+static void Field_VariableSizeDraw( field_t *edit, int x, int y, int width, int size, qboolean showCursor, qboolean noColorEscape )
 {
 	int	len;
 	int	drawLen;
@@ -423,7 +425,7 @@ void Field_BigDraw( field_t *edit, int x, int y, int width, qboolean showCursor,
 Field_Paste
 ================
 */
-void Field_Paste( field_t *edit )
+static void Field_Paste( field_t *edit )
 {
 	char	*cbd;
 	int	pasteLen, i;
@@ -456,7 +458,7 @@ in-game talk, and menu fields
 Key events are used for non-printable characters, others are gotten from char events.
 =================
 */
-void Field_KeyDownEvent( field_t *edit, int key )
+static void Field_KeyDownEvent( field_t *edit, int key )
 {
 	int	len;
 
@@ -532,7 +534,7 @@ void Field_KeyDownEvent( field_t *edit, int key )
 Field_CharEvent
 ==================
 */
-void Field_CharEvent( field_t *edit, int ch )
+static void Field_CharEvent( field_t *edit, int ch )
 {
 	int	len;
 
@@ -642,7 +644,7 @@ Console_Key
 Handles history and console scrollback
 ====================
 */
-void Console_Key (int key)
+static void Console_Key (int key)
 {
 	// ctrl-L clears screen
 	if ( key == 'l' && keys[K_CTRL].down )
@@ -818,7 +820,7 @@ Message_Key
 In game talk message
 ================
 */
-void Message_Key( int key )
+static void Message_Key( int key )
 {
 	char	buffer[MAX_STRING_CHARS];
 
@@ -1361,7 +1363,7 @@ CL_KeyDownEvent
 Called by CL_KeyEvent to handle a keypress
 ===================
 */
-void CL_KeyDownEvent( int key, unsigned time )
+static void CL_KeyDownEvent( int key, unsigned time )
 {
 	keys[key].down = qtrue;
 	keys[key].repeats++;
@@ -1484,13 +1486,12 @@ CL_KeyUpEvent
 Called by CL_KeyEvent to handle a keyrelease
 ===================
 */
-void CL_KeyUpEvent( int key, unsigned time )
+static void CL_KeyUpEvent( int key, unsigned time )
 {
 	keys[key].repeats = 0;
 	keys[key].down = qfalse;
-	anykeydown--;
 
-	if (anykeydown < 0)
+	if (--anykeydown < 0)
 	{
 		anykeydown = 0;
 	}
@@ -1505,7 +1506,10 @@ void CL_KeyUpEvent( int key, unsigned time )
 	// console mode and menu mode, to keep the character from continuing
 	// an action started before a mode switch.
 	//
-	CL_ParseBinding( key, qfalse, time );
+	if ( clc.state != CA_DISCONNECTED )
+	{
+		CL_ParseBinding( key, qfalse, time );
+	}
 
 	if ( Key_GetCatcher( ) & KEYCATCH_UI && uivm )
 	{
@@ -1588,12 +1592,9 @@ void Key_ClearStates (void)
 	for ( i=0 ; i < MAX_KEYS ; i++ )
 	{
 		if ( keys[i].down )
-		{
 			CL_KeyEvent( i, qfalse, 0 );
 
-		}
-
-		keys[i].down = 0;
+		keys[i].down = qfalse;
 		keys[i].repeats = 0;
 	}
 }
