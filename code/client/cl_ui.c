@@ -922,7 +922,7 @@ CL_UISystemCalls
 The ui module is making a system call
 ====================
 */
-intptr_t CL_UISystemCalls( intptr_t *args )
+static intptr_t CL_UISystemCalls( intptr_t *args )
 {
 	switch( args[0] )
 	{

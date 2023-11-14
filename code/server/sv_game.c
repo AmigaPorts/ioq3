@@ -332,7 +332,7 @@ extern float frint(float x);
 #define rint rintf
 #endif
 
-intptr_t SV_GameSystemCalls( intptr_t *args )
+static intptr_t SV_GameSystemCalls( intptr_t *args )
 {
 	switch( args[0] )
 	{
