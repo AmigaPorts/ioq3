@@ -1487,7 +1487,9 @@ typedef struct hunkblock_s {
 
 } hunkblock_t;
 
+#ifdef HUNK_DEBUG
 static	hunkblock_t	*hunkblocks;
+#endif
 
 static	hunkUsed_t	hunk_low, hunk_high;
 static	hunkUsed_t	*hunk_permanent, *hunk_temp;
@@ -1728,6 +1730,8 @@ void Com_InitZoneMemory( void )
 Hunk_Log
 =================
 */
+#ifdef HUNK_DEBUG // Cowcat
+
 void Hunk_Log( void)
 {
 	hunkblock_t	*block;
@@ -1816,6 +1820,8 @@ void Hunk_SmallLog( void)
 	Com_sprintf(buf, sizeof(buf), "%d hunk blocks\r\n", numBlocks);
 	FS_Write(buf, strlen(buf), logfile);
 }
+
+#endif // Cowcat
 
 /*
 =================
@@ -2233,7 +2239,7 @@ journaled file
 ===================================================================
 */
 
-#define	MAX_PUSHED_EVENTS	1024
+#define	MAX_PUSHED_EVENTS	256 // Quake3e  (was 1024)
 static int 		com_pushedEventsHead = 0;
 static int 		com_pushedEventsTail = 0;
 static sysEvent_t	com_pushedEvents[MAX_PUSHED_EVENTS];
@@ -2243,7 +2249,7 @@ static sysEvent_t	com_pushedEvents[MAX_PUSHED_EVENTS];
 Com_InitJournaling
 =================
 */
-void Com_InitJournaling( void )
+static void Com_InitJournaling( void )
 {
 	Com_StartupVariable( "journal" );
 	com_journal = Cvar_Get ("journal", "0", CVAR_INIT);
@@ -2320,7 +2326,6 @@ void Com_QueueEvent( int evTime, sysEventType_t evType, int value, int value2, i
 		evTime = Sys_Milliseconds();
 
 	// combine mouse movement with previous mouse event
-
 	if( evType == SE_MOUSE && lastEvent->evType == SE_MOUSE && eventHead != eventTail )
 	{
 		lastEvent->evValue += value;
@@ -2362,10 +2367,9 @@ Com_GetSystemEvent
 
 ================
 */
-sysEvent_t Com_GetSystemEvent( void )
+static sysEvent_t Com_GetSystemEvent( void )
 {
 	sysEvent_t	ev;
-	const char	*s;
 	int		evTime;
 
 	// return if we have data
@@ -2374,6 +2378,10 @@ sysEvent_t Com_GetSystemEvent( void )
 		return eventQueue[ ( eventTail++ ) & MASK_QUEUED_EVENTS ];
 	
 	evTime = Sys_Milliseconds();
+
+	#if 0 // not for this Amiga version
+
+	const char	*s;
 
 	// check for console commands
 	s = Sys_ConsoleInput();
@@ -2394,6 +2402,8 @@ sysEvent_t Com_GetSystemEvent( void )
 	if ( eventHead - eventTail > 0)
 		return eventQueue[ ( eventTail++ ) & MASK_QUEUED_EVENTS ];
 
+	#endif
+
 	// create an empty event to return
 	memset( &ev, 0, sizeof( ev ) );
 	ev.evTime = evTime;
@@ -2406,7 +2416,7 @@ sysEvent_t Com_GetSystemEvent( void )
 Com_GetRealEvent
 =================
 */
-sysEvent_t Com_GetRealEvent( void )
+static sysEvent_t Com_GetRealEvent( void )
 {
 	int		r;
 	sysEvent_t	ev;
@@ -2468,7 +2478,7 @@ sysEvent_t Com_GetRealEvent( void )
 Com_InitPushEvent
 =================
 */
-void Com_InitPushEvent( void )
+static void Com_InitPushEvent( void )
 {
   	// clear the static buffer array
   	// this requires SE_NONE to be accepted as a valid but NOP event
@@ -2485,7 +2495,7 @@ void Com_InitPushEvent( void )
 Com_PushEvent
 =================
 */
-void Com_PushEvent( sysEvent_t *event )
+static void Com_PushEvent( const sysEvent_t *event )
 {
 	sysEvent_t	*ev;
 	static int 	printedWarning = 0;
@@ -2523,13 +2533,24 @@ void Com_PushEvent( sysEvent_t *event )
 Com_GetEvent
 =================
 */
-sysEvent_t Com_GetEvent( void )
+static sysEvent_t Com_GetEvent( void )
 {
+	#if 0
+
 	if ( com_pushedEventsHead > com_pushedEventsTail )
 	{
 		com_pushedEventsTail++;
 		return com_pushedEvents[ (com_pushedEventsTail-1) & (MAX_PUSHED_EVENTS-1) ];
 	}
+
+	#else // Quake3e
+
+	if ( com_pushedEventsHead - com_pushedEventsTail > 0 )
+	{
+		return com_pushedEvents[ (com_pushedEventsTail++) & (MAX_PUSHED_EVENTS-1) ];
+	}
+
+	#endif
 
 	return Com_GetRealEvent();
 }
@@ -2616,6 +2637,8 @@ int Com_EventLoop( void )
 				CL_MouseEvent( ev.evValue, ev.evValue2 /*, ev.evTime*/ );
 				break;
 
+			#if 0 // Not for this Amiga version
+
 			case SE_JOYSTICK_AXIS:
 				CL_JoystickEvent( ev.evValue, ev.evValue2, ev.evTime );
 				break;
@@ -2624,6 +2647,8 @@ int Com_EventLoop( void )
 				Cbuf_AddText( (char *)ev.evPtr );
 				Cbuf_AddText( "\n" );
 				break;
+
+			#endif
 
 			default:
 				Com_Error( ERR_FATAL, "Com_EventLoop: bad event type %i", ev.evType );
