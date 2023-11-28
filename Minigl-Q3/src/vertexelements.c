@@ -2866,7 +2866,6 @@ void GLDrawElements(GLcontext context, GLenum mode, GLsizei count, GLenum type, 
 	ULONG	*ul;
 	UWORD	*idx;
 	static EDrawfn E_Draw;
-	GLuint	ShadeModel_bypass; // Cowcat
 
 #ifdef VA_SANITY_CHECK
 	GLuint ShadeModel_bypass;
@@ -2974,17 +2973,21 @@ void GLDrawElements(GLcontext context, GLenum mode, GLsizei count, GLenum type, 
 
 #endif
 
+	// Cowcat
+	#if 0
 	ShadeModel_bypass = 0;
 
-	// Cowcat
 	if ( !(context->ClientState & GLCS_COLOR) ) // Could happen while varray is locked.
 	{
 		glShadeModel(GL_FLAT);
 		ShadeModel_bypass |= 0x01;
 	}
+	#endif
 
 	#ifdef __VBCC__ // just for Q3 - Cowcat
 	
+	GLuint	ShadeModel_bypass = 0;
+
 	if((context->ShadeModel == GL_FLAT) && (context->ClientState & GLCS_COLOR))
 	{
 		context->ClientState &= ~GLCS_COLOR;
@@ -3131,11 +3134,12 @@ void GLDrawElements(GLcontext context, GLenum mode, GLsizei count, GLenum type, 
 #endif
 
 	// Cowcat
-
+	#if 0
 	if(ShadeModel_bypass & 1)
 	{
 		glShadeModel(GL_SMOOTH);
 	}
+	#endif
 
 	#ifdef __VBCC__ // Just for Q3
 

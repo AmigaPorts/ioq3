@@ -347,7 +347,7 @@ const GLubyte *GLGetString(GLcontext context, GLenum name)
 			return (GLubyte *)"Hyperion";
 
 		case GL_VERSION:
-			return (GLubyte *)"1.1";
+			return (GLubyte *)"1.2"; // Cowcat
 
 		case GL_EXTENSIONS:
 

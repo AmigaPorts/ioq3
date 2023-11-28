@@ -1924,7 +1924,6 @@ void GLPopMatrix(GLcontext context)
 
 }
 
-extern float estinv(float);
 
 void GLFrustum(GLcontext context, GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
 {

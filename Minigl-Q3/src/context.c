@@ -197,7 +197,7 @@ void GLScissor(GLcontext context, GLint x, GLint y, GLsizei width, GLsizei heigh
 	{
 		context->scissor.left = x;
 		context->scissor.top = context->w3dWindow->Height - y - height;
-		//context->scissor.top = y; // test Cowcat
+		//context->scissor.top = y; // Cowcat - windowmode issues with certain gfx drivers - check later
 		context->scissor.width = width;
 		context->scissor.height = height;
 	}

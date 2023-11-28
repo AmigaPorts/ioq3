@@ -2628,9 +2628,23 @@ void GLDrawArrays(GLcontext context, GLenum mode, GLint first, GLsizei count)
 	//sorry - no time to write proper handling for this.
 	//Anyways, glDrawArrays is rarely used within a lock.
 
-	if(context->ArrayPointer.state & AP_COMPILED)
+	if( context->ArrayPointer.state & AP_COMPILED )
 	{
+		GLuint	ShadeModel_bypass = 0;
+
+		if ( !(context->ClientState & GLCS_COLOR) ) // Could happen while varray is locked.( Jedi Outcast )
+		{
+			glShadeModel(GL_FLAT);
+			ShadeModel_bypass |= 0x01;
+		}
+
 		GLDrawElements(context, mode, count, GL_UNSIGNED_SHORT, (void*)&(e_wrap[first]));
+		
+		if( ShadeModel_bypass & 1 )
+		{
+			glShadeModel(GL_SMOOTH);
+		}
+		
 		return;
 	}
 
