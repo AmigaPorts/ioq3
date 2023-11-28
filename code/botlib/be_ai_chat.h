@@ -37,17 +37,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define CHAT_GENDERFEMALE		1
 #define CHAT_GENDERMALE			2
 
-#define CHAT_ALL					0
-#define CHAT_TEAM					1
-#define CHAT_TELL					2
+#define CHAT_ALL			0
+#define CHAT_TEAM			1
+#define CHAT_TELL			2
 
 //a console message
 typedef struct bot_consolemessage_s
 {
 	int handle;
-	float time;									//message time
-	int type;									//message type
-	char message[MAX_MESSAGE_SIZE];				//message
+	float time;					//message time
+	int type;					//message type
+	char message[MAX_MESSAGE_SIZE];			//message
 	struct bot_consolemessage_s *prev, *next;	//prev and next in list
 } bot_consolemessage_t;
 
@@ -95,7 +95,7 @@ void BotEnterChat(int chatstate, int clientto, int sendto);
 //get the chat message ready to be output
 void BotGetChatMessage(int chatstate, char *buf, int size);
 //checks if the first string contains the second one, returns index into first string or -1 if not found
-int StringContains(char *str1, char *str2, int casesensitive);
+int StringContains(const char *str1, const char *str2, int casesensitive);
 //finds a match for the given string using the match templates
 int BotFindMatch(char *str, bot_match_t *match, unsigned long int context);
 //returns a variable from a match
@@ -103,7 +103,7 @@ void BotMatchVariable(bot_match_t *match, int variable, char *buf, int size);
 //unify all the white spaces in the string
 void UnifyWhiteSpaces(char *string);
 //replace all the context related synonyms in the string
-void BotReplaceSynonyms(char *string, unsigned long int context);
+void BotReplaceSynonyms(char *string, int size, unsigned long int context);
 //loads a chat file for the chat state
 int BotLoadChatFile(int chatstate, char *chatfile, char *chatname);
 //store the gender of the bot in the chat state

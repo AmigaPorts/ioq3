@@ -820,7 +820,7 @@ static intptr_t SV_GameSystemCalls( intptr_t *args )
 		return 0;
 
 	case BOTLIB_AI_REPLACE_SYNONYMS:
-		botlib_export->ai.BotReplaceSynonyms( VMA(1), args[2] );
+		botlib_export->ai.BotReplaceSynonyms( VMA(1), OPSTACK_SIZE, args[2] ); // Note: VM_DATA_GUARD_SIZE in q3e - Cowcat 
 		return 0;
 
 	case BOTLIB_AI_LOAD_CHAT_FILE:
