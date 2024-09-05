@@ -116,31 +116,32 @@ static UWORD *MousePointer = 0;
 
 static void vid_Pointer(struct Window *window)
 {
-	if (!MousePointer)
+	if ( !MousePointer && window )
 	{
 		#ifdef __PPC__
-		MousePointer = AllocVecPPC(8, MEMF_CLEAR|MEMF_CHIP|MEMF_PUBLIC,0); //OF (8 instead of 12, MEMF_PUBLIC)
+		MousePointer = AllocVecPPC(8, MEMF_CLEAR|MEMF_CHIP|MEMF_PUBLIC, 0); //OF (8 instead of 12, MEMF_PUBLIC)
 		#else
 		MousePointer = AllocVec(8, MEMF_CLEAR|MEMF_CHIP|MEMF_PUBLIC); //OF (idem)
 		#endif
-	}
 
-	if (window)
 		SetPointer(window, MousePointer, 0, 0, 0, 0); //OF (was 1, 16, 0, 0)
+	}
 }
 
 static void vid_DeletePointer(struct Window *window)
 {
-	if (window)
+	if ( MousePointer && window )
+	{
 		ClearPointer(window);
 
-	#ifdef __PPC__
-	FreeVecPPC(MousePointer);
-	#else
-	FreeVec(MousePointer);
-	#endif
+		#ifdef __PPC__
+		FreeVecPPC(MousePointer);
+		#else
+		FreeVec(MousePointer);
+		#endif
 
-	MousePointer = 0;
+		MousePointer = 0;
+	}
 }
 
 // Cowcat
@@ -832,6 +833,11 @@ static GLboolean vid_OpenWindow(GLcontext context, int w, int h)
 	OpenWinTags[0].ti_Data = (ULONG)context->w3dScreen;
 	OpenWinTags[1].ti_Data = (ULONG)w;
 	OpenWinTags[2].ti_Data = (ULONG)h;
+
+	// Cowcat - Center window (more or less)
+	OpenWinTags[3].ti_Data = (ULONG)(context->w3dScreen->Width - (w + context->w3dScreen->WBorLeft + context->w3dScreen->WBorRight) ) / 2;
+	OpenWinTags[4].ti_Data = (ULONG)(context->w3dScreen->Height - (h + context->w3dScreen->WBorTop + context->w3dScreen->WBorBottom) ) / 2;
+	//
 
 	context->w3dWindow = OpenWindowTagList(NULL, OpenWinTags);
 
@@ -1734,7 +1740,7 @@ void MGLSetState(GLcontext context, const GLenum cap, const GLboolean flag) //su
 
 			context->Texture2D_State[active] = flag;
 			break;
-		
+			
 		case GL_SCISSOR_TEST:
 			context->Scissor_State = flag;
 
@@ -1749,7 +1755,7 @@ void MGLSetState(GLcontext context, const GLenum cap, const GLboolean flag) //su
 
 		case GL_DEPTH_WRITEMASK:
 			context->CurWriteMask = flag;
-			break ;
+			break;
 
 		case GL_DEPTH_TEST:
 			context->CurDepthTest = flag;
@@ -1768,6 +1774,10 @@ void MGLSetState(GLcontext context, const GLenum cap, const GLboolean flag) //su
 				W3D_SetState(context->w3dContext, W3D_ZBUFFERUPDATE, W3D_DISABLE);
 			}
 
+			break;
+
+		case MGL_Z_OFFSET:
+			context->ZOffset_State = flag;
 			break;
 
 			// fog/TexGen moved Here - Cowcat
@@ -1799,10 +1809,6 @@ void MGLSetState(GLcontext context, const GLenum cap, const GLboolean flag) //su
 
 		case MGL_PERSPECTIVE_MAPPING:
 			W3D_SetState(context->w3dContext, W3D_PERSPECTIVE, ED);
-			break;
-
-		case MGL_Z_OFFSET:
-			context->ZOffset_State = flag;
 			break;
 
 		case MGL_ARRAY_TRANSFORMATIONS:
