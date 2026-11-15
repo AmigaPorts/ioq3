@@ -2418,7 +2418,7 @@ char **FS_ListFilteredFiles( const char *path, const char *extension, char *filt
 				if (filter)
 				{
 					// case insensitive
-					if (!Com_FilterPath( filter, name, qfalse ))
+					if ( !Com_FilterPath( filter, name ) )
 						continue;
 
 					// unique the match

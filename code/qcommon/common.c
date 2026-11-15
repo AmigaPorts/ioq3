@@ -153,7 +153,7 @@ void QDECL Com_Printf( const char *fmt, ... )
 	char		msg[MAXPRINTMSG];
 	int		len;
 	static qboolean opening_qconsole = qfalse;
-	
+
 	va_start (argptr,fmt);
 	len = Q_vsnprintf (msg, sizeof(msg), fmt, argptr);
 	va_end (argptr);
@@ -170,7 +170,7 @@ void QDECL Com_Printf( const char *fmt, ... )
 		Q_strcat(rd_buffer, rd_buffersize, msg);
 
 		// TTimo nooo .. that would defeat the purpose
-		//rd_flush(rd_buffer);			
+		//rd_flush(rd_buffer);
 		//*rd_buffer = 0;
 		return;
 	}
@@ -198,11 +198,11 @@ void QDECL Com_Printf( const char *fmt, ... )
 			newtime = localtime( &aclock );
 
 			logfile = FS_FOpenFileWrite( "qconsole.log" );
-			
+
 			if(logfile)
 			{
 				Com_Printf( "logfile opened on %s\n", asctime( newtime ) );
-			
+
 				if ( com_logfile->integer > 1 )
 				{
 					// force it to not buffer so we get valid
@@ -240,7 +240,7 @@ void QDECL Com_DPrintf( const char *fmt, ...)
 {
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];
-		
+
 	if ( !com_developer || !com_developer->integer )
 	{
 		return;		// don't confuse non-developers with techie stuff...
@@ -249,7 +249,7 @@ void QDECL Com_DPrintf( const char *fmt, ...)
 	va_start (argptr,fmt);	
 	Q_vsnprintf (msg, sizeof(msg), fmt, argptr);
 	va_end (argptr);
-	
+
 	Com_Printf ("%s", msg);
 }
 
@@ -648,7 +648,7 @@ void Info_Print( const char *s )
 Com_StringContains
 ============
 */
-char *Com_StringContains(char *str1, char *str2, int casesensitive)
+static char *Com_StringContains(char *str1, char *str2)
 {
 	int len, i, j;
 
@@ -658,25 +658,12 @@ char *Com_StringContains(char *str1, char *str2, int casesensitive)
 	{
 		for (j = 0; str2[j]; j++)
 		{
-			if (casesensitive)
-			{
-				if (str1[j] != str2[j])
-				{
-					break;
-				}
-			}
-
-			else
-			{
-				#if defined(AMIGAOS) || defined (__GCC__)
-				if (toupper((unsigned char)str1[j]) != toupper((unsigned char)str2[j]))
-				#else
-				if (toupper(str1[j]) != toupper(str2[j]))
-				#endif
-				{
-					break;
-				}
-			}
+			#if defined(AMIGAOS) || defined (__GCC__)
+			if (toupper((unsigned char)str1[j]) != toupper((unsigned char)str2[j]))
+			#else
+			if (toupper(str1[j]) != toupper(str2[j]))
+			#endif
+				break;
 		}
 
 		if (!str2[j])
@@ -693,7 +680,7 @@ char *Com_StringContains(char *str1, char *str2, int casesensitive)
 Com_Filter
 ============
 */
-int Com_Filter(char *filter, char *name, int casesensitive)
+int Com_Filter(char *filter, char *name)
 {
 	char	buf[MAX_TOKEN_CHARS];
 	char	*ptr;
@@ -718,7 +705,7 @@ int Com_Filter(char *filter, char *name, int casesensitive)
 
 			if (strlen(buf))
 			{
-				ptr = Com_StringContains(name, buf, casesensitive);
+				ptr = Com_StringContains(name, buf);
 
 				if (!ptr)
 					return qfalse;
@@ -750,42 +737,24 @@ int Com_Filter(char *filter, char *name, int casesensitive)
 
 				if (*(filter+1) == '-' && *(filter+2) && (*(filter+2) != ']' || *(filter+3) == ']'))
 				{
-					if (casesensitive)
-					{
-						if (*name >= *filter && *name <= *(filter+2))
-							found = qtrue;
-					}
-
-					else
-					{
-						#if defined(AMIGAOS) || defined (__GCC__)
-						if (toupper((unsigned char)*name) >= toupper((unsigned char)*filter) && toupper((unsigned char)*name) <= toupper((unsigned char)*(filter+2)))
-						#else
-						if (toupper(*name) >= toupper(*filter) && toupper(*name) <= toupper(*(filter+2)))
-						#endif
-							found = qtrue;
-					}
+					#if defined(AMIGAOS) || defined (__GCC__)
+					if (toupper((unsigned char)*name) >= toupper((unsigned char)*filter) && toupper((unsigned char)*name) <= toupper((unsigned char)*(filter+2)))
+					#else
+					if (toupper(*name) >= toupper(*filter) && toupper(*name) <= toupper(*(filter+2)))
+					#endif
+						found = qtrue;
 
 					filter += 3;
 				}
 
 				else
 				{
-					if (casesensitive)
-					{
-						if (*filter == *name)
-							found = qtrue;
-					}
-
-					else
-					{
-						#if defined(AMIGAOS) || defined (__GCC__)
-						if (toupper((unsigned char)*filter) == toupper((unsigned char)*name))
-						#else
-						if (toupper(*filter) == toupper(*name))
-						#endif
-							found = qtrue;
-					}
+					#if defined(AMIGAOS) || defined (__GCC__)
+					if (toupper((unsigned char)*filter) == toupper((unsigned char)*name))
+					#else
+					if (toupper(*filter) == toupper(*name))
+					#endif
+						found = qtrue;
 
 					filter++;
 				}
@@ -808,21 +777,12 @@ int Com_Filter(char *filter, char *name, int casesensitive)
 
 		else
 		{
-			if (casesensitive)
-			{
-				if (*filter != *name)
-					return qfalse;
-			}
-
-			else
-			{
-				#if defined(AMIGAOS) || defined (__GCC__)
-				if (toupper((unsigned char)*filter) != toupper((unsigned char)*name))
-				#else
-				if (toupper(*filter) != toupper(*name))
-				#endif
-					return qfalse;
-			}
+			#if defined(AMIGAOS) || defined (__GCC__)
+			if (toupper((unsigned char)*filter) != toupper((unsigned char)*name))
+			#else
+			if (toupper(*filter) != toupper(*name))
+			#endif
+				return qfalse;
 
 			filter++;
 			name++;
@@ -837,7 +797,7 @@ int Com_Filter(char *filter, char *name, int casesensitive)
 Com_FilterPath
 ============
 */
-int Com_FilterPath(char *filter, char *name, int casesensitive)
+int Com_FilterPath(char *filter, char *name)
 {
 	int	i;
 	char	new_filter[MAX_QPATH];
@@ -872,7 +832,7 @@ int Com_FilterPath(char *filter, char *name, int casesensitive)
 	}
 
 	new_name[i] = '\0';
-	return Com_Filter(new_filter, new_name, casesensitive);
+	return Com_Filter( new_filter, new_name );
 }
 
 /*
@@ -973,7 +933,7 @@ Z_ClearZone
 static void Z_ClearZone( memzone_t *zone, int size )
 {
 	memblock_t	*block;
-	
+
 	// set the entire zone to one free block
 
 	zone->blocklist.next = zone->blocklist.prev = block = (memblock_t *)( (byte *)zone + sizeof(memzone_t) );
@@ -983,7 +943,7 @@ static void Z_ClearZone( memzone_t *zone, int size )
 	zone->rover = block;
 	zone->size = size;
 	zone->used = 0;
-	
+
 	block->prev = block->next = &zone->blocklist;
 	block->tag = 0;			// free block
 	block->id = ZONEID;
@@ -1019,7 +979,7 @@ void Z_Free( void *ptr )
 {
 	memblock_t	*block, *other;
 	memzone_t 	*zone;
-	
+
 	if ( !ptr )
 	{
 		Com_Error( ERR_DROP, "Z_Free: NULL pointer" );
@@ -1055,7 +1015,7 @@ void Z_Free( void *ptr )
 
 	block->tag = 0;		// mark as free
 	block->id = ZONEID;	// Quake3e ( missing/needed ? - Cowcat )
-	
+
 	other = block->prev;
 
 	if ( !other->tag ) 
@@ -1159,18 +1119,18 @@ void *Z_TagMalloc( int size, int tag ) {
 	size += sizeof(memblock_t);		// account for size of block header
 	size += 4;				// space for memory trash tester
 	size = PAD(size, sizeof(intptr_t));	// align to 32/64 bit boundary
-	
+
 	base = rover = zone->rover;
 	start = base->prev;
-	
+
 	do
 	{
 		if ( rover == start )
 		{
 
-	#ifdef ZONE_DEBUG
+			#ifdef ZONE_DEBUG
 			Z_LogHeap();
-	#endif
+			#endif
 
 			// scaned all the way around the list
 			Com_Error( ERR_FATAL, "Z_Malloc: failed on allocation of %i bytes from the %s zone",
@@ -1190,7 +1150,7 @@ void *Z_TagMalloc( int size, int tag ) {
 		}
 
 	} while ( base->tag || base->size < size );
-	
+
 	//
 	// found a block big enough
 	//
@@ -1209,7 +1169,7 @@ void *Z_TagMalloc( int size, int tag ) {
 		base->next = new;
 		base->size = size;
 	}
-	
+
 	zone->rover = base->next;	// next allocation will start looking here
 	zone->used += base->size;
 
@@ -1240,7 +1200,7 @@ void *Z_MallocDebug( int size, char *label, char *file, int line ) {
 void *Z_Malloc( int size ) {
 #endif
 	void	*buf;
-	
+
   	//Z_CheckHeap ();	// DEBUG
 
 #ifdef ZONE_DEBUG
@@ -1273,7 +1233,7 @@ Z_CheckHeap
 static void Z_CheckHeap( void )
 {
 	memblock_t	*block;
-	
+
 	for ( block = mainzone->blocklist.next ; ; block = block->next )
 	{
 		if ( block->next == &mainzone->blocklist )
@@ -1286,7 +1246,7 @@ static void Z_CheckHeap( void )
 
 		if ( block->next->prev != block )
 			Com_Error( ERR_FATAL, "Z_CheckHeap: next block doesn't have proper back link\n" );
-		
+
 		if ( !block->tag && !block->next->tag )
 			Com_Error( ERR_FATAL, "Z_CheckHeap: two consecutive free blocks\n" );
 	}
@@ -1551,7 +1511,7 @@ static void Com_Meminfo_f( void )
 		}
 
 		if (block->next == &mainzone->blocklist)
-			break;			// all blocks have been hit	
+			break;			// all blocks have been hit
 
 		if ( (byte *)block + block->size != (byte *)block->next)
 			Com_Printf ("ERROR: block size does not touch the next block\n");
@@ -1574,7 +1534,7 @@ static void Com_Meminfo_f( void )
 
 		if (block->next == &smallzone->blocklist)
 		{
-			break;		// all blocks have been hit	
+			break;		// all blocks have been hit
 		}
 	}
 
@@ -1643,7 +1603,7 @@ void Com_TouchMemory( void )
 
 	j = hunk_low.permanent >> 2;
 
-	for ( i = 0 ; i < j ; i+=64 )		// only need to touch each page	
+	for ( i = 0 ; i < j ; i+=64 )		// only need to touch each page
 	{
 		sum += ((int *)s_hunkData)[i];
 	}
@@ -1663,14 +1623,14 @@ void Com_TouchMemory( void )
 			j = block->size >> 2;
 
 			for ( i = 0 ; i < j ; i+=64 ) // only need to touch each page
-			{	
+			{
 				sum += ((int *)block)[i];
 			}
 		}
 
 		if ( block->next == &mainzone->blocklist )
 		{
-			break;		// all blocks have been hit	
+			break;		// all blocks have been hit
 		}
 	}
 
@@ -1698,7 +1658,7 @@ static void Com_InitSmallZoneMemory( void )
 	}
 
 	Z_ClearZone( smallzone, s_smallZoneTotal );
-	
+
 	return;
 }
 
@@ -2174,7 +2134,7 @@ void Hunk_FreeTempMemory( void *buf )
 
 	// free with Z_Free if the hunk has not been initialized
 	// this allows the config and product id files ( journal files too ) to be loaded
-	// by the file system without redunant routines in the file system utilizing different 
+	// by the file system without redunant routines in the file system utilizing different
 	// memory systems
 	if ( s_hunkData == NULL )
 	{
@@ -2326,7 +2286,7 @@ static const char *Sys_EventName ( sysEventType_t evType)
 		return evNames[ evType ];
 }
 #endif
-	
+
 void Com_QueueEvent( int evTime, sysEventType_t evType, int value, int value2, int ptrLength, void *ptr )
 {
 	sysEvent_t  *ev;
@@ -2342,7 +2302,7 @@ void Com_QueueEvent( int evTime, sysEventType_t evType, int value, int value2, i
 		lastEvent->evTime = evTime;
 		return;
 	}
-	
+
 	ev = &eventQueue[ eventHead & MASK_QUEUED_EVENTS ];
 
 	if ( eventHead - eventTail >= MAX_QUEUED_EVENTS )
@@ -2385,7 +2345,7 @@ static sysEvent_t Com_GetSystemEvent( void )
 
 	if ( eventHead - eventTail > 0)
 		return eventQueue[ ( eventTail++ ) & MASK_QUEUED_EVENTS ];
-	
+
 	evTime = Sys_Milliseconds();
 
 	#if 0 // not for this Amiga version
@@ -2661,7 +2621,7 @@ int Com_EventLoop( void )
 
 			default:
 				Com_Error( ERR_FATAL, "Com_EventLoop: bad event type %i", ev.evType );
-				break;	
+				break;
 		}
 
 		// free any block data
@@ -2697,7 +2657,7 @@ int Com_Milliseconds (void)
 		}
 
 	} while ( ev.evType != SE_NONE );
-	
+
 	return ev.evTime;
 }
 
@@ -2818,12 +2778,12 @@ void Com_GameRestart(int checksumFeed, qboolean disconnect)
 		{
 			if(disconnect)
 				CL_Disconnect(qfalse);
-				
+
 			CL_Shutdown("Game directory changed", disconnect, qfalse);
 		}
 
 		FS_Restart(checksumFeed);
-	
+
 		// Clean out any user and VM created cvars
 		Cvar_Restart(qtrue);
 		Com_ExecuteCfg();
@@ -2841,7 +2801,7 @@ void Com_GameRestart(int checksumFeed, qboolean disconnect)
 			CL_Init();
 			CL_StartHunkUsers(qfalse);
 		}
-		
+
 		com_gameRestarting = qfalse;
 		com_gameClientRestarting = qfalse;
 	}
@@ -3314,7 +3274,7 @@ int Com_ModifyMsec( int msec )
 	{
 		msec *= com_timescale->value;
 	}
-	
+
 	// don't let it scale below 1 msec
 	if ( msec < 1 && com_timescale->value)
 	{
@@ -3426,7 +3386,7 @@ void Com_Frame( void )
 	{
 		if ( com_dedicated->integer )
 			minMsec = SV_FrameMsec();
-		
+
 		else
 		{
 			if( com_minimized->integer && com_maxfpsMinimized->integer > 0 )
@@ -3461,7 +3421,7 @@ void Com_Frame( void )
 		if(com_sv_running->integer)
 		{
 			timeValSV = SV_SendQueuedPackets();
-			
+
 			timeVal = Com_TimeVal(minMsec);
 
 			if(timeValSV < timeVal)
@@ -3470,13 +3430,13 @@ void Com_Frame( void )
 
 		else
 			timeVal = Com_TimeVal(minMsec);
-		
+
 		if( com_busyWait->integer || timeVal < 1)
 			NET_Sleep(0);
 
 		else
 			NET_Sleep(timeVal - 1);
-	
+
 	} while(Com_TimeVal(minMsec));
 
 	IN_Frame();
@@ -3579,7 +3539,7 @@ void Com_Frame( void )
 
 		Com_Printf ("frame:%i all:%3i sv:%3i ev:%3i cl:%3i gm:%3i rf:%3i bk:%3i\n", 
 					 com_frameNumber, all, sv, ev, cl, time_game, time_frontend, time_backend );
-	}	
+	}
 
 	//
 	// trace optimization tracking

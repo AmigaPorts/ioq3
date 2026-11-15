@@ -183,7 +183,7 @@ void Sys_ListFilteredFiles( const char *basedir, char *subdirs, char *filter, ch
 
 		Com_sprintf( filename, sizeof(filename), "%s/%s", subdirs, d->d_name );
 
-		if (!Com_FilterPath( filter, filename, qfalse ))
+		if (!Com_FilterPath( filter, filename ))
 			continue;
 
 		list[ *numfiles ] = CopyString( filename );
