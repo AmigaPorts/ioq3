@@ -13,7 +13,7 @@ struct MsgStruct
 };
 
 
-int GetMessages68k( __reg("a1") struct MsgPort *port, __reg("a0") struct MsgStruct *msg, __reg("d1") int decodechar )
+int GetMessages68k( __reg("a1") struct MsgPort *port, __reg("a0") struct MsgStruct *msg, __reg("d1") UBYTE decodechar )
 {
 	int i = 0;
 	struct IntuiMessage *imsg;
@@ -47,20 +47,8 @@ int GetMessages68k( __reg("a1") struct MsgPort *port, __reg("a0") struct MsgStru
 
 				result = MapRawKey(&ie, buf, BUFFERLEN, 0);
 
-				#if 0
-
-				if (result != 1 )
-					msg[i].rawkey = 0;
-
-				else
-					msg[i].rawkey = buf[0];
-
-				#else
-
 				if ( result == 1 )
 					msg[i].rawkey = buf[0];
-
-				#endif
 			}
 			
 			i++;
