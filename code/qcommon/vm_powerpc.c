@@ -2376,7 +2376,8 @@ void VM_Compile( vm_t *vm, vmHeader_t *header )
 	}
 	#endif
 
-	//SetCache(CACHE_ICACHEINV, vm->codeBase, vm->codeLength); // test here instead of VM_CallCompiled ? Cowcat
+    SetCache(CACHE_DCACHEFLUSH, vm->codeBase, vm->codeLength); // needed ?
+	SetCache(CACHE_ICACHEINV, vm->codeBase, vm->codeLength); // here instead of VM_CallCompiled - Cowcat
 
 	vm->destroy = VM_Destroy_Compiled;
 	vm->compiled = qtrue;
@@ -2441,7 +2442,7 @@ int VM_CallCompiled( vm_t *vm, int *args )
 	time_outside_vm = 0;
 #endif
 
-	SetCache(CACHE_ICACHEINV, 0, 0); // Hedeon test
+	//SetCache(CACHE_ICACHEINV, 0, 0); // Hedeon test
 
 	/* call generated code */
 	{
