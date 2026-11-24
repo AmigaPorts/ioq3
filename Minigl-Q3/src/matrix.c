@@ -141,7 +141,7 @@ void m_DoInvert(Matrix *pA, GLfloat *out)
 	*out++ = (GLfloat)(a5*a6 - a3*a8)*det;
 	*out++ = (GLfloat)(a0*a8 - a2*a6)*det;
 	*out++ = (GLfloat)(a2*a3 - a0*a5)*det;
-   
+
 	*out++ = (GLfloat)(a3*a7 - a4*a6)*det;
 	*out++ = (GLfloat)(a1*a6 - a0*a7)*det;
 	*out++ = (GLfloat)(a0*a4 - a1*a3)*det;
@@ -193,7 +193,7 @@ void m_BuildInverted(GLcontext context)
 	*out++ = (GLfloat)(a5*a6 - a3*a8)*det;
 	*out++ = (GLfloat)(a0*a8 - a2*a6)*det;
 	*out++ = (GLfloat)(a2*a3 - a0*a5)*det;
-   
+
 	*out++ = (GLfloat)(a3*a7 - a4*a6)*det;
 	*out++ = (GLfloat)(a1*a6 - a0*a7)*det;
 	*out++ = (GLfloat)(a0*a4 - a1*a3)*det;
@@ -324,7 +324,7 @@ INLINE void m_MatMultGeneral(Matrix *pA, float *pB, Matrix *pC)
 	c(41) += a43*b31;
 	c(42) += a43*b32;
 	c(43) += a43*b33;
-	c(41) += a44*b41; 
+	c(41) += a44*b41;
 	c(42) += a44*b42;
 	c(43) += a44*b43;
 
@@ -530,10 +530,10 @@ INLINE void m_MatMultB0001(Matrix *pA, float *pB, Matrix *pC)
 	a34 += b14*a31;
 	a44 += b14*a41;
 
-	c(14) = a14; 
-	c(24) = a24; 
-	c(34) = a34; 
-	c(44) = a44; 
+	c(14) = a14;
+	c(24) = a24;
+	c(34) = a34;
+	c(44) = a44;
 
 	#undef a
 	#undef b
@@ -596,9 +596,9 @@ INLINE void m_MatMultA0001_B0001(Matrix *pA, float *pB, Matrix *pC)
 	a24 += b14*a21;
 	a34 += b14*a31;
 
-	c(14) = a14; 
-	c(24) = a24; 
-	c(34) = a34; 
+	c(14) = a14;
+	c(24) = a24;
+	c(34) = a34;
 
 	#undef a
 	#undef b
@@ -1078,10 +1078,10 @@ INLINE void m_MatMultBTrans(Matrix *pA, float *pB, Matrix *pC)
 	a34 += b14*a31;
 	a44 += b14*a41;
 
-	c(14) = a14; 
-	c(24) = a24; 
-	c(34) = a34; 
-	c(44) = a44; 
+	c(14) = a14;
+	c(24) = a24;
+	c(34) = a34;
+	c(44) = a44;
 
 	c(11) = a11;
 	c(12) = a12;
@@ -1199,7 +1199,7 @@ INLINE void m_MatMultBOrtho(Matrix *pA, float *pB, Matrix *pC)
 	c(22) = b22*a22;
 	c(32) = b22*a32;
 	c(42) = b22*a42;
- 
+
 	c(13) = b33*a13;
 	c(23) = b33*a23;
 	c(33) = b33*a33;
@@ -1220,10 +1220,10 @@ INLINE void m_MatMultBOrtho(Matrix *pA, float *pB, Matrix *pC)
 	a34 += b14*a31;
 	a44 += b14*a41;
 
-	c(14) = a14; 
-	c(24) = a24; 
-	c(34) = a34; 
-	c(44) = a44; 
+	c(14) = a14;
+	c(24) = a24;
+	c(34) = a34;
+	c(44) = a44;
 
 	#undef a
 	#undef b
@@ -1283,10 +1283,10 @@ INLINE void m_MatMultBPersp(Matrix *pA, float *pB, Matrix *pC)
 	a34 += b13*a31;
 	a44 += b13*a41;
 
-	c(13) = a14; 
-	c(23) = a24; 
-	c(33) = a34; 
-	c(43) = a44; 
+	c(13) = a14;
+	c(23) = a24;
+	c(33) = a34;
+	c(43) = a44;
 
 	#undef a
 	#undef b
@@ -1331,10 +1331,10 @@ INLINE void m_MatMultA0001_BTrans(Matrix *pA, float *pB, Matrix *pC)
 	a24 += b14*a21;
 	a34 += b14*a31;
 
-	c(14) = a14; 
-	c(24) = a24; 
-	c(34) = a34; 
-	c(44) = 1.f; 
+	c(14) = a14;
+	c(24) = a24;
+	c(34) = a34;
+	c(44) = 1.f;
 
 	c(11) = a11;
 	c(12) = a12;
@@ -1442,7 +1442,7 @@ INLINE void m_MatMultA0001_BOrtho(Matrix *pA, float *pB, Matrix *pC)
 	c(22) = b22*a22;
 	c(32) = b22*a32;
 	c(42) = 0.f;
- 
+
 	c(13) = b33*a13;
 	c(23) = b33*a23;
 	c(33) = b33*a33;
@@ -1460,10 +1460,10 @@ INLINE void m_MatMultA0001_BOrtho(Matrix *pA, float *pB, Matrix *pC)
 	a24 += b14*a21;
 	a34 += b14*a31;
 
-	c(14) = a14; 
-	c(24) = a24; 
-	c(34) = a34; 
-	c(44) = 1.f; 
+	c(14) = a14;
+	c(24) = a24;
+	c(34) = a34;
+	c(44) = 1.f;
 
 	#undef a
 	#undef b
@@ -1521,9 +1521,9 @@ INLINE void m_MatMultA0001_BPersp(Matrix *pA, float *pB, Matrix *pC)
 	a24 += b13*a21;
 	a34 += b13*a31;
 
-	c(13) = a14; 
-	c(23) = a24; 
-	c(33) = a34; 
+	c(13) = a14;
+	c(23) = a24;
+	c(33) = a34;
 	c(43) = -1.0f; // single float - Cowcat
 
 	#undef a
@@ -1600,7 +1600,7 @@ INLINE void m_Mult(Matrix *pA, float *v, int vtype, Matrix *pC)
 		return;
 	}
 
-	if(pA->flags & (MGLMASK_NONE | MGLMAT_PERSPECTIVE)) 
+	if(pA->flags & (MGLMASK_NONE | MGLMAT_PERSPECTIVE))
 	{
 		switch (vtype)
 		{
@@ -1709,7 +1709,6 @@ INLINE void m_Mult(Matrix *pA, float *v, int vtype, Matrix *pC)
 
 	}
 
-
 	pC->flags = MGLMAT_UNKNOWN;
 
 #if 0 //not used
@@ -1725,7 +1724,7 @@ INLINE void m_Mult(Matrix *pA, float *v, int vtype, Matrix *pC)
 	if (!(vtype & MGLMASK_NONE))
 	{
 		if (!(pA->flags & MGLMASK_NONE))
-		pC->flags = MGLMAT_0001;
+			pC->flags = MGLMAT_0001;
 	}
 
 }
@@ -1849,7 +1848,7 @@ void GLLoadMatrixf(GLcontext context, const GLfloat *m)
 	//LOG(3, glLoadMatrixf, "%f %f %f ...", *m, *(m+1), *(m+2));
 	GLASSERT(context != NULL);
 	GLFlagError(context, context->CurrentPrimitive != GL_BASE, GL_INVALID_OPERATION);
-   
+
 	context->CombinedValid = GL_FALSE;
 	context->InvRotValid = GL_FALSE;
 
@@ -1861,7 +1860,7 @@ void GLLoadMatrixd(GLcontext context, const GLdouble *m)
 	//LOG(3, glLoadMatrixf, "%lf %lf %lf ...", *m, *(m+1), *(m+2));
 	GLASSERT(context != NULL);
 	GLFlagError(context, context->CurrentPrimitive != GL_BASE, GL_INVALID_OPERATION);
-   
+
 	context->CombinedValid = GL_FALSE;
 	context->InvRotValid = GL_FALSE;
 	m_LoadMatrixd(CMATRIX(context), m);
@@ -1940,7 +1939,7 @@ void GLFrustum(GLcontext context, GLdouble left, GLdouble right, GLdouble bottom
 	float rli = 1.f / (float)(right-left);
 	float tbi = 1.f / (float)(top-bottom);
 	float fni = 1.f / (float)(zFar-zNear);
-	
+
 	//LOG(3, glFrustum, "%lf &lf %lf %lf %lf %lf", left, right, bottom, top, zNear, zFar);
 
 	GLASSERT(context != NULL);
@@ -1949,17 +1948,23 @@ void GLFrustum(GLcontext context, GLdouble left, GLdouble right, GLdouble bottom
 	context->InvRotValid = GL_FALSE;
 	context->CombinedValid = GL_FALSE;
 
-	v[OF_11] = n2*rli; v[OF_21] = 0.0;
-	v[OF_31] = 0.0; v[OF_41] = 0.0;
+	v[OF_11] = n2*rli;
+	v[OF_21] = 0.0;
+	v[OF_31] = 0.0;
+	v[OF_41] = 0.0;
 
+	v[OF_12] = 0.0;
 	v[OF_22] = n2*tbi;
-	v[OF_12] = 0.0; v[OF_32] = 0.0; v[OF_42] = 0.0;
+	v[OF_32] = 0.0;
+	v[OF_42] = 0.0;
 
-	v[OF_13] = (right+left)*rli; v[OF_23] = (top+bottom)*tbi;
+	v[OF_13] = (right+left)*rli;
+	v[OF_23] = (top+bottom)*tbi;
 	v[OF_33] = -(zFar+zNear)*fni;
 	v[OF_43] = -1.0;
 
-	v[OF_14] = 0.0; v[OF_24] = 0.0;
+	v[OF_14] = 0.0;
+	v[OF_24] = 0.0;
 	v[OF_34] = -(2.0*zFar*zNear)*fni;
 	v[OF_44] = 0.0;
 
@@ -1982,8 +1987,8 @@ void GLOrtho(GLcontext context, GLdouble left, GLdouble right, GLdouble bottom, 
 	0  0  0	 1
 	*/
 
-	float rli = 1.0	 / (right-left);
-	float tbi = 1.0	 / (top-bottom);
+	float rli = 1.0	/ (right-left);
+	float tbi = 1.0	/ (top-bottom);
 	float fni = 1.0 / (zFar-zNear);
 	float v[16];
 
@@ -1995,7 +2000,8 @@ void GLOrtho(GLcontext context, GLdouble left, GLdouble right, GLdouble bottom, 
 	context->CombinedValid = GL_FALSE;
 
 	v[OF_11] = 2.0*rli;
-	v[OF_12] = 0.0; v[OF_13] = 0.0;
+	v[OF_12] = 0.0;
+	v[OF_13] = 0.0;
 	v[OF_14] = -(right+left)*rli;
 
 	v[OF_21] = 0.0;
@@ -2005,9 +2011,12 @@ void GLOrtho(GLcontext context, GLdouble left, GLdouble right, GLdouble bottom, 
 
 	v[OF_31] = 0.0;
 	v[OF_32] = 0.0;
-	v[OF_33] = -2.0*fni; v[OF_34] = -(zFar+zNear)*fni;
+	v[OF_33] = -2.0*fni;
+	v[OF_34] = -(zFar+zNear)*fni;
 
-	v[OF_41] = v[OF_42] = v[OF_43] = 0.0;
+	v[OF_41] = 0.0;
+	v[OF_42] = 0.0;
+	v[OF_43] = 0.0;
 	v[OF_44] = 1.0;
 
 	m_Mult(CMATRIX(context), v, MGLMAT_ORTHO, OMATRIX(context));

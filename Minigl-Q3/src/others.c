@@ -240,16 +240,16 @@ void GLGetBooleanv(GLcontext context, GLenum pname, GLboolean *params)
 	{
 		case GL_DEPTH_TEST:
 			*params = context->CurDepthTest;
-			return ;
+			return;
 
 		case GL_DEPTH_WRITEMASK:
 			*params = context->CurWriteMask;
-			return ;
+			return;
 
 		default:
-			*params = GL_FALSE ;
+			*params = GL_FALSE;
 			GLFlagError(context, 1, GL_INVALID_ENUM);
-			return ;
+			return;
 	}
 }
 
@@ -274,7 +274,7 @@ void GLGetIntegerv(GLcontext context, GLenum pname, GLint *params)
 			return;
 
 		case GL_MAX_TEXTURE_SIZE:
-			*params = 256 ;
+			*params = 256;
 			//*params = W3D_Query(context->w3dContext, W3D_Q_MAXTEXWIDTH, 0); // future - Cowcat
 			return;
 
@@ -295,7 +295,7 @@ void GLGetIntegerv(GLcontext context, GLenum pname, GLint *params)
 			return;
 
 		default:
-			*params = 0 ;
+			*params = 0;
 			GLFlagError(context, 1, GL_INVALID_ENUM);
 			return;
 	}
@@ -448,7 +448,7 @@ void GLReadPixels(GLcontext context, GLint x, GLint y, GLsizei width, GLsizei he
 
 	for (i=0; i<context->w3dWindow->Height; i++)
 	{
-		(void)ReadPixelArray(dest, 0, 0, context->w3dWindow->Width, context->w3dWindow->RPort, 0, 
+		(void)ReadPixelArray(dest, 0, 0, context->w3dWindow->Width, context->w3dWindow->RPort, 0,
 			(UWORD)i, context->w3dWindow->Width, 1, RECTFMT_RGB);
 
 		dest += context->w3dWindow->Width * 3;
@@ -506,12 +506,10 @@ void MGLSpecialFunc(GLcontext context, SpecialHandlerFn s)
 	context->SpecialHandler = s;
 }
 
-
 void MGLMouseFunc(GLcontext context, MouseHandlerFn m)
 {
 	context->MouseHandler = m;
 }
-
 
 void MGLIdleFunc(GLcontext context, IdleFn i)
 {

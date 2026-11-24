@@ -569,7 +569,7 @@ void GLTexCoord2f(GLcontext context, GLfloat s, GLfloat t)
 
 	thisvertex.v.u = (W3D_Float)s;
 	thisvertex.v.v = (W3D_Float)t;
-	
+
 	#undef thisvertex
 }
 
@@ -781,7 +781,7 @@ void GLViewport(GLcontext context, GLint x, GLint y, GLsizei w, GLsizei h)
 			clipflags |= MGL_CLIP_TOP;
 
 		context->ClipFlags = clipflags;
-	}  
+	}
 
 	else //guardband clipping disabled
 	{
@@ -806,7 +806,7 @@ void GLViewport(GLcontext context, GLint x, GLint y, GLsizei w, GLsizei h)
 	//context->ay = (float)(context->scissor.height) - (float)y - (float)h * 0.5; // test Cowcat
 	context->sx = (float)w * 0.5;
 	context->sy = (float)h * 0.5;
-	
+
 	#endif
 }
 

@@ -274,7 +274,7 @@ void tex_SetWrap(GLcontext context, GLenum wrap_s, GLenum wrap_t)
 
 	if (wrap_s == GL_REPEAT)
 		Ws = W3D_REPEAT;
-						
+
 	else
 		Ws = W3D_CLAMP;
 
@@ -352,15 +352,15 @@ void GLPixelStorei(GLcontext context, GLenum pname, GLint param)
 			break;
 
 		case GL_UNPACK_ROW_LENGTH:
-			context->CurUnpackRowLength = param ;
+			context->CurUnpackRowLength = param;
 			break ;
 
 		case GL_UNPACK_SKIP_PIXELS:
-			context->CurUnpackSkipPixels = param ;
+			context->CurUnpackSkipPixels = param;
 			break ;
 
 		case GL_UNPACK_SKIP_ROWS:
-			context->CurUnpackSkipRows = param ;
+			context->CurUnpackSkipRows = param;
 			break ;
 
 		default:
@@ -536,7 +536,7 @@ void tex_AddAlpha(UWORD *output, int width, int height)
 	while (size)
 	{
 		x=*output;
-	
+
 		r = REDBYTE(x);
 		g = GREENBYTE(x);
 		b = BLUEBYTE(x);
@@ -602,14 +602,12 @@ void tex_ConvertTexture(GLcontext context)
 
 	if (!newtex)
 		return;
-	
+
 	W3D_FreeTexObj(context->w3dContext, oldtex);
 	context->w3dTexBuffer[context->CurrentBinding] = newtex;
 
 	tex_SetEnv(context, context->TexEnv[0]);
-
 	tex_SetFilter(context, context->MinFilter, context->MagFilter);
-
 	tex_SetWrap(context, context->WrapS, context->WrapT);
 }
 
@@ -685,7 +683,7 @@ static void SHORT4444_4444(GLcontext context, GLubyte *input, UWORD *output, int
 
 	UWORD *in = (UWORD*)input;
 	UWORD *out = (UWORD*)output;
-	
+
 	for (i = 0; i < height; i++)
 	{
 		for (j = 0; j < width; j++)
@@ -973,7 +971,7 @@ void INDEX_ARGB(GLcontext context, GLubyte *input, UWORD *output, int width, int
 ULONG MGLConvert(GLcontext context, const GLvoid *inputp, UWORD *output, int width, int height, GLenum internalformat, GLenum format)
 {
 	GLvoid *input = (GLvoid *)inputp;
-	
+
 	/*
 	if(internalformat == GL_RGB5_A1) // Cowcat - already done
 	{
@@ -1111,7 +1109,7 @@ ULONG MGLConvert(GLcontext context, const GLvoid *inputp, UWORD *output, int wid
 
 			break;
 	}
-	
+
 	return 0; /* ERROR */ // glhexen2 fixes - Cowcat
 }
 
@@ -1365,7 +1363,7 @@ void GLTexImage2DNoMIP(GLcontext context, GLenum gltarget, GLint level, GLint in
 		internalformat = GL_RGBA;
 	}
 
-	//LOG(3, glTexImage2DNoMIP, "target = %d level=%d, size=%d×%d", gltarget, level, width, height);
+	//LOG(3, glTexImage2DNoMIP, "target = %d level=%d, size=%d %d", gltarget, level, width, height);
 	GLFlagError(context, type != GL_UNSIGNED_BYTE && type != MGL_UNSIGNED_SHORT_5_6_5 && type != MGL_UNSIGNED_SHORT_4_4_4_4, GL_INVALID_OPERATION);
 	GLFlagError(context, gltarget != GL_TEXTURE_2D, GL_INVALID_ENUM);
 
@@ -1381,7 +1379,7 @@ void GLTexImage2DNoMIP(GLcontext context, GLenum gltarget, GLint level, GLint in
 
 	w = (ULONG)width;
 	h = (ULONG)height;
-	
+
 	// Cowcat
 	if (context->w3dTexBuffer[current] && ( w != context->w3dTexBuffer[current]->texwidth || h != context->w3dTexBuffer[current]->texheight ) )
 	{
@@ -1414,7 +1412,7 @@ void GLTexImage2DNoMIP(GLcontext context, GLenum gltarget, GLint level, GLint in
 	*/
 
 	useFormat = MGLConvert(context, pixels, (UWORD *)target, width, height, internalformat, format);
-	
+
 	/*
 	** Create a new W3D_Texture if none was present, using the converted
 	** data.
@@ -1509,7 +1507,7 @@ inline void tex_UpdateScanlineShort(UWORD *start, UBYTE *pixels, int numpixels)
 //Conversion:
 
 inline void tex_UpdateScanlineA8_ARGB(UWORD *start, UBYTE *pixels, int numpixels)
-{	
+{
 	int	i;
 	UBYTE	a;
 
@@ -1521,7 +1519,7 @@ inline void tex_UpdateScanlineA8_ARGB(UWORD *start, UBYTE *pixels, int numpixels
 }
 
 inline void tex_UpdateScanlineL8_ARGB(UWORD *start, UBYTE *pixels, int numpixels)
-{	
+{
 	int	i;
 	UBYTE	la, lb, lc;
 
@@ -1533,7 +1531,7 @@ inline void tex_UpdateScanlineL8_ARGB(UWORD *start, UBYTE *pixels, int numpixels
 }
 
 inline void tex_UpdateScanlineAlpha(UWORD *start, UBYTE *pixels, int numpixels)
-{	
+{
 	int	i;
 	UBYTE	r, g, b, a;
 
@@ -1548,7 +1546,7 @@ inline void tex_UpdateScanlineAlpha(UWORD *start, UBYTE *pixels, int numpixels)
 }
 
 inline void tex_UpdateScanlineNoAlpha(UWORD *start, UBYTE *pixels, int numpixels)
-{	
+{
 	int	i;
 	UBYTE	r, g, b;
 
@@ -1599,7 +1597,7 @@ void GLTexSubImage2DNoMIP (GLcontext context, GLenum target, GLint level, GLint 
 	int	current;
 	int	linelength;
 	int	sourcelength, sourceunit = 0;
-	int	i; 
+	int	i;
 	ULONG	BytesPerTexel;
 
 	/*
@@ -1750,7 +1748,7 @@ void GLTexSubImage2DNoMIP (GLcontext context, GLenum target, GLint level, GLint 
 				tex_UpdateScanlineAlpha((UWORD *)where, from, width);
 				where += linelength;
 				from  += sourcelength;
-			}	
+			}
 		}
 	}
 

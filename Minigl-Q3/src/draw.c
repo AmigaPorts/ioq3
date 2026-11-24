@@ -19,7 +19,7 @@
 
 #define PRIORITIZE_BANDWIDTH 1
 
-#ifdef __PPC__ 
+#ifdef __PPC__
 #define PRIORITIZE_FILLRATE  1
 #endif
 
@@ -317,25 +317,25 @@ void v_GenTexCoords(GLcontext context, int vertex)
 		}
 	}
 
-	b14 *= u(3); 
-	b24 *= u(3); 
-	b34 *= u(3); 
-	b44 *= u(3); 
+	b14 *= u(3);
+	b24 *= u(3);
+	b34 *= u(3);
+	b44 *= u(3);
 
-	b14 += u(2)*b13; 
-	b24 += u(2)*b23; 
-	b34 += u(2)*b33; 
-	b44 += u(2)*b43; 
+	b14 += u(2)*b13;
+	b24 += u(2)*b23;
+	b34 += u(2)*b33;
+	b44 += u(2)*b43;
 
-	b14 += u(1)*b12; 
-	b24 += u(1)*b22; 
-	b34 += u(1)*b32; 
-	b44 += u(1)*b42; 
+	b14 += u(1)*b12;
+	b24 += u(1)*b22;
+	b34 += u(1)*b32;
+	b44 += u(1)*b42;
 
-	b14 += u(0)*b11; 
-	b24 += u(0)*b21; 
-	b34 += u(0)*b31; 
-	b44 += u(0)*b41; 
+	b14 += u(0)*b11;
+	b24 += u(0)*b21;
+	b34 += u(0)*b31;
+	b44 += u(0)*b41;
 
 	verx = b14;
 	very = b24;
@@ -379,7 +379,7 @@ void v_GenTexCoords(GLcontext context, int vertex)
 		nx  = ver(x)*b(0);
 		ny  = ver(x)*b(1);
 		nz  = ver(x)*b(2);
-	
+
 		nx += ver(y)*b(3);
 		ny += ver(y)*b(4);
 		nz += ver(y)*b(5);
@@ -387,7 +387,7 @@ void v_GenTexCoords(GLcontext context, int vertex)
 		nx += ver(z)*b(6);
 		ny += ver(z)*b(7);
 		nz += ver(z)*b(8);
-	
+
 		#undef b
 		#undef ver
 
@@ -403,7 +403,7 @@ void v_GenTexCoords(GLcontext context, int vertex)
 		nx  = ver(x)*b(0);
 		ny  = ver(x)*b(1);
 		nz  = ver(x)*b(2);
-	
+
 		nx += ver(y)*b(3);
 		ny += ver(y)*b(4);
 		nz += ver(y)*b(5);
@@ -411,7 +411,7 @@ void v_GenTexCoords(GLcontext context, int vertex)
 		nx += ver(z)*b(6);
 		ny += ver(z)*b(7);
 		nz += ver(z)*b(8);
-	
+
 		#undef b
 		#undef ver
 
@@ -424,7 +424,7 @@ void v_GenTexCoords(GLcontext context, int vertex)
 	ry = u(1) - ny*nu;
 	rz = u(2) - nz*nu;
 
-	rz += 1.f;	
+	rz += 1.f;
 	m = 0.5f / (float)sqrt((double)(rx*rx + ry*ry + rz*rz));
 
 	if (context->TextureGenS_State == GL_TRUE)
@@ -469,7 +469,7 @@ INLINE GLvoid v_Transform(GLcontext context)
 		{
 			m_CombineMatrices(context);
 		}
-			
+
 		if (context->WOne_Hint == GL_FALSE)
 		{
 			#define a(x) (context->CombinedMatrix.v[OF_##x])
@@ -569,7 +569,7 @@ INLINE GLvoid v_Transform(GLcontext context)
 #ifdef __VBCC__
 
 //VBCC only does inlining on highest optimization level :-/
-//fix - was context->CurrentTexQValid - Cowcat 
+//fix - was context->CurrentTexQValid - Cowcat
 
 #define v_ToScreen(ctx,vnum){\
 static float wdiv;\
@@ -692,7 +692,7 @@ static void Multitex_PolyBuffer(GLcontext context, W3D_Vertex **verts, int numpo
 		first += p->numverts;
 
 		if(typecheck && p->type == W3D_PRIMITIVE_TRISTRIP)
-		{ 
+		{
 			error = W3D_DrawTriStripV(context->w3dContext, &tris);
 		}
 
@@ -766,7 +766,7 @@ void d_DrawPoints(GLcontext context)
 		{
 			continue;
 		}
-	
+
 		if (-w > v->bz)
 		{
 			continue;
@@ -827,7 +827,7 @@ void d_DrawLines(GLcontext context)
 	i = 0;
 
 	do
-	{		
+	{
 		for (j=i; j<i+2; j++)
 		{
 			MGLVertex *v = &(context->VertexBuffer[j]);
@@ -858,7 +858,7 @@ void d_DrawLines(GLcontext context)
 			{
 				outcode |= MGL_CLIP_TOP;
 			}
-	
+
 			if (-w > v->bz)
 			{
 				outcode |= MGL_CLIP_BACK;
@@ -873,7 +873,7 @@ void d_DrawLines(GLcontext context)
 			and_code &= outcode;
 			or_code	 |= outcode;
 		}
-	  
+
 		or_code = context->VertexBuffer[i+0].outcode | context->VertexBuffer[i+1].outcode;
 		and_code = context->VertexBuffer[i+0].outcode & context->VertexBuffer[i+1].outcode;
 
@@ -994,7 +994,7 @@ void d_DrawLines(GLcontext context)  // Cowcat
 			{
 				outcode |= MGL_CLIP_TOP;
 			}
-	
+
 			if (-w > v->bz)
 			{
 				outcode |= MGL_CLIP_BACK;
@@ -1012,18 +1012,18 @@ void d_DrawLines(GLcontext context)  // Cowcat
 
 		or_code = context->VertexBuffer[i+0].outcode | context->VertexBuffer[i+1].outcode;
 		and_code = context->VertexBuffer[i+0].outcode & context->VertexBuffer[i+1].outcode;
-	
-		if (and_code) 
+
+		if (and_code)
 			continue;
 
 		if (or_code == 0)
 		{
 			v_ToScreen(context, i);
 			v_ToScreen(context, i+1);
-		    
+
 			lin.v1 = (context->VertexBuffer[i+0].v);
 			lin.v2 = (context->VertexBuffer[i+1].v);
-		    
+
 			lin.tex = 0; //context->w3dTexBuffer[context->CurrentBinding];
 			lin.st_pattern = 0;
 			lin.st_enable = 0;
@@ -1043,7 +1043,7 @@ void d_DrawLines(GLcontext context)  // Cowcat
 	}
 
 	#else
-    
+
 	#endif
 
 }
@@ -1143,7 +1143,7 @@ void d_DrawTriangleFan(GLcontext context)
 		{
 			outcode |= MGL_CLIP_TOP;
 		}
-	
+
 		if (-w > v->bz)
 		{
 			outcode |= MGL_CLIP_BACK;
@@ -1244,7 +1244,7 @@ void d_DrawTriangleFan(GLcontext context)
 				y1 = y(1) - y(0);
 				x2 = x(2) - x(0);
 				y2 = y(2) - y(0);
-	   
+
 				area = y2*x1 - x2*y1;
 				area *= sign;
 			}
@@ -1347,16 +1347,11 @@ void d_DrawTriangleFan(GLcontext context)
 	{
 		for (i=1, triangle=0; i<context->VertexBufferPointer - 1; i++, triangle++)
 		{
-			local_or = context->VertexBuffer[0].outcode
-				| context->VertexBuffer[i].outcode
-				| context->VertexBuffer[i+1].outcode;
+			local_or = context->VertexBuffer[0].outcode | context->VertexBuffer[i].outcode | context->VertexBuffer[i+1].outcode;
+			local_and = context->VertexBuffer[0].outcode & context->VertexBuffer[i].outcode & context->VertexBuffer[i+1].outcode;
 
-			local_and = context->VertexBuffer[0].outcode
-				& context->VertexBuffer[i].outcode
-				& context->VertexBuffer[i+1].outcode;
-
-			if (local_and == 0) // if the local and code is zero, we're not
-			{		    // completely off screen.
+			if (local_and == 0)	// if the local and code is zero, we're not
+			{			// completely off screen.
 
 				// if our local or codes are zero, we are completely visible
 
@@ -1377,21 +1372,16 @@ void d_DrawTriangleFan(GLcontext context)
 	{
 		for (i=1, triangle=0; i<context->VertexBufferPointer - 1; i++, triangle++)
 		{
-			local_or = context->VertexBuffer[0].outcode
-				| context->VertexBuffer[i].outcode
-				| context->VertexBuffer[i+1].outcode;
+			local_or = context->VertexBuffer[0].outcode | context->VertexBuffer[i].outcode | context->VertexBuffer[i+1].outcode;
+			local_and = context->VertexBuffer[0].outcode & context->VertexBuffer[i].outcode & context->VertexBuffer[i+1].outcode;
 
-			local_and = context->VertexBuffer[0].outcode
-				& context->VertexBuffer[i].outcode
-				& context->VertexBuffer[i+1].outcode;
-
-			if (local_and == 0) // if the local and code is zero, we're not
-			{		    // completely off screen.
+			if (local_and == 0)	// if the local and code is zero, we're not
+			{			// completely off screen.
 
 				// if our local or codes are zero, we are completely visible
 
 				complete[triangle] = local_or;
- 
+
 				if (local_or & MGL_CLIP_NEGW)
 				{
 					visible[triangle] = GL_TRUE;
@@ -1480,7 +1470,7 @@ void d_DrawTriangleFan(GLcontext context)
 			}
 
 			else	// case 2 (the difficult part)
-			{   
+			{
 				int k=3;
 				//clip[pnum].verts[0] = 0;
 				clip[pnum].verts[1] = i;
@@ -1687,7 +1677,7 @@ void d_DrawTriangleStrip(GLcontext context)
 		{
 			outcode |= MGL_CLIP_TOP;
 		}
-	
+
 		if (-w > v->bz)
 		{
 			outcode |= MGL_CLIP_BACK;
@@ -1785,7 +1775,7 @@ void d_DrawTriangleStrip(GLcontext context)
 				y1 = y(1) - y(0);
 				x2 = x(2) - x(0);
 				y2 = y(2) - y(0);
-	   
+
 				area = y2*x1 - x2*y1;
 				area *= sign;
 			}
@@ -1810,7 +1800,7 @@ void d_DrawTriangleStrip(GLcontext context)
 					first++;
 					area = 0.f;
 				}
-	
+
 				i = 1;
 
 				do
@@ -1835,7 +1825,7 @@ void d_DrawTriangleStrip(GLcontext context)
 						if(first == i)
 							first++;
 
-						else		
+						else
 							backface++;
 					}
 
@@ -1895,18 +1885,13 @@ void d_DrawTriangleStrip(GLcontext context)
 	{
 		for (triangle=0; triangle<context->VertexBufferPointer - 2; triangle++)
 		{
-			local_or = context->VertexBuffer[triangle+0].outcode
-				| context->VertexBuffer[triangle+1].outcode
-				| context->VertexBuffer[triangle+2].outcode;
-
-			local_and = context->VertexBuffer[triangle+0].outcode
-				& context->VertexBuffer[triangle+1].outcode
-				& context->VertexBuffer[triangle+2].outcode;
+			local_or = context->VertexBuffer[triangle+0].outcode | context->VertexBuffer[triangle+1].outcode | context->VertexBuffer[triangle+2].outcode;
+			local_and = context->VertexBuffer[triangle+0].outcode & context->VertexBuffer[triangle+1].outcode & context->VertexBuffer[triangle+2].outcode;
 
 			// if the local and code is zero, we're not completely off screen.
 			if (local_and == 0)
 			{
-				complete[triangle] = local_or; 
+				complete[triangle] = local_or;
 				visible[triangle] = GL_TRUE;
 				backface = 0;
 			}
@@ -1923,13 +1908,8 @@ void d_DrawTriangleStrip(GLcontext context)
 	{
 		for (triangle=0; triangle<context->VertexBufferPointer - 2; triangle++)
 		{
-			local_or = context->VertexBuffer[triangle].outcode
-				| context->VertexBuffer[triangle+1].outcode
-				| context->VertexBuffer[triangle+2].outcode;
-
-			local_and = context->VertexBuffer[triangle].outcode
-				& context->VertexBuffer[triangle+1].outcode
-				& context->VertexBuffer[triangle+2].outcode;
+			local_or = context->VertexBuffer[triangle].outcode | context->VertexBuffer[triangle+1].outcode | context->VertexBuffer[triangle+2].outcode;
+			local_and = context->VertexBuffer[triangle].outcode & context->VertexBuffer[triangle+1].outcode & context->VertexBuffer[triangle+2].outcode;
 
 			// if the local and code is zero, we're not completely off screen.
 			if (local_and == 0)
@@ -1937,7 +1917,7 @@ void d_DrawTriangleStrip(GLcontext context)
 				complete[triangle] = local_or;
 
 				if(local_or & MGL_CLIP_NEGW)
-				{ 
+				{
 					visible[triangle] = GL_TRUE;
 					backface = 0;
 				}
@@ -1966,7 +1946,7 @@ void d_DrawTriangleStrip(GLcontext context)
 	}
 
 	context->CurrentCullSign = CurrentCullSign;
-   
+
 //early out:
 
 	if(triangle == backface)
@@ -2026,7 +2006,7 @@ void d_DrawTriangleStrip(GLcontext context)
 			}
 
 			else	// case 2 (the difficult part)
-			{   
+			{
 				int k=3;
 				clip[pnum].verts[0] = triangle;
 				//clip[pnum].verts[1] = triangle+1;
@@ -2075,7 +2055,7 @@ void d_DrawTriangleStrip(GLcontext context)
 		tris.v = &verts[first];
 
 		if(p->type == W3D_PRIMITIVE_TRIFAN)
-		{ 
+		{
 			for (i=0; i<p->numverts; i++)
 			{
 				int vert = p->verts[i];
@@ -2200,7 +2180,7 @@ void d_DrawQuadStrip(GLcontext context)
 		{
 			outcode |= MGL_CLIP_TOP;
 		}
-	
+
 		if (-w > v->bz)
 		{
 			outcode |= MGL_CLIP_BACK;
@@ -2217,15 +2197,8 @@ void d_DrawQuadStrip(GLcontext context)
 
 	for (i=0; i<context->VertexBufferPointer-2; i+=2)
 	{
-		or_code = context->VertexBuffer[i+0].outcode
-				| context->VertexBuffer[i+1].outcode
-				| context->VertexBuffer[i+2].outcode
-				| context->VertexBuffer[i+3].outcode;
-
-		and_code = context->VertexBuffer[i+0].outcode
-				& context->VertexBuffer[i+1].outcode
-				& context->VertexBuffer[i+2].outcode
-				& context->VertexBuffer[i+3].outcode;
+		or_code = context->VertexBuffer[i+0].outcode | context->VertexBuffer[i+1].outcode | context->VertexBuffer[i+2].outcode | context->VertexBuffer[i+3].outcode;
+		and_code = context->VertexBuffer[i+0].outcode & context->VertexBuffer[i+1].outcode & context->VertexBuffer[i+2].outcode & context->VertexBuffer[i+3].outcode;
 
 		if (and_code)
 			continue;
@@ -2354,7 +2327,7 @@ void d_DrawQuads(GLcontext context)
 			{
 				outcode |= MGL_CLIP_TOP;
 			}
-	
+
 			if (-w > v->bz)
 			{
 				outcode |= MGL_CLIP_BACK;
@@ -2368,15 +2341,8 @@ void d_DrawQuads(GLcontext context)
 			v->outcode = outcode;
 		}
 
-		or_code = context->VertexBuffer[i+0].outcode
-				| context->VertexBuffer[i+1].outcode
-				| context->VertexBuffer[i+2].outcode
-				| context->VertexBuffer[i+3].outcode;
-
-		and_code = context->VertexBuffer[i+0].outcode
-				& context->VertexBuffer[i+1].outcode
-				& context->VertexBuffer[i+2].outcode
-				& context->VertexBuffer[i+3].outcode;
+		or_code = context->VertexBuffer[i+0].outcode | context->VertexBuffer[i+1].outcode | context->VertexBuffer[i+2].outcode | context->VertexBuffer[i+3].outcode;
+		and_code = context->VertexBuffer[i+0].outcode & context->VertexBuffer[i+1].outcode & context->VertexBuffer[i+2].outcode & context->VertexBuffer[i+3].outcode;
 
 		if (and_code)
 			continue;
@@ -2488,7 +2454,7 @@ typedef struct W3D_VAVertex_s
 	float	s1, t1, s2, t2;
 	ULONG	color;
 	ULONG	_pad_[3]; //16 byte align
-	
+
 } W3D_VAVertex;
 
 
@@ -2737,7 +2703,7 @@ void d_DrawSmoothPoly(GLcontext context)
 		{
 			outcode |= MGL_CLIP_TOP;
 		}
-	
+
 		if (-w > v->bz)
 		{
 			outcode |= MGL_CLIP_BACK;
@@ -2827,7 +2793,7 @@ void d_DrawSmoothPoly(GLcontext context)
 			poly.numverts = size - first;
 
 			or_code = context->VertexBuffer[0].outcode;
-	
+
 			i = 1;
 
 			do
@@ -2961,7 +2927,7 @@ void d_DrawSmoothPoly(GLcontext context)
 			i++; triangle++;
 
 		} while (i < context->VertexBufferPointer - 1);
-	
+
 //early out:
 		if(nocull == 0)
 			return;
@@ -3118,7 +3084,7 @@ void d_DrawMtexPoly(GLcontext context)
 		{
 			outcode |= MGL_CLIP_TOP;
 		}
-	
+
 		if (-w > v->bz)
 		{
 			outcode |= MGL_CLIP_BACK;
@@ -3200,7 +3166,7 @@ void d_DrawMtexPoly(GLcontext context)
 			poly.numverts = size - first;
 
 			or_code = context->VertexBuffer[0].outcode;
-	
+
 			i = 1;
 
 			do
@@ -3366,7 +3332,7 @@ void d_DrawNormalPoly(GLcontext context)
 		{
 			outcode |= MGL_CLIP_TOP;
 		}
-	
+
 		if (-w > v->bz)
 		{
 			outcode |= MGL_CLIP_BACK;
@@ -3456,7 +3422,7 @@ void d_DrawNormalPoly(GLcontext context)
 			poly.numverts = size - first;
 
 			or_code = context->VertexBuffer[0].outcode;
-	
+
 			i = 1;
 
 			do
@@ -3553,7 +3519,7 @@ void d_DrawNormalPoly(GLcontext context)
 		{
 			verts[i] = &(context->VertexBuffer[poly.verts[i]].v);
 			v_ToScreen(context, poly.verts[i]);
-	
+
 			i++;
 
 		} while(i < poly.numverts);
@@ -3572,7 +3538,7 @@ void d_DrawNormalPoly(GLcontext context)
 surgeon: added fast path when primitive or_code equals 0
 surgeon: added buffering for clipping events
 
-surgeon: added a version (d_DrawTrianglesVA) that uses W3D_DrawElements/W3D_DrawArray for unclipped chains of triangles. 
+surgeon: added a version (d_DrawTrianglesVA) that uses W3D_DrawElements/W3D_DrawArray for unclipped chains of triangles.
 	(DrawFn) Pointer is set in GLEnd, based on the number of triangles in the pipeline.
 */
 
@@ -3622,7 +3588,7 @@ void d_DrawTriangles(GLcontext context)
 		{
 			outcode |= MGL_CLIP_TOP;
 		}
-	
+
 		if (-w > v->bz)
 		{
 			outcode |= MGL_CLIP_BACK;
@@ -3756,7 +3722,7 @@ void d_DrawTrianglesVA(GLcontext context)
 		{
 			outcode |= MGL_CLIP_TOP;
 		}
-	
+
 		if (-w > v->bz)
 		{
 			outcode |= MGL_CLIP_BACK;
@@ -3778,13 +3744,8 @@ void d_DrawTrianglesVA(GLcontext context)
 
 	for (i=0; i<context->VertexBufferPointer; i+=3)
 	{
-		or_code = context->VertexBuffer[i+0].outcode
-				| context->VertexBuffer[i+1].outcode
-				| context->VertexBuffer[i+2].outcode;
-
-		and_code = context->VertexBuffer[i+0].outcode
-				& context->VertexBuffer[i+1].outcode
-				& context->VertexBuffer[i+2].outcode;
+		or_code = context->VertexBuffer[i+0].outcode | context->VertexBuffer[i+1].outcode | context->VertexBuffer[i+2].outcode;
+		and_code = context->VertexBuffer[i+0].outcode & context->VertexBuffer[i+1].outcode & context->VertexBuffer[i+2].outcode;
 
 		if (and_code)
 		{
@@ -3860,7 +3821,6 @@ void d_DrawTrianglesVA(GLcontext context)
 	if(context->Texture2D_State[0] == GL_FALSE)
 	{
 		Set_W3D_Texture(context->w3dContext, 0, NULL);
-	
 	}
 
 	else
@@ -3904,7 +3864,7 @@ void d_DrawTrianglesVA(GLcontext context)
 ** that is specified in device corrdinates and is drawn
 ** regardless of current matrix or viewport
 **
-** Very useful for bypassing the transformation pipeline 
+** Very useful for bypassing the transformation pipeline
 **
 */
 
@@ -4041,7 +4001,7 @@ void MGLDrawMultitexBuffer (GLcontext context, GLenum BSrc, GLenum BDst, GLenum 
 #ifdef AUTOMATIC_LOCKING_ENABLE
 
 	if (context->LockMode != MGL_LOCK_MANUAL)
-	{ 
+	{
 		if (context->LockMode == MGL_LOCK_AUTOMATIC) // Automatic: Lock per primitive
 		{
 			if (W3D_SUCCESS == W3D_LockHardware(context->w3dContext))
@@ -4116,7 +4076,7 @@ void MGLDrawMultitexBuffer (GLcontext context, GLenum BSrc, GLenum BDst, GLenum 
 
 	//set vertexpointer to the multitexturebuffer
 
-	Set_W3D_VertexPointer(context->w3dContext, (void*)&mtex_pbuffer[0].x, sizeof(W3D_VAVertex), W3D_VERTEX_F_F_F, 0); 
+	Set_W3D_VertexPointer(context->w3dContext, (void*)&mtex_pbuffer[0].x, sizeof(W3D_VAVertex), W3D_VERTEX_F_F_F, 0);
 
 	//set the texcoordpointer to tmu0 coords:
 
@@ -4131,7 +4091,7 @@ void MGLDrawMultitexBuffer (GLcontext context, GLenum BSrc, GLenum BDst, GLenum 
 
 	else if(context->ShadeModel == GL_SMOOTH)
 	{
-		Set_W3D_ColorPointer(context->w3dContext, (void*)&mtex_pbuffer[0].color, sizeof(W3D_VAVertex), W3D_COLOR_UBYTE, W3D_CMODE_ARGB, 0); 
+		Set_W3D_ColorPointer(context->w3dContext, (void*)&mtex_pbuffer[0].color, sizeof(W3D_VAVertex), W3D_COLOR_UBYTE, W3D_CMODE_ARGB, 0);
 	}
 
 	//draw the buffered primitives for tmu[0]

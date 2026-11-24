@@ -126,7 +126,7 @@ extern int AE_ClipTriangle(GLcontext context, PolyBuffer *in, PolyBuffer *out, i
 
 
 #define MAX_ELEMENTS 16384 //should be enough
-static UWORD e_wrap[MAX_ELEMENTS]; //should be enough 
+static UWORD e_wrap[MAX_ELEMENTS]; //should be enough
 
 //called from MGLInit:
 
@@ -278,7 +278,7 @@ static ULONG A_TransformArray (GLcontext context, const int first, const int siz
 			{
 				local_outcode |= MGL_CLIP_TOP;
 			}
-	
+
 			if (-tw > tz)
 			{
 				local_outcode |= MGL_CLIP_BACK;
@@ -289,10 +289,10 @@ static ULONG A_TransformArray (GLcontext context, const int first, const int siz
 				local_outcode |= MGL_CLIP_FRONT;
 			}
 
-			v->bx = (float)tx;	
+			v->bx = (float)tx;
 			v->by = (float)ty;
-			v->bz = (float)tz;	
-			v->bw = (float)tw;	
+			v->bz = (float)tz;
+			v->bw = (float)tw;
 
 			v->outcode = local_outcode;
 			and_code &= local_outcode;
@@ -381,7 +381,7 @@ static ULONG A_TransformArray (GLcontext context, const int first, const int siz
 			{
 				local_outcode |= MGL_CLIP_TOP;
 			}
-	
+
 			if (-cw > v->bz)
 			{
 				local_outcode |= MGL_CLIP_BACK;
@@ -400,7 +400,7 @@ static ULONG A_TransformArray (GLcontext context, const int first, const int siz
 
 		} while (--i);
 
-		#undef CLIP_EPS 
+		#undef CLIP_EPS
 		#undef a
 	}
 
@@ -420,7 +420,7 @@ static
 void A_ToScreenArray(GLcontext context, MGLVertex *v, const int first, const int size)
 {
 	int	i, stride;
-	UBYTE	*pointer;   
+	UBYTE	*pointer;
 
 	#if defined(FIXPOINT)
 
@@ -437,7 +437,7 @@ void A_ToScreenArray(GLcontext context, MGLVertex *v, const int first, const int
 			float y = v->by;
 			float z = v->bz;
 			float w = 1.0 / v->bw;
-	
+
 			v->bx = context->ax + x * w * context->sx;
 			v->by = context->ay - y * w * context->sy;
 			v->bz = context->az + z * w * context->sz;
@@ -449,7 +449,7 @@ void A_ToScreenArray(GLcontext context, MGLVertex *v, const int first, const int
 			v++;
 			pointer += stride;
 
-		} while (--i);	  
+		} while (--i);
 	}
 
 	else
@@ -468,7 +468,7 @@ void A_ToScreenArray(GLcontext context, MGLVertex *v, const int first, const int
 			float y = v->by;
 			float z = v->bz;
 			float w = 1.0 / v->bw;
-	
+
 			v->bx = context->ax + x * w * context->sx;
 			v->by = context->ay - y * w * context->sy;
 			v->bz = context->az + z * w * context->sz;
@@ -892,7 +892,7 @@ static void A_DrawTriFan(GLcontext context, int first, int count)
 					newfirst++;
 					area = 0.f;
 				}
-	
+
 				i = 1;
 
 				do
@@ -904,7 +904,7 @@ static void A_DrawTriFan(GLcontext context, int first, int count)
 
 					area2 = y2*x1 - x2*y1;
 					area2 *= fsign;
-	
+
 					if(area2 < 0.f)
 					{
 						if(newfirst == i)
@@ -959,15 +959,8 @@ static void A_DrawTriFan(GLcontext context, int first, int count)
 	{
 		for(i=1, triangle=0; i<context->VertexBufferPointer-1; i++, triangle++)
 		{
-			local_and =
-				context->VertexBuffer[0].outcode
-				& context->VertexBuffer[i].outcode
-				& context->VertexBuffer[i+1].outcode;
-
-			local_or =
-				context->VertexBuffer[0].outcode
-				| context->VertexBuffer[i].outcode
-				| context->VertexBuffer[i+1].outcode;
+			local_and = context->VertexBuffer[0].outcode & context->VertexBuffer[i].outcode & context->VertexBuffer[i+1].outcode;
+			local_or = context->VertexBuffer[0].outcode | context->VertexBuffer[i].outcode | context->VertexBuffer[i+1].outcode;
 
 			if (local_and == 0) // if the local and code is zero, we're not
 			{
@@ -978,7 +971,7 @@ static void A_DrawTriFan(GLcontext context, int first, int count)
 
 			else
 			{
-				visible[triangle] = GL_FALSE;	 
+				visible[triangle] = GL_FALSE;
 				backface++;
 			}
 		}
@@ -988,15 +981,8 @@ static void A_DrawTriFan(GLcontext context, int first, int count)
 	{
 		for(i=1, triangle=0; i<context->VertexBufferPointer-1; i++, triangle++)
 		{
-			local_and =
-				context->VertexBuffer[0].outcode
-				& context->VertexBuffer[i].outcode
-				& context->VertexBuffer[i+1].outcode;
-
-			local_or =
-				context->VertexBuffer[0].outcode
-				| context->VertexBuffer[i].outcode
-				| context->VertexBuffer[i+1].outcode;
+			local_and = context->VertexBuffer[0].outcode & context->VertexBuffer[i].outcode & context->VertexBuffer[i+1].outcode;
+			local_or = context->VertexBuffer[0].outcode | context->VertexBuffer[i].outcode | context->VertexBuffer[i+1].outcode;
 
 			if (local_and == 0)
 			{
@@ -1022,7 +1008,7 @@ static void A_DrawTriFan(GLcontext context, int first, int count)
 
 			else
 			{
-				visible[triangle] = GL_FALSE;	 
+				visible[triangle] = GL_FALSE;
 				backface++;
 			}
 		}
@@ -1248,7 +1234,7 @@ static void A_DrawTriStrip(GLcontext context, int first, int count)
 				gw = v->bw * 2.0;
 
 				if (-gw > v->bx || v->bx > gw || -gw > v->by || v->by > gw)
-				{	
+				{
 					outcode = original_outcode;
 					break;
 				}
@@ -1319,7 +1305,7 @@ static void A_DrawTriStrip(GLcontext context, int first, int count)
 					newfirst++;
 					area = 0.f;
 				}
-	
+
 				i = 1;
 
 				do
@@ -1337,7 +1323,7 @@ static void A_DrawTriStrip(GLcontext context, int first, int count)
 
 					area2 = y2*x1 - x2*y1;
 					area2 *= fsign;
-	
+
 					if(area2 < 0.f)
 					{
 						if(newfirst == i)
@@ -1379,15 +1365,8 @@ static void A_DrawTriStrip(GLcontext context, int first, int count)
 	{
 		for(i=0; i<context->VertexBufferPointer-2; i++)
 		{
-			local_or =
-				context->VertexBuffer[i].outcode |
-				context->VertexBuffer[i+1].outcode |
-				context->VertexBuffer[i+2].outcode;
-
-			local_and =
-				context->VertexBuffer[i].outcode &
-				context->VertexBuffer[i+1].outcode &
-				context->VertexBuffer[i+2].outcode;
+			local_or = context->VertexBuffer[i].outcode | context->VertexBuffer[i+1].outcode | context->VertexBuffer[i+2].outcode;
+			local_and = context->VertexBuffer[i].outcode & context->VertexBuffer[i+1].outcode & context->VertexBuffer[i+2].outcode;
 
 			if (local_and == 0)
 			{
@@ -1410,15 +1389,8 @@ static void A_DrawTriStrip(GLcontext context, int first, int count)
 
 		for(i=0; i<context->VertexBufferPointer-2; i++)
 		{
-			local_or =
-				context->VertexBuffer[i].outcode |
-				context->VertexBuffer[i+1].outcode |
-				context->VertexBuffer[i+2].outcode;
-
-			local_and =
-				context->VertexBuffer[i].outcode &
-				context->VertexBuffer[i+1].outcode &
-				context->VertexBuffer[i+2].outcode;
+			local_or = context->VertexBuffer[i].outcode | context->VertexBuffer[i+1].outcode | context->VertexBuffer[i+2].outcode;
+			local_and = context->VertexBuffer[i].outcode & context->VertexBuffer[i+1].outcode & context->VertexBuffer[i+2].outcode;
 
 			if (local_and == 0)
 			{
@@ -1470,7 +1442,7 @@ static void A_DrawTriStrip(GLcontext context, int first, int count)
 		i++;
 
 	newfirst = i;
-	
+
 	#if defined(FIXPOINT)
 
 	if(context->ArrayPointer.state & AP_FIXPOINT)
@@ -1633,7 +1605,7 @@ static void A_DrawTriangles(GLcontext context, int first, int count)
 	error = A_TransformArray(context, first, count);
 
 	if(error == 0) //all verts on screen - simple case
-	{    
+	{
 		A_ToScreenArray(context, &context->VertexBuffer[0], first, count);
 
 		if(context->CullFace_State == GL_FALSE)
@@ -1808,7 +1780,7 @@ static void A_DrawTriangles(GLcontext context, int first, int count)
 					W3D_DrawArray(context->w3dContext, W3D_PRIMITIVE_TRIANGLES, start, chainverts);
 					chainverts = 0;
 				}
-		
+
 				#if defined(FIXPOINT)
 
 				if(context->ArrayPointer.state & AP_FIXPOINT)
@@ -1989,7 +1961,7 @@ void GLEnableClientState(GLcontext context, GLenum state)
 	{
 		case GL_TEXTURE_COORD_ARRAY:
 			context->ClientState |= GLCS_TEXTURE;
-			Swap_TextureCoordPointers(context, GL_TRUE); 
+			Swap_TextureCoordPointers(context, GL_TRUE);
 			break;
 
 		case GL_COLOR_ARRAY:
@@ -2227,7 +2199,7 @@ void GLTexCoordPointer(GLcontext context, GLint size, GLenum type, GLsizei strid
 		context->ArrayPointer.texcoordstride = sizeof(MGLVertex);
 		context->ArrayPointer.w_off = -4;
 		context->ArrayPointer.w_buffer = (UBYTE*)&context->VertexBuffer[0].v.w;
-	
+
 		Set_W3D_TexCoordPointer(context->w3dContext, (void*)&context->VertexBuffer[0].v.u, sizeof(MGLVertex),
 			0, 4, -4, W3D_TEXCOORD_NORMALIZED);
 
@@ -2319,7 +2291,7 @@ void GLColorPointer(GLcontext context, GLint size, GLenum type, GLsizei stride, 
 
 		Set_W3D_ColorPointer(context->w3dContext, (void *)&context->VertexBuffer[0].v.color, sizeof(MGLVertex),
 			W3D_COLOR_FLOAT, W3D_CMODE_RGBA, 0);
- 
+
 		return;
 	}
 
@@ -2514,14 +2486,14 @@ static INLINE void PreDraw(GLcontext context)
 	{
 		context->ArrayPointer.w_buffer = (GLubyte *)context->WBuffer;
 	}
-  
+
 	if (context->FogDirty && context->Fog_State)
 	{
 		fog_Set(context);
 		context->FogDirty = GL_FALSE;
 	}
 
-  
+
 	if (context->ShadeModel == GL_FLAT && context->UpdateCurrentColor == GL_TRUE)
 	{
 		W3D_SetCurrentColor(context->w3dContext, &context->CurrentColor);
@@ -2616,7 +2588,7 @@ void GLDrawArrays(GLcontext context, GLenum mode, GLint first, GLsizei count)
 #ifndef GL_NOERRORCHECK
 	if(!(context->ClientState & GLCS_VERTEX))
 	{
-		GLFlagError(context, 1, GL_INVALID_OPERATION);	      
+		GLFlagError(context, 1, GL_INVALID_OPERATION);
 			return; //added 28-JUL-02
 	}
 #endif
@@ -2639,12 +2611,12 @@ void GLDrawArrays(GLcontext context, GLenum mode, GLint first, GLsizei count)
 		}
 
 		GLDrawElements(context, mode, count, GL_UNSIGNED_SHORT, (void*)&(e_wrap[first]));
-		
+
 		if( ShadeModel_bypass & 1 )
 		{
 			glShadeModel(GL_SMOOTH);
 		}
-		
+
 		return;
 	}
 
@@ -2792,7 +2764,7 @@ void GLDrawArrays(GLcontext context, GLenum mode, GLint first, GLsizei count)
 	}
 
 	if(TexCoord_bypass)
-	{	
+	{
 		if(TexCoord_bypass & 1)
 		{
 			glEnable(GL_TEXTURE_2D);

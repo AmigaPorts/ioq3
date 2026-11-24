@@ -12,7 +12,7 @@ typedef void (*EDrawfn)(struct GLcontext_t *, const int, const UWORD *);
 /*
 ** Note that the following defines are poking directly into
 ** the W3D_Context, updating only the necessary fields.
-** This is ofcourse not future-proof, but it avoids a 
+** This is ofcourse not future-proof, but it avoids a
 ** significant overhead.
 ** The pipepine itself also relies on fast pointer-switch
 */

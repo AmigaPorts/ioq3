@@ -138,7 +138,7 @@ static void hc_ClipLeft(MGLVertex *a, MGLVertex *b, MGLVertex *r, GLenum shading
 {
 	float w;
 	ULONG outcode;
-	
+
 	float t = (w1+x1)/((w1+x1)-(w2+x2));
 
 	r->by = LERP(t, a->by, b->by);
@@ -205,7 +205,7 @@ static void hc_ClipRight(MGLVertex *a, MGLVertex *b, MGLVertex *r, GLenum shadin
 {
 	float w;
 	ULONG outcode;
-	
+
 	float t = (w1-x1)/((w1-x1)-(w2-x2));
 	r->by = LERP(t, a->by, b->by);
 	r->bz = LERP(t, a->bz, b->bz);
@@ -641,7 +641,7 @@ void GLFrontFace(GLcontext context, GLenum mode)
 				sign = 0;
 				break;
 	   	}
-	
+
 	   	if(mode == GL_CW)
 	   	{
 			sign = -sign;
@@ -737,7 +737,7 @@ void GLCullFace(GLcontext context, GLenum mode)
 			prev = i;                                                                       \
 		} while (++i < a->numverts); \
 		OLD_POLYSWAP                 \
-	}                                                      
+	}
 
 #define DOCLIP(edge, routine)                                           \
 	if (or_codes & edge)                                                 \
@@ -761,7 +761,7 @@ void GLCullFace(GLcontext context, GLenum mode)
 			prev = i;             \
 		}  while (++i < a->numverts); \
 		POLYSWAP                      \
-	}                                                      
+	}
 
 #ifndef GLNDEBUG
 void hc_DumpPolygon(GLcontext context, MGLPolygon *poly, char *string, int clipcode)
@@ -881,17 +881,17 @@ void hc_ClipAndDrawPoly(GLcontext context, MGLPolygon *poly, ULONG or_codes)
 
 void hc_ClipAndDrawLine(GLcontext context, MGLPolygon *poly, ULONG or_codes)
 {
-    	MGLPolygon	output;
-    	MGLPolygon	*a, *b, *temp;
-    	int 		i, j;
-    	int 		prev;
-    	int 		free = context->VertexBufferPointer;
-    	//GLboolean	flag;
-    	//ULONG		original_or_codes = or_codes;
+	MGLPolygon	output;
+	MGLPolygon	*a, *b, *temp;
+	int 		i, j;
+	int 		prev;
+	int 		free = context->VertexBufferPointer;
+	//GLboolean	flag;
+	//ULONG		original_or_codes = or_codes;
 
-    	a = poly; b=&output;
+	a = poly; b=&output;
 
-    	OLD_DOCLIP(MGL_CLIP_NEGW, ClipWZero);
+	OLD_DOCLIP(MGL_CLIP_NEGW, ClipWZero);
 
 	// Surgeon: conditioned by macro execution
 
@@ -908,18 +908,18 @@ void hc_ClipAndDrawLine(GLcontext context, MGLPolygon *poly, ULONG or_codes)
 		} while (j < a->numverts);
 	}
 
-    	OLD_DOCLIP(MGL_CLIP_LEFT, ClipLeft)
-    	OLD_DOCLIP(MGL_CLIP_RIGHT, ClipRight)
-    	OLD_DOCLIP(MGL_CLIP_FRONT, ClipFront)
-    	OLD_DOCLIP(MGL_CLIP_BACK, ClipBack)
-    	OLD_DOCLIP(MGL_CLIP_TOP, ClipTop)
-    	OLD_DOCLIP(MGL_CLIP_BOTTOM, ClipBottom)
+	OLD_DOCLIP(MGL_CLIP_LEFT, ClipLeft)
+	OLD_DOCLIP(MGL_CLIP_RIGHT, ClipRight)
+	OLD_DOCLIP(MGL_CLIP_FRONT, ClipFront)
+	OLD_DOCLIP(MGL_CLIP_BACK, ClipBack)
+	OLD_DOCLIP(MGL_CLIP_TOP, ClipTop)
+	OLD_DOCLIP(MGL_CLIP_BOTTOM, ClipBottom)
 
-    	dh_DrawLine(context,a);
+	dh_DrawLine(context,a);
 }
 
-//buffering: 
- 
+//buffering:
+
 void hc_ClipPoly(GLcontext context, MGLPolygon *poly, PolyBuffer *out, int clipstart, ULONG or_codes)
 {
 	MGLPolygon	output;

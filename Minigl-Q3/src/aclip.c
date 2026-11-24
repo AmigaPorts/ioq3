@@ -72,7 +72,7 @@ TCLerpfn TCLerp = (TCLerpfn)LerpFlat;
 static void A_ClipWZero(MGLVertex *a, MGLVertex *b, MGLVertex *r)
 {
 	ULONG outcode;
-	
+
 	float t = (CLIP_EPS-w1)/(w2-w1);
 
 	r->v.color.r = LERP(t, a->v.color.r, b->v.color.r);
@@ -87,7 +87,7 @@ static void A_ClipWZero(MGLVertex *a, MGLVertex *b, MGLVertex *r)
 	r->by = LERP(t, a->by, b->by);
 	r->bz = LERP(t, a->bz, b->bz);
 	r->bw = CLIP_EPS;
-	
+
 	outcode = 0;
 
 	if (-CLIP_EPS > r->bx)
@@ -342,7 +342,7 @@ static void A_ClipBack(MGLVertex *a, MGLVertex *b, MGLVertex *r)
 static void AF_ClipWZero(MGLVertex *a, MGLVertex *b, MGLVertex *r)
 {
 	ULONG outcode;
-	
+
 	float t = (CLIP_EPS-w1)/(w2-w1);
 
 	r->v.u = LERP(t, a->v.u, b->v.u);
@@ -614,7 +614,7 @@ static void AF_ClipBack(MGLVertex *a, MGLVertex *b, MGLVertex *r)
 		}  while (++i < a->numverts); \
 		b->numverts = b_numverts;	\
 		POLYSWAP                      \
-	}                          
+	}
 
 
 #define DOCLIP_F(edge, routine)                                           \
@@ -642,7 +642,7 @@ static void AF_ClipBack(MGLVertex *a, MGLVertex *b, MGLVertex *r)
 		}  while (++i < a->numverts); \
 		b->numverts = b_numverts;	\
 		POLYSWAP                      \
-	}                          
+	}
 
 
 

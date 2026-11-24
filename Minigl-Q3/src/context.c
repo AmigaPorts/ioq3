@@ -431,13 +431,13 @@ static GLboolean vid_ReopenDisplay(GLcontext context, int w, int h)
 	W3D_SetDrawRegion(context->w3dContext, context->Buffers[1]->sb_BitMap, 0, &(context->scissor));
 
 	//surgeon:
-	W3D_SetScissor(context->w3dContext, &(context->scissor));	
+	W3D_SetScissor(context->w3dContext, &(context->scissor));
 
 	W3D_FreeZBuffer(context->w3dContext);
 	W3D_AllocZBuffer(context->w3dContext);
 
 	vid_Pointer(context->w3dWindow);
-					 
+
 	return GL_TRUE;
 
 Duh:
@@ -698,7 +698,7 @@ static GLboolean vid_OpenDisplay(GLcontext context, int pw, int ph, ULONG id)
 	//surgeon: added
 	W3D_SetDrawRegion(context->w3dContext, context->Buffers[1]->sb_BitMap, 0, &(context->scissor));
 
-	W3D_SetScissor(context->w3dContext, &(context->scissor));	
+	W3D_SetScissor(context->w3dContext, &(context->scissor));
 
 	context->w3dLocked = GL_FALSE;
 
@@ -712,7 +712,7 @@ static GLboolean vid_OpenDisplay(GLcontext context, int pw, int ph, ULONG id)
 	context->w3dBytesPerTexel = 2;
 
 	vid_Pointer(context->w3dWindow);
-					 
+
 	return GL_TRUE;
 
 Duh:
@@ -772,15 +772,15 @@ static void vid_CloseWindow(GLcontext context)
 	//vid_DeletePointer(context->w3dWindow); // maybe - Cowcat
 
 	if (context->w3dWindow)
-	{ 
+	{
 		CloseWindow(context->w3dWindow);
-		context->w3dWindow = NULL;				     
+		context->w3dWindow = NULL;
 	}
 
 	// Lock Pub Screen Fix - Cowcat
 	if (context->w3dScreen)
-	{ 
-		UnlockPubScreen(NULL, context->w3dScreen);				
+	{
+		UnlockPubScreen(NULL, context->w3dScreen);
 		CloseScreen(context->w3dScreen);
 		context->w3dScreen = NULL;
 	}
@@ -854,7 +854,7 @@ static GLboolean vid_OpenWindow(GLcontext context, int w, int h)
 		goto Duh;
 
 	context->w3dRastPort = malloc(sizeof(struct RastPort));
-       
+
 	if (!context->w3dRastPort)
 	{
 		printf("Error: unable to allocate rastport memory\n");
@@ -961,7 +961,7 @@ static GLboolean vid_OpenWindow(GLcontext context, int w, int h)
 	context->w3dAlphaFormat = W3D_A4R4G4B4;
 	context->w3dBytesPerTexel = 2;
 
-	//vid_Pointer(context->w3dWindow); // maybe - Cowcat 
+	//vid_Pointer(context->w3dWindow); // maybe - Cowcat
 
 	return GL_TRUE;
 
@@ -1074,9 +1074,9 @@ void GLClearColor(GLcontext context, GLclampf red, GLclampf green, GLclampf blue
 	alpha *= 255.0;
 
 	context->ClearColor = ((GLubyte)(alpha)<<24)
-						+ ((GLubyte)(red)<<16)
-						+ ((GLubyte)(green)<<8)
-						+ ((GLubyte)(blue));
+				+ ((GLubyte)(red)<<16)
+				+ ((GLubyte)(green)<<8)
+				+ ((GLubyte)(blue));
 }
 
 void GLDepthMask(GLcontext context, GLboolean flag)
@@ -1153,7 +1153,7 @@ void MGLLockMode(GLcontext context, GLenum lockMode)
 GLboolean MGLLockBack(GLcontext context, MGLLockInfo *info)
 {
 	ULONG error;
-	
+
 	if (context->w3dLocked == GL_TRUE)
 	{
 		error = W3D_SUCCESS;
@@ -1296,7 +1296,7 @@ void MGLSwitchDisplay(GLcontext context)
 	int nowbuf = context->BufNr;
 
 	MGLUnlockDisplay(context);
-	
+
 	if (!context->w3dBitMap) // Fullscreen mode
 	{
 		context->BufNr++;
@@ -1320,7 +1320,7 @@ void MGLSwitchDisplay(GLcontext context)
 
 		// Make BufNr the new draw area
 		W3D_SetDrawRegion(context->w3dContext, context->Buffers[context->BufNr]->sb_BitMap, 0, &(context->scissor));
-	
+
 		if (context->DoSync)
 		{
 			struct ViewPort *vp = &(context->w3dScreen->ViewPort);
@@ -1352,10 +1352,10 @@ GLboolean MGLInitContext(GLcontext context)
 	context->CurrentError	    = GL_NO_ERROR;
 
 	/*
-	allocate w array that is large enough to cope with almost any texcoordstride - 
+	allocate w array that is large enough to cope with almost any texcoordstride -
 	this array is used for all textured, unclipped primitives that go through the vertexarray pipeline
 	*/
- 
+
 	context->WBuffer	    = malloc(64*newVertexBufferSize);
 
 	if (!context->WBuffer)
@@ -1394,7 +1394,7 @@ GLboolean MGLInitContext(GLcontext context)
 	context->TexBufferSize	    = newTextureBufferSize;
 	context->w3dTexBuffer	    = malloc(sizeof(W3D_Texture *) * newTextureBufferSize);
 	context->GeneratedTextures  = malloc(sizeof(GLubyte) * newTextureBufferSize);
-	
+
 	if (!context->w3dTexBuffer || !context->GeneratedTextures)
 		return GL_FALSE;
 
@@ -1560,7 +1560,7 @@ GLboolean MGLInitContext(GLcontext context)
 
 	context->LineWidth = 1.0f; // Cowcat
 
-//End surgeon	  
+//End surgeon
 
 #if 0
 	context->DrawElementsHook   = 0;
@@ -1661,16 +1661,16 @@ void MGLDeleteContext(GLcontext context)
 
 	FreeMtex();
 
-	if (context->NormalBuffer) 
+	if (context->NormalBuffer)
 		free(context->NormalBuffer);
-		
-	if (context->WBuffer) 
+
+	if (context->WBuffer)
 		free(context->WBuffer);
 
-	if (context->ElementIndex) 
+	if (context->ElementIndex)
 		free(context->ElementIndex);
-		
-	if (context->VertexBuffer) 
+
+	if (context->VertexBuffer)
 		free(context->VertexBuffer);
 
 	if (context->w3dTexBuffer) 
@@ -1740,7 +1740,7 @@ void MGLSetState(GLcontext context, const GLenum cap, const GLboolean flag) //su
 
 			context->Texture2D_State[active] = flag;
 			break;
-			
+
 		case GL_SCISSOR_TEST:
 			context->Scissor_State = flag;
 
@@ -1922,3 +1922,4 @@ void MGLMinTriArea(GLcontext context, GLfloat area)
 {
 	context->MinTriArea = area;
 }
+

@@ -124,7 +124,7 @@ void GLFogfv(GLcontext context, GLenum pname, GLfloat *param)
 }
 
 static float fog_Clamp(float f)
-{	
+{
 	if (f > 1.0)
 		f = 1.0;
 

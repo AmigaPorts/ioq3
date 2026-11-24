@@ -56,7 +56,7 @@ static INLINE GLuint E_CheckTri(GLcontext context, const MGLVertex *a, const MGL
 	y1 = b->v.y - a->v.y;
 	x2 = c->v.x - a->v.x;
 	y2 = c->v.y - a->v.y;
-	   
+
 	area = y2*x1 - x2*y1;
 
 	if(context->CurrentCullSign > 0)
@@ -81,7 +81,7 @@ static INLINE GLuint E_CheckTriLocked(GLcontext context, const MGLVertex *a, con
 	y1 = b->by - a->by;
 	x2 = c->bx - a->bx;
 	y2 = c->by - a->by;
-	   
+
 	area = y2*x1 - x2*y1;
 
 	if(context->CurrentCullSign > 0)
@@ -203,7 +203,7 @@ static INLINE void TransformIndex(GLcontext context, const int size, const UWORD
 			{
 				local_outcode |= MGL_CLIP_NEGW;
 			}
-      
+
 			if (-tw > tx)
 			{
 				local_outcode |= MGL_CLIP_LEFT;
@@ -223,7 +223,7 @@ static INLINE void TransformIndex(GLcontext context, const int size, const UWORD
 			{
 				local_outcode |= MGL_CLIP_TOP;
 			}
-	
+
 			if (-tw > tz)
 			{
 				local_outcode |= MGL_CLIP_BACK;
@@ -234,10 +234,10 @@ static INLINE void TransformIndex(GLcontext context, const int size, const UWORD
 				local_outcode |= MGL_CLIP_FRONT;
 			}
 
-			v->bx = (float)tx*fix2float;	
+			v->bx = (float)tx*fix2float;
 			v->by = (float)ty*fix2float;
-			v->bz = (float)tz*fix2float;	
-			v->bw = (float)tw*fix2float;	
+			v->bz = (float)tz*fix2float;
+			v->bw = (float)tw*fix2float;
 
 			v->outcode = local_outcode;
 
@@ -298,7 +298,7 @@ static INLINE void TransformIndex(GLcontext context, const int size, const UWORD
 			if (cw < CLIP_EPS )
 				local_outcode |= MGL_CLIP_NEGW;
 
-	
+
 			if (-cw > v->bx)
 			{
 				local_outcode |= MGL_CLIP_LEFT;
@@ -318,7 +318,7 @@ static INLINE void TransformIndex(GLcontext context, const int size, const UWORD
 			{
 				local_outcode |= MGL_CLIP_TOP;
 			}
-	
+
 			if (-cw > v->bz)
 			{
 				local_outcode |= MGL_CLIP_BACK;
@@ -400,7 +400,7 @@ static INLINE ULONG TransformRange(GLcontext context, const int first, const int
 		{
 			ULONG local_outcode;
 			int tx,ty,tz,tw;
-   
+
 			int *vp = (int *)vpointer;
 			int x = vp[0];
 			int y = vp[1];
@@ -454,7 +454,7 @@ static INLINE ULONG TransformRange(GLcontext context, const int first, const int
 			{
 				local_outcode |= MGL_CLIP_TOP;
 			}
-	
+
 			if (-tw > tz)
 			{
 				local_outcode |= MGL_CLIP_BACK;
@@ -469,10 +469,10 @@ static INLINE ULONG TransformRange(GLcontext context, const int first, const int
 
 			v->outcode = local_outcode;
 
-			v->bx = (float)tx;	
+			v->bx = (float)tx;
 			v->by = (float)ty;
-			v->bz = (float)tz;	
-			v->bw = (float)tw;	
+			v->bz = (float)tz;
+			v->bw = (float)tw;
 
 			v++; vpointer += stride;
 
@@ -562,7 +562,7 @@ static INLINE ULONG TransformRange(GLcontext context, const int first, const int
 			{
 				local_outcode |= MGL_CLIP_TOP;
 			}
-			
+
 			if (-cw > v->bz)
 			{
 				local_outcode |= MGL_CLIP_BACK;
@@ -580,7 +580,7 @@ static INLINE ULONG TransformRange(GLcontext context, const int first, const int
 			v++;
 
 		} while (--i);
-	
+
 		#undef CLIP_EPS
 	}
 
@@ -613,7 +613,7 @@ static INLINE void ProjectRange(GLcontext context, const int first, const int si
 	#if defined(FIXPOINT) // Cowcat
 
 	if (context->ArrayPointer.state & AP_FIXPOINT)
-	{	
+	{
 		i = size;
 
 		do
@@ -622,14 +622,14 @@ static INLINE void ProjectRange(GLcontext context, const int first, const int si
 			float y = v->by;
 			float z = v->bz;
 			float w = 1.0 / v->bw;
-	
+
 			v->bx = context->ax + x * w * context->sx;
 			v->by = context->ay - y * w * context->sy;
 			v->bz = az + z * w * context->sz;
 
 			w *= 32768.f;
 
-			((float*)pointer)[0] = w;	    
+			((float*)pointer)[0] = w;
 
 			v++;
 			pointer += stride;
@@ -654,7 +654,7 @@ static INLINE void ProjectRange(GLcontext context, const int first, const int si
 			v->by = context->ay - y * w * context->sy;
 			v->bz = az + z * w * context->sz;
 
-			((float*)pointer)[0] = w;	    
+			((float*)pointer)[0] = w;
 
 			v++;
 			pointer += stride;
@@ -708,13 +708,13 @@ static INLINE void ProjectRangeByOutcode(GLcontext context, const int first, con
 					continue;
 
 				w = 1.0 / w;
-	
+
 				v->v.x = context->ax + x * w * context->sx;
 				v->v.y = context->ay - y * w * context->sy;
 				v->v.z = az + z * w * context->sz;
 
 				w *= 32768.f;
-				((float*)pointer)[0] = w;	    
+				((float*)pointer)[0] = w;
 				v->v.w = w;
 			}
 		}
@@ -722,7 +722,7 @@ static INLINE void ProjectRangeByOutcode(GLcontext context, const int first, con
 		else
 		#endif // Cowcat
 
-		{	
+		{
 			for (i=0; i<size; i++, v++, pointer += stride)
 			{
 				float x,y,z,w;
@@ -734,12 +734,12 @@ static INLINE void ProjectRangeByOutcode(GLcontext context, const int first, con
 				y = v->by;
 				z = v->bz;
 				w = 1.0 / v->bw;
-	
+
 				v->v.x = context->ax + x * w * context->sx;
 				v->v.y = context->ay - y * w * context->sy;
 				v->v.z = az + z * w * context->sz;
 
-				((float*)pointer)[0] = w;	    
+				((float*)pointer)[0] = w;
 				v->v.w = w;
 			}
 		}
@@ -769,13 +769,13 @@ static INLINE void ProjectRangeByOutcode(GLcontext context, const int first, con
 					continue;
 
 				w = 1.0 / w;
-	
+
 				v->v.x = context->ax + x * w * context->sx;
 				v->v.y = context->ay - y * w * context->sy;
 				v->v.z = az + z * w * context->sz;
 
 				w *= 32768.f;
-				((float*)pointer)[0] = w;	    
+				((float*)pointer)[0] = w;
 				v->v.w = w;
 			}
 		}
@@ -800,7 +800,7 @@ static INLINE void ProjectRangeByOutcode(GLcontext context, const int first, con
 				v->v.y = context->ay - y * w * context->sy;
 				v->v.z = az + z * w * context->sz;
 
-				((float*)pointer)[0] = w;	    
+				((float*)pointer)[0] = w;
 				v->v.w = w;
 			}
 		}
@@ -838,7 +838,7 @@ void E_ToScreenArray(GLcontext context, const int count, const UWORD *idx)
 		float y = v->by;
 		float z = v->bz;
 		float w = 1.0 / v->bw;
-	
+
 		v->v.x = context->ax + x * w * context->sx;
 		v->v.y = context->ay - y * w * context->sy;
 		v->v.z = az + z * w * context->sz;
@@ -848,7 +848,7 @@ void E_ToScreenArray(GLcontext context, const int count, const UWORD *idx)
 
 		i++;
 
-	} while (i < count);	  
+	} while (i < count);
 }
 
 
@@ -870,7 +870,7 @@ ctx->VertexBuffer[vnum].v.y = ctx->ay - ctx->VertexBuffer[vnum].by * wdiv * ctx-
 ctx->VertexBuffer[vnum].v.z = ctx->az + ctx->VertexBuffer[vnum].bz * wdiv * ctx->sz;\
 ctx->VertexBuffer[vnum].v.w = wdiv;\
 if(ctx->ZOffset_State == GL_TRUE) ctx->VertexBuffer[vnum].v.z += ctx->ZOffset;}
-	
+
 #else
 
 static INLINE void E_ToScreen(GLcontext context, const int vnum)
@@ -881,7 +881,7 @@ static INLINE void E_ToScreen(GLcontext context, const int vnum)
 	context->VertexBuffer[vnum].v.x = context->ax + context->VertexBuffer[vnum].bx * w * context->sx;
 	context->VertexBuffer[vnum].v.y = context->ay - context->VertexBuffer[vnum].by * w * context->sy;
 	context->VertexBuffer[vnum].v.z = context->az + context->VertexBuffer[vnum].bz * w * context->sz;
-	context->VertexBuffer[vnum].v.w = w; 
+	context->VertexBuffer[vnum].v.w = w;
 
 	if(context->ZOffset_State == GL_TRUE)
 		context->VertexBuffer[vnum].v.z += context->ZOffset;
@@ -1022,10 +1022,10 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 
 			fsign = (float)(-context->CurrentCullSign);
 			i = first+1;
-   
+
 			x0 = x(0);
 			y0 = y(0);
-     
+
 			x1 = x(i)   - x0;
 			y1 = y(i)   - y0;
 			x2 = x(i+1) - x0;
@@ -1038,13 +1038,13 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 			{
 				backface = 0;
 				oldfirst = first;
-	
+
 				if(area < 0.f)
 				{
 					first++;
 					area = 0.f;
 				}
-	
+
 				do
 				{
 					x1 = x2;
@@ -1054,7 +1054,7 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 
 					area2 = y2*x1 - x2*y1;
 					area2 *= fsign;
-	
+
 					if(area2 < 0.f)
 					{
 						if(first == i)
@@ -1197,7 +1197,7 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 
 			size = count;
 			first = 0;
-	
+
 			x0 = x(0);
 			y0 = y(0);
 			x1 = x(1) - x0;
@@ -1215,7 +1215,7 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 					first++;
 					area = 0.f;
 				}
-	
+
 				backface = 0;
 				i = 1;
 
@@ -1228,7 +1228,7 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 
 					area2 = y2*x1 - x2*y1;
 					area2 *= fsign;
-	
+
 					if(area2 < 0.f)
 					{
 						if(first == i)
@@ -1283,13 +1283,8 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 	{
 		for(i=1, triangle=0; i < count-1; i++, triangle++)
 		{
-			local_and = vbase[idx[0]].outcode
-				& vbase[idx[i]].outcode
-				& vbase[idx[i+1]].outcode;
-
-			local_or = vbase[idx[0]].outcode
-				| vbase[idx[i]].outcode
-				| vbase[idx[i+1]].outcode;
+			local_and = vbase[idx[0]].outcode & vbase[idx[i]].outcode & vbase[idx[i+1]].outcode;
+			local_or = vbase[idx[0]].outcode | vbase[idx[i]].outcode | vbase[idx[i+1]].outcode;
 
 			if (local_and == 0) // if the local and code is zero, we're not
 			{
@@ -1300,7 +1295,7 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 
 			else
 			{
-				visible[triangle] = GL_FALSE;	 
+				visible[triangle] = GL_FALSE;
 				backface++;
 			}
 		}
@@ -1310,20 +1305,15 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 	{
 		for(i=1, triangle=0; i < count-1; i++, triangle++)
 		{
-			local_and = vbase[idx[0]].outcode
-				& vbase[idx[i]].outcode
-				& vbase[idx[i+1]].outcode;
-
-			local_or = vbase[idx[0]].outcode
-				| vbase[idx[i]].outcode
-				| vbase[idx[i+1]].outcode;
+			local_and = vbase[idx[0]].outcode & vbase[idx[i]].outcode & vbase[idx[i+1]].outcode;
+			local_or = vbase[idx[0]].outcode | vbase[idx[i]].outcode | vbase[idx[i+1]].outcode;
 
 			if (local_and == 0) // if the local and code is zero, we're not
 			{
 				complete[triangle] = local_or;
 
 				if(local_or & MGL_CLIP_NEGW)
-				{	
+				{
 					visible[triangle] = GL_TRUE;
 					backface = 0;
 				}
@@ -1342,7 +1332,7 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 
 			else
 			{
-				visible[triangle] = GL_FALSE;	 
+				visible[triangle] = GL_FALSE;
 				backface++;
 			}
 		}
@@ -1438,7 +1428,7 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 				vone  = PBUF[pnum].first;
 				vzero = vone-1;
 				k = vzero + PBUF[pnum].numverts;
- 
+
 				for(i=vone; i<k; i++)
 				{
 					if(context->VertexBuffer[idx[i]].outcode == 0)
@@ -1451,8 +1441,7 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 				k = idx[vzero];
 				idx[vzero] = idx[0];
 
-				W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD,
-					PBUF[pnum].numverts, (void*)&(idx[vzero]));
+				W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, PBUF[pnum].numverts, (void*)&(idx[vzero]));
 
 				idx[vzero] = k;
 
@@ -1469,8 +1458,7 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 				k = idx[vzero];
 				idx[vzero] = idx[0];
 
-				W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD,
-					PBUF[pnum].numverts, (void*)&(idx[vzero]));
+				W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRIFAN, W3D_INDEX_UWORD, PBUF[pnum].numverts, (void*)&(idx[vzero]));
 
 				idx[vzero] = k;
 
@@ -1509,7 +1497,7 @@ static void E_DrawTriFan(GLcontext context, const int count, UWORD *idx)
 				fan.vertexcount = p->numverts;
 
 				W3D_DrawTriFanV(context->w3dContext, &fan);
-			}		
+			}
 		}
 
 		else
@@ -1644,13 +1632,13 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 
 				area = y2*x1 - x2*y1;
 				area *= fsign;
- 
+
 				if(area < 0.f)
 				{
 					first++;
 					area = 0.f;
 				}
-	
+
 				do
 				{
 					fsign = -fsign;
@@ -1666,7 +1654,7 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 
 					area2 = y2*x1 - x2*y1;
 					area2 *= fsign;
-	
+
 					if(area2 < 0.f)
 					{
 						if(first == i)
@@ -1827,11 +1815,11 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 					first++;
 					area = 0.f;
 				}
-	
+
 				i = 1;
 
 				do
-				{	
+				{
 					fsign = -fsign;
 
 					x1 = a2 - a1;
@@ -1845,7 +1833,7 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 
 					area2 = y2*x1 - x2*y1;
 					area2 *= fsign;
-	
+
 					if(area2 < 0.f)
 					{
 						if(first == i)
@@ -1870,7 +1858,7 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 
 			if(area >= context->MinTriArea)
 			{
-				W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, W3D_INDEX_UWORD, size, (void*)&idx[first]); 
+				W3D_DrawElements(context->w3dContext, W3D_PRIMITIVE_TRISTRIP, W3D_INDEX_UWORD, size, (void*)&idx[first]);
 			}
 
 			#undef x
@@ -1886,13 +1874,8 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 	{
 		for(i=0; i<count-2; i++)
 		{
-			local_and = vbase[idx[i]].outcode
-				& vbase[idx[i+1]].outcode
-				& vbase[idx[i+2]].outcode;
-
-			local_or = vbase[idx[i]].outcode
-				| vbase[idx[i+1]].outcode
-				| vbase[idx[i+2]].outcode;
+			local_and = vbase[idx[i]].outcode & vbase[idx[i+1]].outcode & vbase[idx[i+2]].outcode;
+			local_or = vbase[idx[i]].outcode | vbase[idx[i+1]].outcode | vbase[idx[i+2]].outcode;
 
 			if (local_and == 0) // if the local and code is zero, we're not
 			{
@@ -1903,7 +1886,7 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 
 			else
 			{
-				visible[i] = GL_FALSE;	  
+				visible[i] = GL_FALSE;
 				backface++;
 			}
 		}
@@ -1915,13 +1898,8 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 
 		for(i=0; i<count-2; i++)
 		{
-			local_and = vbase[idx[i]].outcode
-				& vbase[idx[i+1]].outcode
-				& vbase[idx[i+2]].outcode;
-
-			local_or = vbase[idx[i]].outcode
-				| vbase[idx[i+1]].outcode
-				| vbase[idx[i+2]].outcode;
+			local_and = vbase[idx[i]].outcode & vbase[idx[i+1]].outcode & vbase[idx[i+2]].outcode;
+			local_or = vbase[idx[i]].outcode | vbase[idx[i+1]].outcode | vbase[idx[i+2]].outcode;
 
 			if (local_and == 0) // if the local and code is zero, we're not
 			{
@@ -1929,7 +1907,7 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 
 				if(local_or & MGL_CLIP_NEGW)
 				{
-					visible[i] = GL_TRUE;	 
+					visible[i] = GL_TRUE;
 					backface = 0;
 				}
 
@@ -1947,7 +1925,7 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 
 			else
 			{
-				visible[i] = GL_FALSE;	  
+				visible[i] = GL_FALSE;
 				backface++;
 			}
 
@@ -1979,7 +1957,7 @@ static void E_DrawTriStrip(GLcontext context, const int count, const UWORD *idx)
 		else
 		{
 			if (complete[i]) // case 1
-			{	
+			{
 				static PolyBuffer clip;
 
 				clip.verts[0] = offs+idx[i];
@@ -2157,7 +2135,7 @@ static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWO
 			}
 
 			else
-			{	
+			{
 				for(i=0; i<count; i+=3)
 				{
 					if(E_CheckTriLocked(context, &vbase[idx[i]], &vbase[idx[i+1]], &vbase[idx[i+2]]) == GL_TRUE)
@@ -2190,7 +2168,7 @@ static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWO
 			}
 
 			else
-			{	     
+			{
 				for(i=0; i<count; i+=3)
 				{
 					local_and = vbase[idx[i]].outcode & vbase[idx[i+1]].outcode & vbase[idx[i+2]].outcode;
@@ -2302,7 +2280,7 @@ static void E_DrawTriangles_Locked(GLcontext context, const int count, const UWO
 			{
 				V_ToScreen(context, i);
 			}
-		} 
+		}
 
 		i = 0;
 
@@ -2328,7 +2306,7 @@ static void E_DrawTriangles(GLcontext context, const int count, const UWORD *idx
 {
 	int	i;
 	ULONG	local_and, local_or;
-	static UWORD trichain[MGL_MAXVERTS*4]; //should be enough 
+	static UWORD trichain[MGL_MAXVERTS*4]; //should be enough
 	static GLuint visible;
 	int	cnum, free, chainverts;
 
@@ -2376,7 +2354,7 @@ static void E_DrawTriangles(GLcontext context, const int count, const UWORD *idx
 				}
 			}
 		}
-	 
+
 		else
 		{
 			if(context->CullFace_State == GL_FALSE || (local_or & MGL_CLIP_NEGW))
@@ -2428,7 +2406,7 @@ static void E_DrawTriangles(GLcontext context, const int count, const UWORD *idx
 		do
 		{
 			p = &CBUF[i];
-	
+
 			for(j=0; j<p->numverts; j++)
 			{
 				int vert = p->verts[j]; // unsigned maybe - Cowcat
@@ -2497,10 +2475,10 @@ static void E_DrawFlatFan(GLcontext context, const int count, const UWORD *idx)
 
 //Range guardband-check added 18-05-02 (surgeon)
 
-#if 0 // not used - Cowcat 
+#if 0 // not used - Cowcat
 static INLINE ULONG TestRangeGuardBand(GLcontext context, const GLuint first, const GLsizei count)
 {
-	int i; 
+	int i;
 	MGLVertex *v;
 	ULONG ret;
 
@@ -2674,13 +2652,13 @@ void GLLockArrays(GLcontext context, GLuint first, GLsizei count)
 #ifndef GL_NOERRORCHECK
 	if(!(context->ClientState & GLCS_VERTEX))
 	{
-		GLFlagError(context, 1, GL_INVALID_OPERATION);	      
+		GLFlagError(context, 1, GL_INVALID_OPERATION);
 		return; //added 28-JUL-02
 	}
 
 	if(context->VertexArrayPipeline == GL_FALSE)
 	{
-		GLFlagError(context, 1, GL_INVALID_OPERATION);	      
+		GLFlagError(context, 1, GL_INVALID_OPERATION);
 		return; //added 01-SEP-02
 	}
 #endif
@@ -2710,7 +2688,7 @@ void GLLockArrays(GLcontext context, GLuint first, GLsizei count)
 		context->ArrayPointer.state |= AP_COMPILED;
 
 		ProjectRangeByOutcode(context, first, count);
-  
+
 		context->w3dContext->VPMode = W3D_VERTEX_F_F_D;
 		context->w3dContext->VertexPointer = (void *)&(context->VertexBuffer[context->ArrayPointer.transformed].v.x);
 	}
@@ -2875,7 +2853,7 @@ void GLDrawElements(GLcontext context, GLenum mode, GLsizei count, GLenum type, 
 #ifndef GL_NOERRORCHECK
 	if(!(context->ClientState & GLCS_VERTEX))
 	{
-		GLFlagError(context, 1, GL_INVALID_OPERATION);	      
+		GLFlagError(context, 1, GL_INVALID_OPERATION);
 		return; //added 28-JUL-02
 	}
 #endif
@@ -2985,7 +2963,7 @@ void GLDrawElements(GLcontext context, GLenum mode, GLsizei count, GLenum type, 
 	#endif
 
 	#ifdef __VBCC__ // just for Q3 - Cowcat
-	
+
 	GLuint	ShadeModel_bypass = 0;
 
 	if((context->ShadeModel == GL_FLAT) && (context->ClientState & GLCS_COLOR))

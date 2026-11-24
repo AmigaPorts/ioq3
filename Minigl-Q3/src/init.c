@@ -72,7 +72,7 @@ GLboolean MGLInit(void)
 	    if (!Warp3DBase)    printf("- Warp3D.library\n");
 #endif
 	    if (!CyberGfxBase)  printf("- cybergraphics.library\n");
-	    
+
 	    MGLTerm();
 	    return GL_FALSE;
 	}
